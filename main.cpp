@@ -7,7 +7,10 @@
 #include "main.h"
 
 
-string g_infilename;
+string g_infilename;    // Input file name
+bool g_quiet = false;   // Be quiet
+bool g_showtokens = false;  // Show tokenization and quit
+bool g_showparsing = false;  // Show parsing result and quit
 
 SourceModel g_source;
 IntermedModel g_intermed;
@@ -129,24 +132,59 @@ void ShowGeneration()
     }
 }
 
-int main(int argc, char* argv[])
+void ParseCommandLine(int argc, char** argv)
 {
-    std::cout << "BasicCompiler  " << __DATE__ << std::endl;
+    for (int argn = 1; argn < argc; argn++)
+    {
+        const char* arg = argv[argn];
+        
+        if (*arg == '-'
+#ifdef _MSC_VER
+            || *arg == '/'
+#endif
+            )  // Parse options
+        {
+            if (_stricmp(arg + 1, "q") == 0 || _stricmp(arg, "--quiet") == 0)
+                g_quiet = true;
+            if (_stricmp(arg + 1, "t") == 0 || _stricmp(arg, "--showtokens") == 0)
+                g_showtokens = true;
+            if (_stricmp(arg + 1, "p") == 0 || _stricmp(arg, "--showparsing") == 0)
+                g_showparsing = true;
+        }
+        else
+        {
+            g_infilename = arg;
+        }
+    }
 
-    if (argc <= 1)
+    // Validate command line params
+    if (g_infilename.empty())
     {
         //print_help();
         std::cerr << "Input file not specified." << std::endl;
         exit(EXIT_FAILURE);
     }
+}
 
-    g_infilename = argv[1];
+int main(int argc, char* argv[])
+{
+    ParseCommandLine(argc, argv);
 
-    //std::cout << std::endl;
-    //ShowTokenization();
-    
-    std::cout << std::endl;
-    ShowParsing();
+    if (!g_quiet)
+        std::cout << "BasicCompiler  " << __DATE__ << std::endl;
+
+    if (g_showtokens)
+    {
+        std::cout << std::endl;
+        ShowTokenization();
+        return EXIT_SUCCESS;
+    }
+    if (g_showparsing)
+    {
+        std::cout << std::endl;
+        ShowParsing();
+        return EXIT_SUCCESS;
+    }
 
     //std::cout << std::endl;
     //ShowGeneration();
