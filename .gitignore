@@ -1,5 +1,6 @@
 /Debug
 /Release
+/x64
 *.ncb
 *.suo
 *.user
@@ -9,3 +10,4 @@
 /ipch
 *.sdf
 *.opensdf
+/*.ASC

@@ -84,6 +84,8 @@ public:
                 symbol == '+' || symbol == '-' || symbol == '*' || symbol == '/' || symbol == '\\' || symbol == '^') ||
             type == TokenTypeKeyword && keyword == KeywordMOD;
     }
+    string GetTokenTypeStr() const;
+    void Dump(std::ostream& out) const;
 };
 
 struct ExpressionModel;
@@ -99,6 +101,7 @@ public:
     ExpressionNode() : left(-1), right(-1), brackets(false) {}
 public:
     int GetOperationPriority() const;
+    void Dump(std::ostream& out) const;
 };
 
 struct ExpressionModel
@@ -149,7 +152,7 @@ class Parser;
 typedef void (Parser::* ParseMethodRef)(SourceLineModel&);
 struct ParserKeywordSpec
 {
-    const char* text;
+    KeywordIndex keyword;
     ParseMethodRef methodref;
 };
 

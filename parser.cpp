@@ -1,5 +1,6 @@
 
 #include <cassert>
+#include <iomanip>
 
 #include "main.h"
 
@@ -32,25 +33,53 @@ int ExpressionNode::GetOperationPriority() const
     return 0;
 }
 
+void ExpressionNode::Dump(std::ostream& out) const
+{
+    out << "{Node ";
+
+    if (left == -1)
+        out << "  ";
+    else
+        out << std::right << std::setw(2) << left;
+    std::cout << ":";
+    if (right == -1)
+        out << "  ";
+    else
+        out << std::left << std::setw(2) << right;
+    int pri = GetOperationPriority();
+    if (pri > 0)
+        out << " !" << pri;
+    else
+        out << "   ";
+    out << " ";
+
+    node.Dump(out);
+
+    if (brackets)
+        std::cout << " brackets";
+
+    out << " }";
+}
+
 
 const ParserKeywordSpec Parser::m_keywordspecs[] =
 {
-    { "BEEP",	&Parser::ParseBeep },
-    { "CLS",	&Parser::ParseCls },
-    { "END",	&Parser::ParseEnd },
-    { "FOR",	&Parser::ParseFor },
-    { "GOSUB",	&Parser::ParseGosub },
-    { "GOTO",	&Parser::ParseGoto },
-    { "IF",	    &Parser::ParseIf },
-    { "LET",	&Parser::ParseLet },
-    { "NEXT",	&Parser::ParseNext },
-    { "ON",     &Parser::ParseOn },
-    { "PRINT",	&Parser::ParsePrint },
-    { "REM",    &Parser::ParseRem },
-    { "RETURN", &Parser::ParseReturn },
-    { "STOP",   &Parser::ParseStop },
-    { "TRON",   &Parser::ParseTron },
-    { "TRON",   &Parser::ParseTroff },
+    { KeywordBEEP,	    &Parser::ParseBeep },
+    { KeywordCLS,	    &Parser::ParseCls },
+    { KeywordEND,	    &Parser::ParseEnd },
+    { KeywordFOR,	    &Parser::ParseFor },
+    { KeywordGOSUB,     &Parser::ParseGosub },
+    { KeywordGOTO,	    &Parser::ParseGoto },
+    { KeywordIF,        &Parser::ParseIf },
+    { KeywordLET,	    &Parser::ParseLet },
+    { KeywordNEXT,	    &Parser::ParseNext },
+    { KeywordON,        &Parser::ParseOn },
+    { KeywordPRINT,	    &Parser::ParsePrint },
+    { KeywordREM,       &Parser::ParseRem },
+    { KeywordRETURN,    &Parser::ParseReturn },
+    { KeywordSTOP,      &Parser::ParseStop },
+    { KeywordTRON,      &Parser::ParseTron },
+    { KeywordTRON,      &Parser::ParseTroff },
 };
 
 
@@ -96,12 +125,30 @@ SourceLineModel Parser::ParseNextLine()
         return model;
     }
 
-    if (token.type != TokenTypeNumber)
+    if (token.type == TokenTypeEOL)  // Empty lines allowed at the end of file
     {
-        std::cerr << "ERROR at " << token.line << ":" << token.pos << " Line number not found." << std::endl;
-        exit(EXIT_FAILURE);
+        while (true)
+        {
+            token = GetNextToken();
+            if (token.type == TokenTypeEOL || token.type == TokenTypeDivider)
+                continue;
+            if (token.type == TokenTypeEOF)
+            {
+                model.number = 0;
+                return model;
+            }
+
+            Error(model, token, "Unexpected text after empty line.");
+            return model;
+        }
     }
 
+    if (token.type != TokenTypeNumber)
+    {
+        Error(model, token, " Line number not found.");
+        return model;
+    }
+    //TODO: Check if line number in proper format
     model.number = atoi(token.text.c_str());
     //TODO: Check for 0 and max
 
@@ -142,11 +189,10 @@ SourceLineModel Parser::ParseNextLine()
     model.statement = token;
 
     // Find keyword parser implementation
-    const char* kstr = token.text.c_str();
     ParseMethodRef methodref = nullptr;
     for (int i = 0; i < sizeof(m_keywordspecs) / sizeof(m_keywordspecs[0]); i++)
     {
-        if (_stricmp(kstr, m_keywordspecs[i].text) == 0)
+        if (token.keyword == m_keywordspecs[i].keyword)
         {
             methodref = m_keywordspecs[i].methodref;
             break;
@@ -234,7 +280,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
             // Put the token into the list
             ExpressionNode node;
             node.node = token;
-            int index = expression.nodes.size();
+            int index = (int)expression.nodes.size();
 
             // Put node in the tree
             int pred = prev < 0 ? expression.root : prev;
@@ -298,7 +344,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                 }
 
                 // Move expression nodes in the list
-                int shift = expression.nodes.size();
+                int shift = (int)expression.nodes.size();
                 for (size_t i = 0; i < exprin.nodes.size(); i++)
                 {
                     ExpressionNode& node = exprin.nodes[i];
@@ -363,7 +409,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                     //TODO: Validate number of params for this function
                 }
 
-                index = expression.nodes.size();
+                index = (int)expression.nodes.size();
                 expression.nodes.push_back(node);
             }
             else  // Other token like Ident
@@ -371,7 +417,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                 // Put the token into the list
                 ExpressionNode node;
                 node.node = token;
-                index = expression.nodes.size();
+                index = (int)expression.nodes.size();
                 expression.nodes.push_back(node);
             }
 
@@ -533,6 +579,14 @@ void Parser::ParseGoto(SourceLineModel& model)
 
 void Parser::ParseIf(SourceLineModel& model)
 {
+    Token token = PeekNextToken();
+    ExpressionModel expr = ParseExpression(model);
+    if (expr.IsEmpty())
+    {
+        Error(model, token, "IF condition should not be empty.");
+        return;
+    }
+
     //TODO
 
     SkipTilEnd();//STUB
@@ -566,8 +620,6 @@ void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
         Error(model, token, "LET \'=\' symbol expected.");
         return;
     }
-
-    model.ident = token;
 
     ExpressionModel expr = ParseExpression(model);
     model.args.push_back(expr);
@@ -613,11 +665,24 @@ void Parser::ParseNext(SourceLineModel& model)
 
 void Parser::ParseOn(SourceLineModel& model)
 {
-    Token token = GetNextToken();
+    Token token = PeekNextToken();
+    ExpressionModel expr = ParseExpression(model);
+    if (expr.IsEmpty())
+    {
+        Error(model, token, "ON expression should not be empty.");
+        return;
+    }
+
+    token = GetNextToken();
     if (token.type == TokenTypeDivider)
         token = GetNextToken();
+    if (token.type != TokenTypeKeyword || (token.keyword != KeywordGOTO && token.keyword != KeywordGOSUB))
+    {
+        Error(model, token, "Expected GOTO or GOSUB in ON statement.");
+        return;
+    }
 
-    //TODO
+    //TODO: Loop for line numbers, comma separated
 
     SkipTilEnd(); //STUB
 }

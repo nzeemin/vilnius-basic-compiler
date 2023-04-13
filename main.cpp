@@ -7,7 +7,7 @@
 #include "main.h"
 
 
-string infilename;
+string g_infilename;
 
 SourceModel g_source;
 IntermedModel g_intermed;
@@ -16,7 +16,7 @@ IntermedModel g_intermed;
 void ShowTokenization()
 {
     std::ifstream instream;
-    instream.open(infilename);
+    instream.open(g_infilename);
     if (!instream.is_open())
     {
         std::cerr << "Failed to open the Input file." << std::endl;
@@ -28,33 +28,12 @@ void ShowTokenization()
     while (true)
     {
         Token token = tokenizer.GetNextToken();
+
+        token.Dump(std::cout);
+        std::cout << std::endl;
+
         if (token.type == TokenTypeEOF)
             break;
-
-        switch (token.type)
-        {
-        case TokenTypeNumber:
-            std::cout << "Number\t" << token.text << std::endl;
-            break;
-        case TokenTypeString:
-            std::cout << "String\t" << token.text << std::endl;
-            break;
-        case TokenTypeKeyword:
-            std::cout << "Keyword\t" << token.text << std::endl;
-            break;
-        case TokenTypeIdentifier:
-            std::cout << "Ident\t" << token.text << std::endl;
-            break;
-        case TokenTypeDivider:
-            std::cout << "Divider\t\'" << token.text << "\'" << std::endl;
-            break;
-        case TokenTypeSymbol:
-            std::cout << "Symbol\t\'" << token.symbol << "\'" << std::endl;
-            break;
-        case TokenTypeEOL:
-            std::cout << "EOL" << std::endl;
-            break;
-        }
     }
 
     instream.close();
@@ -63,35 +42,25 @@ void ShowTokenization()
 void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
 {
     std::cout << std::endl << std::setw(indent * 2) << "  " << number << ": root:" << expr.root;
-    std::cout << " nodes(" << expr.nodes.size() << "):[";
+    std::cout << " nodes(" << expr.nodes.size() << "): [";
     for (size_t j = 0; j < expr.nodes.size(); j++)
     {
         ExpressionNode& node = expr.nodes[j];
-        std::cout << std::endl << std::setw(indent * 2 + 2) << "  " << j << ": " << node.node.symbol << node.node.text;
-        std::cout << "  ";
-        if (node.left >= 0 || node.right >= 0)
-        {
-            if (node.left == -1)
-                std::cout << "_";
-            else
-                std::cout << node.left;
-            std::cout << ":";
-            if (node.right == -1)
-                std::cout << "_";
-            else
-                std::cout << node.right;
-        }
-        int pri = node.GetOperationPriority();
-        if (pri > 0)
-            std::cout << " !" << pri;
-        if (node.brackets)
-            std::cout << "  brackets";
+        std::cout << std::endl << std::setw(indent * 2 + 2) << "  " << j << ": ";
+        if (!node.node.text.empty())
+            std::cout << std::left << std::setw(6) << node.node.text;
+        if (node.node.type == TokenTypeSymbol)
+            std::cout << std::left << std::setw(6) << node.node.symbol;
+        std::cout << " ";
+
+        node.Dump(std::cout);
+
         if (j == expr.root)
-            std::cout << "  root";
+            std::cout << " root";
 
         if (node.args.size() > 0)
         {
-            std::cout << " args(" << node.args.size() << "):[";
+            std::cout << " args(" << node.args.size() << "): [";
             for (size_t i = 0; i < node.args.size(); i++)
             {
                 ExpressionModel& exprin = node.args[i];
@@ -106,7 +75,7 @@ void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
 void ShowParsing()
 {
     std::ifstream instream;
-    instream.open(infilename);
+    instream.open(g_infilename);
     if (!instream.is_open())
     {
         std::cerr << "Failed to open the Input file." << std::endl;
@@ -130,7 +99,7 @@ void ShowParsing()
             std::cout << " ident:" << line.ident.text;
         if (line.args.size() > 0)
         {
-            std::cout << " args(" << line.args.size() << "):[";
+            std::cout << " args(" << line.args.size() << "): [";
             for (size_t i = 0; i < line.args.size(); i++)
             {
                 ExpressionModel& expr = line.args[i];
@@ -171,7 +140,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    infilename = argv[1];
+    g_infilename = argv[1];
 
     //std::cout << std::endl;
     //ShowTokenization();

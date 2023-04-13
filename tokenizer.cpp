@@ -1,5 +1,6 @@
 
 #include <cassert>
+#include <iomanip>
 
 #include "main.h"
 
@@ -46,7 +47,6 @@ bool IsFunctionKeyword(KeywordIndex keyword)
         keyword == KeywordFN || keyword == KeywordUSR;
 }
 
-
 KeywordIndex GetKeywordIndex(string& str)
 {
     const char* cstr = str.c_str();
@@ -57,6 +57,37 @@ KeywordIndex GetKeywordIndex(string& str)
     }
 
     return KeywordNone;
+}
+
+
+string Token::GetTokenTypeStr() const
+{
+    switch (type)
+    {
+    case TokenTypeNone:     return "None";
+    case TokenTypeNumber:   return "Number";
+    case TokenTypeString:   return "String";
+    case TokenTypeDivider:  return "Divider";
+    case TokenTypeKeyword:  return "Keyword";
+    case TokenTypeIdentifier: return "Ident";
+    case TokenTypeSymbol:   return "Symbol";
+    case TokenTypeEOL:      return "EOL";
+    case TokenTypeEOF:      return "EOF";
+    default:
+        return "Unknown";
+    }
+}
+
+void Token::Dump(std::ostream& out) const
+{
+    out << "{Token ";
+    out << "line:" << std::right << std::setw(3) << line << " pos:" << std::setw(3) << pos;
+    out << " type: " << std::left << std::setw(7) << GetTokenTypeStr();
+    if (!text.empty())
+        out << " text:\"" << text << "\"";  //TODO: Escape special chars
+    if (type == TokenTypeSymbol || symbol != 0)
+        out << " symb:\'" << symbol << "\'";  //TODO: Escape special chars
+    out << " }";
 }
 
 
@@ -204,7 +235,6 @@ Token Tokenizer::GetNextToken()
     if (ch == ' ' || ch == '\t')
     {
         token.text = ch;
-        token.symbol = ch;
 
         while (true)
         {
