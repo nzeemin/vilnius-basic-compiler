@@ -62,7 +62,7 @@ enum TokenType
 enum ValueType
 {
     ValueTypeNone       = 0,
-    ValueTypeInteger    = 1,    // Integer value in range -32767..32767
+    ValueTypeInteger    = 1,    // Integer value in range -32768..32767
     ValueTypeSingle     = 2,    // Float value single precision, 4 bytes
     //ValueTypeDouble     = 3,    // Float value double precision, 8 bytes (maybe in the future)
     ValueTypeString     = 10,   // String of length 0..255
@@ -76,8 +76,12 @@ struct Token
     char	    symbol;
     KeywordIndex keyword;
     ValueType   vtype;
+    double      dvalue;
+    bool        constval;       // Flag for constant value
 public:
-    Token() : line(0), pos(0), type(TokenTypeNone), symbol(0), keyword(KeywordNone), vtype(ValueTypeNone) {}
+    Token() :
+        line(0), pos(0), type(TokenTypeNone), symbol(0), keyword(KeywordNone), vtype(ValueTypeNone),
+        dvalue(0), constval(false) {}
 public:
     bool IsOpenBracket() const { return type == TokenTypeSymbol && symbol == '('; }
     bool IsCloseBracket() const { return type == TokenTypeSymbol && symbol == ')'; }
@@ -98,6 +102,7 @@ public:
     }
     string GetTokenTypeStr() const;
     string GetTokenVTypeStr() const;
+    void ParseDValue();
     void Dump(std::ostream& out) const;
 };
 
@@ -123,6 +128,8 @@ struct ExpressionModel
     int root;           // Index of the root node or -1 if the expression is empty
 public:
     bool IsEmpty() { return nodes.size() == 0; }
+    int GetParentIndex(int index);
+    int AddOperationNode(ExpressionNode& node, int prev);  // Add binary operation node into the tree
 };
 
 struct SourceLineModel
@@ -153,6 +160,7 @@ class Tokenizer
     std::istream* m_pInput;
     int m_line, m_pos;
     string m_text;      // Line text up to current position
+    bool m_atend;       // Flag indicating that we should clear m_text on next char
 public:
     Tokenizer(std::istream* pInput);
 public:

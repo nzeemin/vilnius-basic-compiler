@@ -61,6 +61,18 @@ void ExpressionNode::Dump(std::ostream& out) const
     out << " }";
 }
 
+int ExpressionModel::GetParentIndex(int index)
+{
+    for (int i = 0; i < (int)nodes.size(); i++)
+    {
+        ExpressionNode& node = nodes[i];
+        if (node.left == index || node.right == index)
+            return i;
+    }
+
+    return -1;  // Not found
+}
+
 
 const ParserKeywordSpec Parser::m_keywordspecs[] =
 {
@@ -236,6 +248,50 @@ void Parser::SkipTilEnd()
     }
 }
 
+int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
+{
+    int index = (int)nodes.size();
+    int pred = prev < 0 ? root : prev;
+
+    {
+        ExpressionNode& nodepred = nodes[pred];
+        if (!nodepred.node.IsBinaryOperation() || nodepred.brackets)
+        {
+            node.left = pred;
+            root = index;
+            nodes.push_back(node);
+            return index;
+        }
+    }
+
+    int pri = node.GetOperationPriority();
+    while (true)
+    {
+        ExpressionNode& nodepred = nodes[pred];
+        int pripred = nodepred.GetOperationPriority();
+
+        if (nodepred.brackets || pripred > pri)
+        {
+            node.left = nodepred.right;
+            nodepred.right = index;
+            break;
+        }
+
+        int parent = GetParentIndex(pred);
+        if (parent < 0)
+        {
+            node.left = pred;
+            root = index;
+            break;
+        }
+
+        pred = parent;
+    }
+
+    nodes.push_back(node);
+    return index;
+}
+
 ExpressionModel Parser::ParseExpression(SourceLineModel& model)
 {
     ExpressionModel expression;
@@ -291,42 +347,8 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
             // Put the token into the list
             ExpressionNode node;
             node.node = token;
-            int index = (int)expression.nodes.size();
 
-            // Put node in the tree
-            int pred = prev < 0 ? expression.root : prev;
-            ExpressionNode& nodepred = expression.nodes[pred];
-            if (nodepred.node.IsBinaryOperation() && !nodepred.brackets)
-            {
-                int pripred = nodepred.GetOperationPriority();
-                int pri = node.GetOperationPriority();
-
-                //TODO: Bubble up according to priority
-                if (nodepred.left < 0)
-                    nodepred.left = index;
-                else if (nodepred.right < 0)
-                    nodepred.right = index;
-                else
-                {
-                    if (pripred <= pri)
-                    {
-                        node.left = pred;
-                        expression.root = index;
-                    }
-                    else
-                    {
-                        node.left = nodepred.right;
-                        nodepred.right = index;
-                    }
-                }
-            }
-            else {
-                node.left = pred;
-                expression.root = index;
-            }
-
-            expression.nodes.push_back(node);
-            prev = index;
+            prev = expression.AddOperationNode(node, prev);
         }
         else  // Current note should be non-operation
         {
@@ -701,12 +723,30 @@ void Parser::ParseOn(SourceLineModel& model)
 //TODO: LPRINT
 void Parser::ParsePrint(SourceLineModel& model)
 {
+    Token token = PeekNextToken();
+    if (token.type == TokenTypeDivider)
+    {
+        GetNextToken();
+        token = PeekNextToken();
+    }
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;  // Empty PRINT
+
     //TODO: Symbol #, optional
+
+    //TODO: Check for end
 
     ExpressionModel expr = ParseExpression(model);
     model.args.push_back(expr);
 
-    //TODO: Check for end
+    token = PeekNextToken();
+    if (token.type == TokenTypeDivider)
+    {
+        GetNextToken();
+        token = PeekNextToken();
+    }
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;
 
     //TODO: Get separator
 
