@@ -78,11 +78,29 @@ string Token::GetTokenTypeStr() const
     }
 }
 
+string Token::GetTokenVTypeStr() const
+{
+    switch (vtype)
+    {
+    case ValueTypeNone:     return "None";
+    case ValueTypeInteger:  return "Integer";
+    case ValueTypeSingle:   return "Single";
+    //case ValueTypeDouble:   return "Double";
+    case ValueTypeString:   return "String";
+    default:
+        return "unk";
+    }
+}
+
 void Token::Dump(std::ostream& out) const
 {
     out << "{Token ";
     out << "line:" << std::right << std::setw(3) << line << " pos:" << std::setw(3) << pos;
-    out << " type: " << std::left << std::setw(7) << GetTokenTypeStr();
+    out << " type: " << std::left << std::setw(7);
+    if (type == TokenTypeNumber)
+        out << GetTokenVTypeStr();
+    else
+        out << GetTokenTypeStr();
     if (!text.empty())
         out << " text:\"" << text << "\"";  //TODO: Escape special chars
     if (type == TokenTypeSymbol || symbol != 0)
@@ -106,14 +124,19 @@ char Tokenizer::GetNextChar()
     char ch = m_pInput->get();
     if (ch == -1)
         return 0;
+    //TODO: if (ch == 0)
 
     if (ch == '\n')
     {
         m_line++;  m_pos = 1;
+        m_text.clear();
+        return ch;
     }
-    else if (ch != '\r')
-        m_pos++;
+    if (ch == '\r')
+        return ch;
 
+    m_text.append(1, ch);
+    m_pos++;
     return ch;
 }
 
@@ -185,10 +208,14 @@ Token Tokenizer::GetNextToken()
         return token;
     }
 
-    if (ch >= '0' && ch <= '9')  // Number
+    char ch2 = PeekNextChar();
+    if (ch >= '0' && ch <= '9' || ch == '.' ||
+        ch == '-' && (ch2 >= '0' && ch2 <= '9' || ch2 == '.'))  // Number
     {
         token.text = ch;
-        bool hasdot = false;
+        token.vtype = ValueTypeSingle;  // by default
+        bool hasdot = (ch == '.');
+        bool hasDorE = false;
         while (true)
         {
             ch = PeekNextChar();
@@ -200,6 +227,31 @@ Token Tokenizer::GetNextToken()
                     break;
                 token.text.append(1, GetNextChar());
                 hasdot = true;
+            }
+            else if (/*ch == 'D' ||*/ ch == 'E')
+            {
+                if (hasDorE)
+                    break;
+                token.text.append(1, GetNextChar());
+                hasDorE = true;
+                //if (ch == 'E')
+                token.vtype = ValueTypeSingle;
+                //else if (ch == 'D')
+                //    token.vtype = ValueTypeDouble;
+                ch = PeekNextChar();
+                if (ch == '-')
+                    token.text.append(1, GetNextChar());
+            }
+            else if (ch == '%' || ch == '!' || ch == '#')
+            {
+                token.text.append(1, GetNextChar());
+                if (ch == '%')
+                    token.vtype = ValueTypeInteger;
+                else if (ch == '!')
+                    token.vtype = ValueTypeSingle;
+                //else if (ch == '#')
+                //    token.vtype = ValueTypeDouble;
+                break;
             }
             else
                 break;
@@ -213,7 +265,6 @@ Token Tokenizer::GetNextToken()
     if (ch == '\"')
     {
         token.text = ch;
-        token.symbol = ch;
 
         while (true)
         {

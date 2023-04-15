@@ -49,7 +49,7 @@ void Generator::ProcessEnd()
 
 bool Generator::ProcessLine()
 {
-    if (m_lineindex >= 99999)
+    if (m_lineindex > MAX_LINE_NUMBER)
         return false;
 
     if (m_lineindex < 0)
@@ -63,7 +63,7 @@ bool Generator::ProcessLine()
     if (m_lineindex >= (int)m_source->lines.size())
     {
         ProcessEnd();
-        m_lineindex = 99999;
+        m_lineindex = INT_MAX;
         return false;
     }
 

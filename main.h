@@ -11,6 +11,8 @@
 #define PATH_MAX    _MAX_PATH
 #endif
 
+const int MAX_LINE_NUMBER = 65535;
+
 typedef std::string string;
 typedef std::vector<string> stringvec;
 
@@ -57,6 +59,15 @@ enum TokenType
     TokenTypeEOF        = 101,
 };
 
+enum ValueType
+{
+    ValueTypeNone       = 0,
+    ValueTypeInteger    = 1,    // Integer value in range -32767..32767
+    ValueTypeSingle     = 2,    // Float value single precision, 4 bytes
+    //ValueTypeDouble     = 3,    // Float value double precision, 8 bytes (maybe in the future)
+    ValueTypeString     = 10,   // String of length 0..255
+};
+
 struct Token
 {
     int		    line, pos;
@@ -64,8 +75,9 @@ struct Token
     string	    text;
     char	    symbol;
     KeywordIndex keyword;
+    ValueType   vtype;
 public:
-    Token() : line(0), pos(0), type(TokenTypeNone), symbol(0), keyword(KeywordNone) {}
+    Token() : line(0), pos(0), type(TokenTypeNone), symbol(0), keyword(KeywordNone), vtype(ValueTypeNone) {}
 public:
     bool IsOpenBracket() const { return type == TokenTypeSymbol && symbol == '('; }
     bool IsCloseBracket() const { return type == TokenTypeSymbol && symbol == ')'; }
@@ -85,6 +97,7 @@ public:
             type == TokenTypeKeyword && keyword == KeywordMOD;
     }
     string GetTokenTypeStr() const;
+    string GetTokenVTypeStr() const;
     void Dump(std::ostream& out) const;
 };
 
@@ -139,10 +152,12 @@ class Tokenizer
 {
     std::istream* m_pInput;
     int m_line, m_pos;
+    string m_text;      // Line text up to current position
 public:
     Tokenizer(std::istream* pInput);
 public:
     Token GetNextToken();
+    string GetLineText() { return m_text; }
 private:
     char GetNextChar();
     char PeekNextChar();

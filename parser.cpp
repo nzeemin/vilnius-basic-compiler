@@ -145,12 +145,17 @@ SourceLineModel Parser::ParseNextLine()
 
     if (token.type != TokenTypeNumber)
     {
-        Error(model, token, " Line number not found.");
+        Error(model, token, "Line number not found.");
         return model;
     }
     //TODO: Check if line number in proper format
     model.number = atoi(token.text.c_str());
-    //TODO: Check for 0 and max
+    if (model.number <= 0 || model.number > MAX_LINE_NUMBER)
+    {
+        Error(model, token, "Line number is out of range.");
+        return model;
+    }
+    //TODO: Compare line number with previous line number
 
     token = GetNextToken();
     if (token.type == TokenTypeDivider)
@@ -182,7 +187,7 @@ SourceLineModel Parser::ParseNextLine()
 
     if (token.type != TokenTypeKeyword)
     {
-        std::cerr << "ERROR at line " << model.number << ": Keyword expected." << std::endl;
+        Error(model, token, "Keyword expected.");
         exit(EXIT_FAILURE);
     }
 
@@ -211,7 +216,13 @@ SourceLineModel Parser::ParseNextLine()
 
 void Parser::Error(SourceLineModel& model, Token& token, const char* message)
 {
-    std::cerr << "ERROR at " << token.line << ":" << token.pos << " line " << model.number << " - " << message;
+    std::cerr << "ERROR at " << token.line << ":" << token.pos << " line " << model.number << " - " << message << std::endl;
+    string linetext = m_tokenizer->GetLineText();
+    if (!linetext.empty())
+    {
+        std::cerr << linetext << std::endl;
+        std::cerr << std::right << std::setw(token.pos) << "^";
+    }
     exit(EXIT_FAILURE);
 }
 
