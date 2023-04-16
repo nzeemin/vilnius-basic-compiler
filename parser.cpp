@@ -5,6 +5,9 @@
 #include "main.h"
 
 
+//////////////////////////////////////////////////////////////////////
+// ExpressionNode
+
 int ExpressionNode::GetOperationPriority() const
 {
     if (brackets)
@@ -61,6 +64,10 @@ void ExpressionNode::Dump(std::ostream& out) const
     out << " }";
 }
 
+
+//////////////////////////////////////////////////////////////////////
+// ExpressionModel
+
 int ExpressionModel::GetParentIndex(int index)
 {
     for (int i = 0; i < (int)nodes.size(); i++)
@@ -74,26 +81,92 @@ int ExpressionModel::GetParentIndex(int index)
 }
 
 
+//////////////////////////////////////////////////////////////////////
+
+
 const ParserKeywordSpec Parser::m_keywordspecs[] =
 {
     { KeywordBEEP,	    &Parser::ParseBeep },
     { KeywordCLS,	    &Parser::ParseCls },
+    { KeywordCOLOR,	    &Parser::ParseColor },
     { KeywordEND,	    &Parser::ParseEnd },
     { KeywordFOR,	    &Parser::ParseFor },
     { KeywordGOSUB,     &Parser::ParseGosub },
     { KeywordGOTO,	    &Parser::ParseGoto },
     { KeywordIF,        &Parser::ParseIf },
     { KeywordLET,	    &Parser::ParseLet },
+    { KeywordLOCATE,    &Parser::ParseLocate },
     { KeywordNEXT,	    &Parser::ParseNext },
     { KeywordON,        &Parser::ParseOn },
+    { KeywordOUT,       &Parser::ParseOut },
+    { KeywordPOKE,	    &Parser::ParsePoke },
     { KeywordPRINT,	    &Parser::ParsePrint },
     { KeywordREM,       &Parser::ParseRem },
+    { KeywordRESTORE,   &Parser::ParseRestore },
     { KeywordRETURN,    &Parser::ParseReturn },
+    { KeywordSCREEN,    &Parser::ParseScreen },
     { KeywordSTOP,      &Parser::ParseStop },
     { KeywordTRON,      &Parser::ParseTron },
     { KeywordTRON,      &Parser::ParseTroff },
 };
 
+const ParserFunctionSpec Parser::m_funcspecs[] =
+{
+    { KeywordSQR,       1, 1 },
+    { KeywordSIN,       1, 1 },
+    { KeywordCOS,       1, 1 },
+    { KeywordTAN,       1, 1 },
+    { KeywordATN,       1, 1 },
+    { KeywordPI,        0, 0 },
+    { KeywordEXP,       1, 1 },
+    { KeywordLOG,       1, 1 },
+    { KeywordABS,       1, 1 },
+    { KeywordFIX,       1, 1 },
+    { KeywordINT,       1, 1 },
+    { KeywordSGN,       1, 1 },
+    { KeywordRND,       1, 1 },
+    { KeywordFRE,       0, 1 },
+    { KeywordCINT,      1, 1 },
+    { KeywordCSNG,      1, 1 },
+    { KeywordCDBL,      1, 1 },
+    { KeywordPEEK,      1, 1 },
+    { KeywordINP,       2, 2 },
+    { KeywordASC,       1, 1 },
+    { KeywordCHR,       1, 1 },
+    { KeywordLEN,       1, 1 },
+    { KeywordMID,       3, 3 },
+    { KeywordSTRING,    2, 2 },
+    { KeywordVAL,       1, 1 },
+    { KeywordINKEY,     0, 0 },
+    { KeywordSTR,       1, 1 },
+    { KeywordBIN,       1, 1 },
+    { KeywordOCT,       1, 1 },
+    { KeywordHEX,       1, 1 },
+    { KeywordCSRLIN,    0, 1 },
+    { KeywordPOS,       0, 1 },
+    { KeywordLPOS,      0, 1 },
+    { KeywordEOF,       0, 0 },
+    { KeywordAT,        2, 2 },
+    { KeywordTAB,       1, 1 },
+    { KeywordSPC,       1, 1 },
+    //NOTE: FN has special syntax
+    //NOTE: USR has special syntax
+};
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+const int Parser::FindFunctionSpec(KeywordIndex keyword)
+{
+    for (int i = 0; i < sizeof(m_funcspecs) / sizeof(m_funcspecs[0]); i++)
+    {
+        if (keyword == m_funcspecs[i].keyword)
+            return i;
+    }
+
+    return -1;
+}
 
 Parser::Parser(Tokenizer* tokenizer)
 {
@@ -115,6 +188,14 @@ Token Parser::GetNextToken()
     return m_tokenizer->GetNextToken();
 }
 
+Token Parser::GetNextTokenSkipDivider()
+{
+    Token token = GetNextToken();
+    if (token.type == TokenTypeDivider)
+        token = GetNextToken();
+    return token;
+}
+
 Token Parser::PeekNextToken()
 {
     if (m_havenexttoken)
@@ -123,6 +204,17 @@ Token Parser::PeekNextToken()
     m_havenexttoken = true;
     m_nexttoken = m_tokenizer->GetNextToken();
     return m_nexttoken;
+}
+
+Token Parser::PeekNextTokenSkipDivider()
+{
+    Token token = PeekNextToken();
+    if (token.type == TokenTypeDivider)
+    {
+        GetNextToken();
+        token = PeekNextToken();
+    }
+    return token;
 }
 
 SourceLineModel Parser::ParseNextLine()
@@ -169,9 +261,7 @@ SourceLineModel Parser::ParseNextLine()
     }
     //TODO: Compare line number with previous line number
 
-    token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    token = GetNextTokenSkipDivider();
 
     if (token.type == TokenTypeSymbol && token.symbol == '\'')  // REM short form
     {
@@ -199,7 +289,12 @@ SourceLineModel Parser::ParseNextLine()
 
     if (token.type != TokenTypeKeyword)
     {
-        Error(model, token, "Keyword expected.");
+        Error(model, token, "Statement keyword expected.");
+        exit(EXIT_FAILURE);
+    }
+    if (IsFunctionKeyword(token.keyword))
+    {
+        Error(model, token, "Statement keyword expected, function keyword found.");
         exit(EXIT_FAILURE);
     }
 
@@ -215,13 +310,13 @@ SourceLineModel Parser::ParseNextLine()
             break;
         }
     }
-
-    if (methodref != nullptr)
+    if (methodref == nullptr)
     {
-        (this->*methodref)(model);
+        Error(model, token, "Parser not found for the keyword.");
+        exit(EXIT_FAILURE);
     }
-    else
-        SkipTilEnd(); //STUB
+
+    (this->*methodref)(model);
 
     return model;
 }
@@ -300,12 +395,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
     bool isop = false;  // Currently on operation or not
     int prev = -1;  // Index of previous operation
 
-    Token token = PeekNextToken();
-    if (token.type == TokenTypeDivider)
-    {
-        GetNextToken();
-        token = PeekNextToken();
-    }
+    Token token = PeekNextTokenSkipDivider();
     if (token.IsEndOfExpression())
         return expression;  // Empty expression
 
@@ -324,12 +414,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
     // Loop parse expression tokens into list
     while (true)
     {
-        Token token = PeekNextToken();
-        if (token.type == TokenTypeDivider)
-        {
-            GetNextToken();
-            token = PeekNextToken();
-        }
+        Token token = PeekNextTokenSkipDivider();
 
         if (isop)  // Current node should be a binary operation
         {
@@ -404,14 +489,19 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                 ExpressionNode node;
                 node.node = token;
 
-                token = PeekNextToken();
-                if (token.type == TokenTypeDivider)
-                {
-                    GetNextToken();
-                    token = PeekNextToken();
-                }
+                int funcspecindex = FindFunctionSpec(token.keyword);
+                assert(funcspecindex >= 0);
+                const ParserFunctionSpec& funcspec = m_funcspecs[funcspecindex];
+
+                token = PeekNextTokenSkipDivider();
                 if (token.IsOpenBracket())  // Function parameter list
                 {
+                    if (funcspec.maxparams == 0)
+                    {
+                        Error(model, token, "This function should not have any parameters.");
+                        return expression;
+                    }
+
                     GetNextToken();  // open bracket
 
                     while (true)
@@ -419,12 +509,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                         ExpressionModel exprarg = ParseExpression(model);
                         node.args.push_back(exprarg);
 
-                        token = PeekNextToken();
-                        if (token.type == TokenTypeDivider)
-                        {
-                            GetNextToken();
-                            token = PeekNextToken();
-                        }
+                        token = PeekNextTokenSkipDivider();
                         if (token.IsCloseBracket())
                         {
                             GetNextToken();
@@ -438,8 +523,18 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
 
                         GetNextToken();  // comma
                     }
+                }
 
-                    //TODO: Validate number of params for this function
+                // Validate number of params for this function
+                if ((int)node.args.size() < funcspec.minparams)
+                {
+                    Error(model, token, "Specified too few parameters for this function.");
+                    return expression;
+                }
+                if ((int)node.args.size() > funcspec.maxparams)
+                {
+                    Error(model, token, "Specified too many parameters for this function.");
+                    return expression;
                 }
 
                 index = (int)expression.nodes.size();
@@ -474,9 +569,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
 
 void Parser::ParseBeep(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -485,20 +578,72 @@ void Parser::ParseBeep(SourceLineModel& model)
 
 void Parser::ParseCls(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
     Error(model, token, "Unexpected text after CLS.");
 }
 
+void Parser::ParseColor(SourceLineModel& model)
+{
+    Token token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    {
+        Error(model, token, "Arguments expected in COLOR statement.");
+        return;
+    }
+
+    ExpressionModel expr1 = ParseExpression(model);
+    model.args.push_back(expr1);
+    if (expr1.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsComma())
+    {
+        Error(model, token, "Comma expected after the argument.");
+        return;
+    }
+    GetNextToken();  // Comma
+
+    ExpressionModel expr2 = ParseExpression(model);
+    model.args.push_back(expr2);
+    if (expr2.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsComma())
+    {
+        Error(model, token, "Comma expected after the argument.");
+        return;
+    }
+    GetNextToken();  // Comma
+
+    ExpressionModel expr3 = ParseExpression(model);
+    model.args.push_back(expr3);
+    if (expr3.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;
+
+    Error(model, token, "Unexpected text after COLOR arguments.");
+}
+
 void Parser::ParseEnd(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -507,9 +652,7 @@ void Parser::ParseEnd(SourceLineModel& model)
 
 void Parser::ParseFor(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeIdentifier)
     {
         Error(model, token, "FOR variable expected.");
@@ -518,9 +661,7 @@ void Parser::ParseFor(SourceLineModel& model)
 
     model.ident = token;
 
-    token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeSymbol || token.symbol != '=')
     {
         Error(model, token, "FOR \'=\' symbol expected.");
@@ -530,9 +671,7 @@ void Parser::ParseFor(SourceLineModel& model)
     ExpressionModel exprfrom = ParseExpression(model);
     model.args.push_back(exprfrom);
 
-    token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || token.keyword != KeywordTO)
     {
         Error(model, token, "TO expected in FOR operator.");
@@ -542,9 +681,7 @@ void Parser::ParseFor(SourceLineModel& model)
     ExpressionModel exprto = ParseExpression(model);
     model.args.push_back(exprto);
 
-    token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -557,9 +694,7 @@ void Parser::ParseFor(SourceLineModel& model)
     ExpressionModel exprstep = ParseExpression(model);
     model.args.push_back(exprstep);
 
-    token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -568,20 +703,16 @@ void Parser::ParseFor(SourceLineModel& model)
 
 void Parser::ParseGosub(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
     {
         Error(model, token, "GOSUB line number expected.");
         return;
     }
 
-    model.gotoLine = atoi(token.text.c_str());
+    model.paramline = atoi(token.text.c_str());
 
-    token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -590,20 +721,16 @@ void Parser::ParseGosub(SourceLineModel& model)
 
 void Parser::ParseGoto(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
     {
         Error(model, token, "GOTO line number expected.");
         return;
     }
 
-    model.gotoLine = atoi(token.text.c_str());
+    model.paramline = atoi(token.text.c_str());
 
-    token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -629,9 +756,7 @@ void Parser::ParseIf(SourceLineModel& model)
 
 void Parser::ParseLet(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeIdentifier)
     {
         Error(model, token, "LET variable expected.");
@@ -645,9 +770,7 @@ void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
 {
     model.ident = tokenIdent;
 
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeSymbol || token.symbol != '=')
     {
         Error(model, token, "LET \'=\' symbol expected.");
@@ -660,11 +783,65 @@ void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
     SkipTilEnd(); //STUB
 }
 
+void Parser::ParseLocate(SourceLineModel& model)
+{
+    Token token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    {
+        Error(model, token, "Arguments expected in LOCATE statement.");
+        return;
+    }
+
+    ExpressionModel expr1 = ParseExpression(model);
+    model.args.push_back(expr1);
+    if (expr1.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsComma())
+    {
+        Error(model, token, "Comma expected after the argument.");
+        return;
+    }
+    GetNextToken();  // Comma
+
+    ExpressionModel expr2 = ParseExpression(model);
+    model.args.push_back(expr2);
+    if (expr2.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsComma())
+    {
+        Error(model, token, "Comma expected after the argument.");
+        return;
+    }
+    GetNextToken();  // Comma
+
+    ExpressionModel expr3 = ParseExpression(model);
+    model.args.push_back(expr3);
+    if (expr3.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;
+
+    Error(model, token, "Unexpected text after LOCATE arguments.");
+}
+
 void Parser::ParseNext(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -678,9 +855,7 @@ void Parser::ParseNext(SourceLineModel& model)
 
         model.params.push_back(token);
 
-        token = GetNextToken();
-        if (token.type == TokenTypeDivider)
-            token = GetNextToken();
+        token = GetNextTokenSkipDivider();
         if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
             break;
 
@@ -690,25 +865,21 @@ void Parser::ParseNext(SourceLineModel& model)
             return;
         }
 
-        token = GetNextToken();
-        if (token.type == TokenTypeDivider)
-            token = GetNextToken();
+        token = GetNextTokenSkipDivider();
     }
 }
 
 void Parser::ParseOn(SourceLineModel& model)
 {
-    Token token = PeekNextToken();
+    Token token = PeekNextTokenSkipDivider();
     ExpressionModel expr = ParseExpression(model);
     if (expr.IsEmpty())
     {
-        Error(model, token, "ON expression should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
-    token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || (token.keyword != KeywordGOTO && token.keyword != KeywordGOSUB))
     {
         Error(model, token, "Expected GOTO or GOSUB in ON statement.");
@@ -720,15 +891,66 @@ void Parser::ParseOn(SourceLineModel& model)
     SkipTilEnd(); //STUB
 }
 
+void Parser::ParseOut(SourceLineModel& model)
+{
+    Token token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    {
+        Error(model, token, "Arguments expected in OUT statement.");
+        return;
+    }
+
+    ExpressionModel expr1 = ParseExpression(model);
+    model.args.push_back(expr1);
+    if (expr1.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsComma())
+    {
+        Error(model, token, "Comma expected after the argument.");
+        return;
+    }
+    GetNextToken();  // Comma
+
+    ExpressionModel expr2 = ParseExpression(model);
+    model.args.push_back(expr2);
+    if (expr2.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsComma())
+    {
+        Error(model, token, "Comma expected after the argument.");
+        return;
+    }
+    GetNextToken();  // Comma
+
+    ExpressionModel expr3 = ParseExpression(model);
+    model.args.push_back(expr3);
+    if (expr3.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;
+
+    Error(model, token, "Unexpected text after OUT arguments.");
+}
+
 //TODO: LPRINT
 void Parser::ParsePrint(SourceLineModel& model)
 {
-    Token token = PeekNextToken();
-    if (token.type == TokenTypeDivider)
-    {
-        GetNextToken();
-        token = PeekNextToken();
-    }
+    Token token = PeekNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;  // Empty PRINT
 
@@ -739,12 +961,7 @@ void Parser::ParsePrint(SourceLineModel& model)
     ExpressionModel expr = ParseExpression(model);
     model.args.push_back(expr);
 
-    token = PeekNextToken();
-    if (token.type == TokenTypeDivider)
-    {
-        GetNextToken();
-        token = PeekNextToken();
-    }
+    token = PeekNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -753,6 +970,40 @@ void Parser::ParsePrint(SourceLineModel& model)
     //TODO: Check for end
 
     SkipTilEnd(); //STUB
+}
+
+void Parser::ParsePoke(SourceLineModel& model)
+{
+    Token token = PeekNextTokenSkipDivider();
+    ExpressionModel expr1 = ParseExpression(model);
+    if (expr1.IsEmpty())
+    {
+        Error(model, token, "Expression should not be empty.");
+        return;
+    }
+    model.args.push_back(expr1);
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsComma())
+    {
+        Error(model, token, "Comma expected after the argument.");
+        return;
+    }
+    GetNextToken();  // Comma
+
+    ExpressionModel expr2 = ParseExpression(model);
+    model.args.push_back(expr2);
+    if (expr2.IsEmpty())
+    {
+        Error(model, token, "Expressioin should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;
+
+    Error(model, token, "Unexpected text after POKE arguments.");
 }
 
 void Parser::ParseRem(SourceLineModel& model)
@@ -765,22 +1016,56 @@ void Parser::ParseRem(SourceLineModel& model)
     }
 }
 
+void Parser::ParseRestore(SourceLineModel& model)
+{
+    Token token = GetNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;  // RESTORE without parameters
+
+    if (token.type != TokenTypeNumber)
+    {
+        Error(model, token, "Number argument expected.");
+        return;
+    }
+    model.paramline = (int)token.dvalue;
+
+    token = GetNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;
+
+    Error(model, token, "Unexpected text after RESTORE argument.");
+}
+
 void Parser::ParseReturn(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
     Error(model, token, "Unexpected text after RETURN.");
 }
 
+void Parser::ParseScreen(SourceLineModel& model)
+{
+    Token token = GetNextTokenSkipDivider();
+    if (token.type != TokenTypeNumber)
+    {
+        Error(model, token, "Number argument expected.");
+        return;
+    }
+
+    model.params.push_back(token);
+
+    token = GetNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;
+
+    Error(model, token, "Unexpected text after SCREEN argument.");
+}
+
 void Parser::ParseStop(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -789,9 +1074,7 @@ void Parser::ParseStop(SourceLineModel& model)
 
 void Parser::ParseTron(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
@@ -800,11 +1083,12 @@ void Parser::ParseTron(SourceLineModel& model)
 
 void Parser::ParseTroff(SourceLineModel& model)
 {
-    Token token = GetNextToken();
-    if (token.type == TokenTypeDivider)
-        token = GetNextToken();
+    Token token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
         return;
 
     Error(model, token, "Unexpected text after TROFF.");
 }
+
+
+//////////////////////////////////////////////////////////////////////

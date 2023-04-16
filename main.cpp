@@ -96,8 +96,8 @@ void ShowParsing()
             break;
 
         std::cout << "Line " << line.number << " " << line.statement.text;
-        if (line.gotoLine > 0)
-            std::cout << " " << line.gotoLine;
+        if (line.paramline > 0)
+            std::cout << " " << line.paramline;
         if (line.ident.type != TokenTypeNone)
             std::cout << " ident:" << line.ident.text;
         if (line.args.size() > 0)
@@ -107,6 +107,17 @@ void ShowParsing()
             {
                 ExpressionModel& expr = line.args[i];
                 PrintExpression(expr, i);
+            }
+            std::cout << " ]";
+        }
+        if (line.params.size() > 0)
+        {
+            std::cout << " params(" << line.params.size() << "): [";
+            for (size_t i = 0; i < line.params.size(); i++)
+            {
+                Token& token = line.params[i];
+                std::cout << std::endl << std::setw(2) << "  " << i << ": ";
+                token.Dump(std::cout);
             }
             std::cout << " ]";
         }

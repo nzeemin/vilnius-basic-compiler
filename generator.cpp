@@ -124,7 +124,7 @@ void Generator::GenerateGosub(SourceLineModel& line)
 {
     //TODO: Check if we have this line number
 
-    string calllinenum = "\tCALL\tL" + std::to_string(line.gotoLine);
+    string calllinenum = "\tCALL\tL" + std::to_string(line.paramline);
     m_intermed->intermeds.push_back(calllinenum);
 }
 
@@ -132,7 +132,7 @@ void Generator::GenerateGoto(SourceLineModel& line)
 {
     //TODO: Check if we have this line number
 
-    string jmplinenum = "\tJMP\tL" + std::to_string(line.gotoLine);
+    string jmplinenum = "\tJMP\tL" + std::to_string(line.paramline);
     m_intermed->intermeds.push_back(jmplinenum);
 }
 

@@ -138,7 +138,7 @@ struct SourceLineModel
     //TODO: text;         // Full line text
     //TODO: StatementModel
     Token	statement;
-    int		gotoLine;	// GOTO, GOSUB
+    int		paramline;	// Line number parameter for GOTO, GOSUB, RESTORE
     Token	ident;	    // LET identifier at left, FOR variable
     bool    relative;   // PSET, PRESET, LINE, CIRCLE, PAINT with '@' sign
     std::vector<ExpressionModel> args;  // Statement arguments
@@ -179,6 +179,12 @@ struct ParserKeywordSpec
     ParseMethodRef methodref;
 };
 
+struct ParserFunctionSpec
+{
+    KeywordIndex keyword;
+    int minparams, maxparams;
+};
+
 class Parser
 {
     Tokenizer* m_tokenizer;
@@ -190,9 +196,13 @@ public:
     SourceLineModel ParseNextLine();
 private:
     static const ParserKeywordSpec m_keywordspecs[];
+    static const ParserFunctionSpec m_funcspecs[];
+    static const int FindFunctionSpec(KeywordIndex keyword);
 private:
     Token GetNextToken();
+    Token GetNextTokenSkipDivider();
     Token PeekNextToken();
+    Token PeekNextTokenSkipDivider();
     void SkipTilEnd();
     void Error(SourceLineModel& model, Token& token, const char* message);
     ExpressionModel ParseExpression(SourceLineModel& model);
@@ -200,17 +210,23 @@ private:
 private:
     void ParseBeep(SourceLineModel& model);
     void ParseCls(SourceLineModel& model);
+    void ParseColor(SourceLineModel& model);
     void ParseEnd(SourceLineModel& model);
     void ParseFor(SourceLineModel& model);
     void ParseGosub(SourceLineModel& model);
     void ParseGoto(SourceLineModel& model);
     void ParseIf(SourceLineModel& model);
     void ParseLet(SourceLineModel& model);
+    void ParseLocate(SourceLineModel& model);
     void ParseNext(SourceLineModel& model);
     void ParseOn(SourceLineModel& model);
+    void ParseOut(SourceLineModel& model);
     void ParsePrint(SourceLineModel& model);
+    void ParsePoke(SourceLineModel& model);
     void ParseRem(SourceLineModel& model);
+    void ParseRestore(SourceLineModel& model);
     void ParseReturn(SourceLineModel& model);
+    void ParseScreen(SourceLineModel& model);
     void ParseStop(SourceLineModel& model);
     void ParseTron(SourceLineModel& model);
     void ParseTroff(SourceLineModel& model);
