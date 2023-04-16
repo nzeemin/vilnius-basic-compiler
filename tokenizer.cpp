@@ -172,7 +172,7 @@ void Token::Dump(std::ostream& out) const
     if (type == TokenTypeNumber)
     {
         std::cout.unsetf(std::ios::floatfield);
-        if (floor(dvalue) == ceil(dvalue))  // is it integer?
+        if (IsDValueInteger())
             out << " d:" << dvalue;
         else
             out << " d:" << std::scientific << dvalue;

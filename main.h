@@ -103,6 +103,7 @@ public:
     string GetTokenTypeStr() const;
     string GetTokenVTypeStr() const;
     void ParseDValue();
+    bool IsDValueInteger() const { return floor(dvalue) == ceil(dvalue); }
     void Dump(std::ostream& out) const;
 };
 
@@ -110,16 +111,18 @@ struct ExpressionModel;
 
 struct ExpressionNode
 {
-    Token	node;
-    int     left;
-    int     right;
+    Token	    node;
+    int         left;
+    int         right;
     std::vector<ExpressionModel> args;  // Function argument list
-    bool    brackets;  // Flag indicating that this node and all the sub-tree was in brackets
+    bool        brackets;  // Flag indicating that this node and all the sub-tree was in brackets
+    ValueType   vtype;
 public:
-    ExpressionNode() : left(-1), right(-1), brackets(false) {}
+    ExpressionNode() : left(-1), right(-1), brackets(false), vtype(ValueTypeNone) {}
 public:
     int GetOperationPriority() const;
     void Dump(std::ostream& out) const;
+    string GetNodeVTypeStr() const;
 };
 
 struct ExpressionModel
@@ -183,6 +186,7 @@ struct ParserFunctionSpec
 {
     KeywordIndex keyword;
     int minparams, maxparams;
+    ValueType resulttype;
 };
 
 class Parser

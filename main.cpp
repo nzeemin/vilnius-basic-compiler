@@ -44,7 +44,14 @@ void ShowTokenization()
 
 void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
 {
-    std::cout << std::endl << std::setw(indent * 2) << "  " << number << ": root:" << expr.root;
+    std::cout << std::endl << std::setw(indent * 2) << "  " << number << ":";
+    if (expr.IsEmpty())
+    {
+        std::cout << " empty";
+        return;
+    }
+
+    std::cout << " root:" << expr.root;
     std::cout << " nodes(" << expr.nodes.size() << "): [";
     for (size_t j = 0; j < expr.nodes.size(); j++)
     {
@@ -95,7 +102,7 @@ void ShowParsing()
         if (line.number == 0)
             break;
 
-        std::cout << "Line " << line.number << " " << line.statement.text;
+        std::cout << "Line " << line.number << " " << line.statement.text << line.statement.symbol;
         if (line.paramline > 0)
             std::cout << " " << line.paramline;
         if (line.ident.type != TokenTypeNone)
@@ -197,6 +204,5 @@ int main(int argc, char* argv[])
         return EXIT_SUCCESS;
     }
 
-    //std::cout << std::endl;
     //ShowGeneration();
 }

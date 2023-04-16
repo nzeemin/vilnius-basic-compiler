@@ -58,10 +58,28 @@ void ExpressionNode::Dump(std::ostream& out) const
 
     node.Dump(out);
 
+    if (vtype != ValueTypeNone)
+        std::cout << " " << GetNodeVTypeStr();
+
     if (brackets)
         std::cout << " brackets";
 
     out << " }";
+}
+
+
+string ExpressionNode::GetNodeVTypeStr() const
+{
+    switch (vtype)
+    {
+    case ValueTypeNone:     return "None";
+    case ValueTypeInteger:  return "Integer";
+    case ValueTypeSingle:   return "Single";
+        //case ValueTypeDouble:   return "Double";
+    case ValueTypeString:   return "String";
+    default:
+        return "unk";
+    }
 }
 
 
@@ -112,43 +130,43 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
 
 const ParserFunctionSpec Parser::m_funcspecs[] =
 {
-    { KeywordSQR,       1, 1 },
-    { KeywordSIN,       1, 1 },
-    { KeywordCOS,       1, 1 },
-    { KeywordTAN,       1, 1 },
-    { KeywordATN,       1, 1 },
-    { KeywordPI,        0, 0 },
-    { KeywordEXP,       1, 1 },
-    { KeywordLOG,       1, 1 },
-    { KeywordABS,       1, 1 },
-    { KeywordFIX,       1, 1 },
-    { KeywordINT,       1, 1 },
-    { KeywordSGN,       1, 1 },
-    { KeywordRND,       1, 1 },
-    { KeywordFRE,       0, 1 },
-    { KeywordCINT,      1, 1 },
-    { KeywordCSNG,      1, 1 },
-    { KeywordCDBL,      1, 1 },
-    { KeywordPEEK,      1, 1 },
-    { KeywordINP,       2, 2 },
-    { KeywordASC,       1, 1 },
-    { KeywordCHR,       1, 1 },
-    { KeywordLEN,       1, 1 },
-    { KeywordMID,       3, 3 },
-    { KeywordSTRING,    2, 2 },
-    { KeywordVAL,       1, 1 },
-    { KeywordINKEY,     0, 0 },
-    { KeywordSTR,       1, 1 },
-    { KeywordBIN,       1, 1 },
-    { KeywordOCT,       1, 1 },
-    { KeywordHEX,       1, 1 },
-    { KeywordCSRLIN,    0, 1 },
-    { KeywordPOS,       0, 1 },
-    { KeywordLPOS,      0, 1 },
-    { KeywordEOF,       0, 0 },
-    { KeywordAT,        2, 2 },
-    { KeywordTAB,       1, 1 },
-    { KeywordSPC,       1, 1 },
+    { KeywordSQR,       1, 1, ValueTypeSingle },
+    { KeywordSIN,       1, 1, ValueTypeSingle },
+    { KeywordCOS,       1, 1, ValueTypeSingle },
+    { KeywordTAN,       1, 1, ValueTypeSingle },
+    { KeywordATN,       1, 1, ValueTypeSingle },
+    { KeywordPI,        0, 0, ValueTypeSingle },
+    { KeywordEXP,       1, 1, ValueTypeSingle },
+    { KeywordLOG,       1, 1, ValueTypeSingle },
+    { KeywordABS,       1, 1, ValueTypeSingle },
+    { KeywordFIX,       1, 1, ValueTypeInteger },
+    { KeywordINT,       1, 1, ValueTypeInteger },
+    { KeywordSGN,       1, 1, ValueTypeSingle },
+    { KeywordRND,       1, 1, ValueTypeSingle },
+    { KeywordFRE,       0, 1, ValueTypeInteger },
+    { KeywordCINT,      1, 1, ValueTypeInteger },
+    { KeywordCSNG,      1, 1, ValueTypeSingle },
+    { KeywordCDBL,      1, 1, ValueTypeSingle }, // ValueTypeDouble
+    { KeywordPEEK,      1, 1, ValueTypeInteger },
+    { KeywordINP,       2, 2, ValueTypeInteger },
+    { KeywordASC,       1, 1, ValueTypeInteger },
+    { KeywordCHR,       1, 1, ValueTypeString },
+    { KeywordLEN,       1, 1, ValueTypeInteger },
+    { KeywordMID,       3, 3, ValueTypeString },
+    { KeywordSTRING,    2, 2, ValueTypeString },
+    { KeywordVAL,       1, 1, ValueTypeSingle },
+    { KeywordINKEY,     0, 0, ValueTypeString },
+    { KeywordSTR,       1, 1, ValueTypeString },
+    { KeywordBIN,       1, 1, ValueTypeString },
+    { KeywordOCT,       1, 1, ValueTypeString },
+    { KeywordHEX,       1, 1, ValueTypeString },
+    { KeywordCSRLIN,    0, 1, ValueTypeInteger },
+    { KeywordPOS,       0, 1, ValueTypeInteger },
+    { KeywordLPOS,      0, 1, ValueTypeInteger },
+    { KeywordEOF,       0, 0, ValueTypeInteger },
+    { KeywordAT,        2, 2, ValueTypeNone },
+    { KeywordTAB,       1, 1, ValueTypeNone },
+    { KeywordSPC,       1, 1, ValueTypeNone },
     //NOTE: FN has special syntax
     //NOTE: USR has special syntax
 };
@@ -486,12 +504,13 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
             }
             else if (IsFunctionKeyword(token.keyword))  // Function with parameter list
             {
-                ExpressionNode node;
-                node.node = token;
-
                 int funcspecindex = FindFunctionSpec(token.keyword);
                 assert(funcspecindex >= 0);
                 const ParserFunctionSpec& funcspec = m_funcspecs[funcspecindex];
+
+                ExpressionNode node;
+                node.node = token;
+                node.vtype = funcspec.resulttype;
 
                 token = PeekNextTokenSkipDivider();
                 if (token.IsOpenBracket())  // Function parameter list
@@ -598,7 +617,7 @@ void Parser::ParseColor(SourceLineModel& model)
     model.args.push_back(expr1);
     if (expr1.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
@@ -614,7 +633,7 @@ void Parser::ParseColor(SourceLineModel& model)
     model.args.push_back(expr2);
     if (expr2.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
@@ -630,7 +649,7 @@ void Parser::ParseColor(SourceLineModel& model)
     model.args.push_back(expr3);
     if (expr3.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
@@ -668,8 +687,14 @@ void Parser::ParseFor(SourceLineModel& model)
         return;
     }
 
-    ExpressionModel exprfrom = ParseExpression(model);
-    model.args.push_back(exprfrom);
+    token = PeekNextToken();
+    ExpressionModel expr1 = ParseExpression(model);
+    if (expr1.IsEmpty())
+    {
+        Error(model, token, "Expression should not be empty.");
+        return;
+    }
+    model.args.push_back(expr1);
 
     token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || token.keyword != KeywordTO)
@@ -678,8 +703,14 @@ void Parser::ParseFor(SourceLineModel& model)
         return;
     }
 
-    ExpressionModel exprto = ParseExpression(model);
-    model.args.push_back(exprto);
+    token = PeekNextToken();
+    ExpressionModel expr2 = ParseExpression(model);
+    if (expr2.IsEmpty())
+    {
+        Error(model, token, "Expression should not be empty.");
+        return;
+    }
+    model.args.push_back(expr2);
 
     token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
@@ -691,8 +722,14 @@ void Parser::ParseFor(SourceLineModel& model)
         return;
     }
 
-    ExpressionModel exprstep = ParseExpression(model);
-    model.args.push_back(exprstep);
+    token = PeekNextToken();
+    ExpressionModel expr3 = ParseExpression(model);
+    if (expr3.IsEmpty())
+    {
+        Error(model, token, "Expression should not be empty.");
+        return;
+    }
+    model.args.push_back(expr3);
 
     token = GetNextTokenSkipDivider();
     if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
@@ -778,9 +815,18 @@ void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
     }
 
     ExpressionModel expr = ParseExpression(model);
+    if (expr.IsEmpty())
+    {
+        Error(model, token, "Expression should not be empty.");
+        return;
+    }
     model.args.push_back(expr);
 
-    SkipTilEnd(); //STUB
+    token = GetNextTokenSkipDivider();
+    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        return;
+
+    Error(model, token, "Unexpected text after LET expression.");
 }
 
 void Parser::ParseLocate(SourceLineModel& model)
@@ -796,7 +842,7 @@ void Parser::ParseLocate(SourceLineModel& model)
     model.args.push_back(expr1);
     if (expr1.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
@@ -812,7 +858,7 @@ void Parser::ParseLocate(SourceLineModel& model)
     model.args.push_back(expr2);
     if (expr2.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
@@ -828,7 +874,7 @@ void Parser::ParseLocate(SourceLineModel& model)
     model.args.push_back(expr3);
     if (expr3.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
@@ -904,7 +950,7 @@ void Parser::ParseOut(SourceLineModel& model)
     model.args.push_back(expr1);
     if (expr1.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
@@ -920,7 +966,7 @@ void Parser::ParseOut(SourceLineModel& model)
     model.args.push_back(expr2);
     if (expr2.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
@@ -936,7 +982,7 @@ void Parser::ParseOut(SourceLineModel& model)
     model.args.push_back(expr3);
     if (expr3.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
@@ -995,7 +1041,7 @@ void Parser::ParsePoke(SourceLineModel& model)
     model.args.push_back(expr2);
     if (expr2.IsEmpty())
     {
-        Error(model, token, "Expressioin should not be empty.");
+        Error(model, token, "Expression should not be empty.");
         return;
     }
 
