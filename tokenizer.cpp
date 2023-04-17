@@ -153,8 +153,6 @@ void Token::ParseDValue()
             for (int i = 0; i < epart; i++)
                 dvalue *= 10.0;
     }
-
-    constval = true;
 }
 
 void Token::Dump(std::ostream& out) const
@@ -177,8 +175,6 @@ void Token::Dump(std::ostream& out) const
         else
             out << " d:" << std::scientific << dvalue;
     }
-    if (constval)
-        out << " const";
     out << " }";
 }
 
@@ -361,7 +357,6 @@ Token Tokenizer::GetNextToken()
         }
 
         token.type = TokenTypeString;
-        token.constval = true;
         return token;
     }
 

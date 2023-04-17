@@ -60,6 +60,8 @@ void ExpressionNode::Dump(std::ostream& out) const
 
     if (vtype != ValueTypeNone)
         std::cout << " " << GetNodeVTypeStr();
+    if (constval)
+        out << " const";
 
     if (brackets)
         std::cout << " brackets";
@@ -564,6 +566,9 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                 // Put the token into the list
                 ExpressionNode node;
                 node.node = token;
+                node.vtype = token.vtype;
+                node.constval = (token.type == TokenTypeNumber || token.type == TokenTypeString);
+
                 index = (int)expression.nodes.size();
                 expression.nodes.push_back(node);
             }
@@ -583,6 +588,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
         isop = !isop;
     }
 
+    //TODO: Calculate vtype/const for all expression nodes
     return expression;
 }
 

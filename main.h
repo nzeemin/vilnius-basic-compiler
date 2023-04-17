@@ -77,11 +77,10 @@ struct Token
     KeywordIndex keyword;
     ValueType   vtype;
     double      dvalue;
-    bool        constval;       // Flag for constant value
 public:
     Token() :
         line(0), pos(0), type(TokenTypeNone), symbol(0), keyword(KeywordNone), vtype(ValueTypeNone),
-        dvalue(0), constval(false) {}
+        dvalue(0) {}
 public:
     bool IsOpenBracket() const { return type == TokenTypeSymbol && symbol == '('; }
     bool IsCloseBracket() const { return type == TokenTypeSymbol && symbol == ')'; }
@@ -115,10 +114,11 @@ struct ExpressionNode
     int         left;
     int         right;
     std::vector<ExpressionModel> args;  // Function argument list
-    bool        brackets;  // Flag indicating that this node and all the sub-tree was in brackets
+    bool        brackets;       // Flag indicating that this node and all the sub-tree was in brackets
     ValueType   vtype;
+    bool        constval;       // Flag for constant value
 public:
-    ExpressionNode() : left(-1), right(-1), brackets(false), vtype(ValueTypeNone) {}
+    ExpressionNode() : left(-1), right(-1), brackets(false), vtype(ValueTypeNone), constval(false) {}
 public:
     int GetOperationPriority() const;
     void Dump(std::ostream& out) const;
