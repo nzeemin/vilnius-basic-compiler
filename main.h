@@ -86,6 +86,7 @@ public:
     bool IsOpenBracket() const { return type == TokenTypeSymbol && symbol == '('; }
     bool IsCloseBracket() const { return type == TokenTypeSymbol && symbol == ')'; }
     bool IsComma() const { return type == TokenTypeSymbol && symbol == ','; }
+    bool IsSemicolon() const { return type == TokenTypeSymbol && symbol == ';'; }
     bool IsEndOfExpression() const
     {
         return type == TokenTypeEOL || type == TokenTypeEOF ||
@@ -217,9 +218,11 @@ private:
     void ParseLetShort(Token& tokenIdent, SourceLineModel& model);
 private:
     void ParseBeep(SourceLineModel& model);
+    void ParseClear(SourceLineModel& model);
     void ParseCls(SourceLineModel& model);
     void ParseColor(SourceLineModel& model);
     void ParseData(SourceLineModel& model);
+    void ParseDim(SourceLineModel& model);
     void ParseEnd(SourceLineModel& model);
     void ParseFor(SourceLineModel& model);
     void ParseGosub(SourceLineModel& model);
@@ -232,6 +235,7 @@ private:
     void ParseOut(SourceLineModel& model);
     void ParsePrint(SourceLineModel& model);
     void ParsePoke(SourceLineModel& model);
+    void ParseRead(SourceLineModel& model);
     void ParseRem(SourceLineModel& model);
     void ParseRestore(SourceLineModel& model);
     void ParseReturn(SourceLineModel& model);

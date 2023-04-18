@@ -268,8 +268,7 @@ Token Tokenizer::GetNextToken()
             if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9')
             {
                 ch = GetNextChar();
-                if (token.text.length() < 2)  // Only two chars are significant
-                    token.text.append(1, toupper(ch));
+                token.text.append(1, toupper(ch));
             }
             else if (ch == '$' || ch == '%' || ch == '!')
             {

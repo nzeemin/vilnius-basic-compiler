@@ -162,31 +162,36 @@ void ExpressionModel::CalculateVTypeForNode(int index)
     if (node.right >= 0)
         CalculateVTypeForNode(node.right);
 
-    const ExpressionNode& nodeleft = nodes[node.left];
-    const ExpressionNode& noderight = nodes[node.right];
+    //TODO: Unary plus/minus with one operand only
 
-    node.constval = (nodeleft.constval && noderight.constval);
-
-    if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
+    if (node.left >= 0 && node.right >= 0)
     {
-        std::cerr << "ERROR at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node.";
-        exit(EXIT_FAILURE);
-    }
+        const ExpressionNode& nodeleft = nodes[node.left];
+        const ExpressionNode& noderight = nodes[node.right];
 
-    //TODO: Use knowledge about the operation to make this decision
+        node.constval = (nodeleft.constval && noderight.constval);
 
-    if (nodeleft.vtype == noderight.vtype)
-        node.vtype = nodeleft.vtype;
+        if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
+        {
+            std::cerr << "ERROR at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node.";
+            exit(EXIT_FAILURE);
+        }
 
-    if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
-        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
-        node.vtype = ValueTypeSingle;
+        //TODO: Use knowledge about the operation to make this decision
 
-    if ((nodeleft.vtype == ValueTypeSingle || nodeleft.vtype == ValueTypeInteger) && noderight.vtype == ValueTypeString ||
-        nodeleft.vtype == ValueTypeString && (noderight.vtype == ValueTypeSingle || noderight.vtype == ValueTypeInteger))
-    {
-        std::cerr << "ERROR at " << node.node.line << ":" << node.node.pos << " - Value types are incompatible.";
-        exit(EXIT_FAILURE);
+        if (nodeleft.vtype == noderight.vtype)
+            node.vtype = nodeleft.vtype;
+
+        if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
+            nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+            node.vtype = ValueTypeSingle;
+
+        if ((nodeleft.vtype == ValueTypeSingle || nodeleft.vtype == ValueTypeInteger) && noderight.vtype == ValueTypeString ||
+            nodeleft.vtype == ValueTypeString && (noderight.vtype == ValueTypeSingle || noderight.vtype == ValueTypeInteger))
+        {
+            std::cerr << "ERROR at " << node.node.line << ":" << node.node.pos << " - Value types are incompatible.";
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
@@ -196,22 +201,25 @@ void ExpressionModel::CalculateVTypeForNode(int index)
 
 const ParserKeywordSpec Parser::m_keywordspecs[] =
 {
-    { KeywordBEEP,	    &Parser::ParseBeep },
-    { KeywordCLS,	    &Parser::ParseCls },
-    { KeywordCOLOR,	    &Parser::ParseColor },
-    { KeywordDATA,	    &Parser::ParseData },
-    { KeywordEND,	    &Parser::ParseEnd },
-    { KeywordFOR,	    &Parser::ParseFor },
+    { KeywordBEEP,      &Parser::ParseBeep },
+    { KeywordCLEAR,     &Parser::ParseClear },
+    { KeywordCLS,       &Parser::ParseCls },
+    { KeywordCOLOR,     &Parser::ParseColor },
+    { KeywordDATA,      &Parser::ParseData },
+    { KeywordDIM,       &Parser::ParseDim },
+    { KeywordEND,       &Parser::ParseEnd },
+    { KeywordFOR,       &Parser::ParseFor },
     { KeywordGOSUB,     &Parser::ParseGosub },
-    { KeywordGOTO,	    &Parser::ParseGoto },
+    { KeywordGOTO,      &Parser::ParseGoto },
     { KeywordIF,        &Parser::ParseIf },
-    { KeywordLET,	    &Parser::ParseLet },
+    { KeywordLET,       &Parser::ParseLet },
     { KeywordLOCATE,    &Parser::ParseLocate },
-    { KeywordNEXT,	    &Parser::ParseNext },
+    { KeywordNEXT,      &Parser::ParseNext },
     { KeywordON,        &Parser::ParseOn },
     { KeywordOUT,       &Parser::ParseOut },
-    { KeywordPOKE,	    &Parser::ParsePoke },
-    { KeywordPRINT,	    &Parser::ParsePrint },
+    { KeywordPOKE,      &Parser::ParsePoke },
+    { KeywordPRINT,     &Parser::ParsePrint },
+    { KeywordREAD,      &Parser::ParseRead },
     { KeywordREM,       &Parser::ParseRem },
     { KeywordRESTORE,   &Parser::ParseRestore },
     { KeywordRETURN,    &Parser::ParseReturn },
@@ -651,6 +659,47 @@ void Parser::ParseBeep(SourceLineModel& model)
     Error(model, token, "Unexpected text after BEEP.");
 }
 
+void Parser::ParseClear(SourceLineModel& model)
+{
+    Token token = PeekNextTokenSkipDivider();
+    if (token.IsEolOrEof())
+    {
+        Error(model, token, "Argument expected in CLEAR statement.");
+        return;
+    }
+
+    ExpressionModel expr1 = ParseExpression(model);
+    model.args.push_back(expr1);
+    if (expr1.IsEmpty())
+    {
+        Error(model, token, "Expression should not be empty.");
+        return;
+    }
+
+    token = GetNextTokenSkipDivider();
+    if (token.IsEolOrEof())
+        return;  // One argument
+
+    if (!token.IsComma())
+    {
+        Error(model, token, "Unexpected text in CLEAR statement.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr2 = ParseExpression(model);
+    model.args.push_back(expr2);
+    if (expr2.IsEmpty())
+    {
+        Error(model, token, "Expression should not be empty.");
+        return;
+    }
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEolOrEof())
+        Error(model, token, "Unexpected text after CLEAR arguments.");
+}
+
 void Parser::ParseCls(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
@@ -721,6 +770,53 @@ void Parser::ParseData(SourceLineModel& model)
     //TODO
 
     SkipTilEnd();//STUB
+}
+
+void Parser::ParseDim(SourceLineModel& model)
+{
+    Token token;
+    while (true)
+    {
+        token = GetNextTokenSkipDivider();
+        if (token.type != TokenTypeIdentifier)
+        {
+            Error(model, token, "Identifier expected in DIM statement.");
+            return;
+        }
+        token = GetNextTokenSkipDivider();
+        if (token.IsOpenBracket())
+        {
+            while (true)
+            {
+                token = GetNextTokenSkipDivider();
+                if (token.type != TokenTypeNumber)
+                {
+                    Error(model, token, "Array size expected in DIM statement.");
+                    return;
+                }
+                //TODO: save to model
+
+                token = GetNextTokenSkipDivider();
+                if (token.IsCloseBracket())
+                    break;
+                if (!token.IsComma())
+                {
+                    Error(model, token, "Comma expected in DIM statement.");
+                    return;
+                }
+            }
+
+            token = GetNextTokenSkipDivider();
+        }
+        if (token.IsEolOrEof())
+            return;  // End of the list
+
+        if (!token.IsComma())
+        {
+            Error(model, token, "Comma expected in DIM statement.");
+            return;
+        }
+    }
 }
 
 void Parser::ParseEnd(SourceLineModel& model)
@@ -1082,24 +1178,35 @@ void Parser::ParsePrint(SourceLineModel& model)
 {
     Token token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
+    {
+        GetNextToken();
         return;  // Empty PRINT
+    }
 
     //TODO: Symbol #, optional
-
     //TODO: Check for end
 
-    ExpressionModel expr = ParseExpression(model);
-    model.args.push_back(expr);
+    while (true)
+    {
+        ExpressionModel expr = ParseExpression(model);
+        model.args.push_back(expr);
 
-    token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-        return;
+        token = GetNextTokenSkipDivider();
+        if (token.IsEolOrEof())
+            return;
+        if (!token.IsComma() && !token.IsSemicolon())
+        {
+            Error(model, token, "Comma or semicolon expected in PRINT statement.");
+            return;
+        }
 
-    //TODO: Get separator
-
-    //TODO: Check for end
-
-    SkipTilEnd(); //STUB
+        token = PeekNextTokenSkipDivider();
+        if (token.IsEolOrEof())
+        {
+            GetNextToken();
+            return;
+        }
+    }
 }
 
 void Parser::ParsePoke(SourceLineModel& model)
@@ -1136,6 +1243,54 @@ void Parser::ParsePoke(SourceLineModel& model)
     Error(model, token, "Unexpected text after POKE arguments.");
 }
 
+void Parser::ParseRead(SourceLineModel& model)
+{
+    Token token;
+    while (true)
+    {
+        token = GetNextTokenSkipDivider();
+        if (token.type != TokenTypeIdentifier)
+        {
+            Error(model, token, "Identifier expected in DIM statement.");
+            return;
+        }
+        token = GetNextTokenSkipDivider();
+        if (token.IsOpenBracket())
+        {
+            while (true)
+            {
+                ExpressionModel expr = ParseExpression(model);
+
+                if (expr.IsEmpty())
+                {
+                    Error(model, token, "Expression should not be empty.");
+                    return;
+                }
+                //TODO: save to model
+
+                token = GetNextTokenSkipDivider();
+                if (token.IsCloseBracket())
+                    break;
+                if (!token.IsComma())
+                {
+                    Error(model, token, "Comma expected in DIM statement.");
+                    return;
+                }
+            }
+
+            token = GetNextTokenSkipDivider();
+        }
+        if (token.IsEolOrEof())
+            return;  // End of the list
+
+        if (!token.IsComma())
+        {
+            Error(model, token, "Comma expected in DIM statement.");
+            return;
+        }
+    }
+}
+
 void Parser::ParseRem(SourceLineModel& model)
 {
     while (true)  // Skip til EOL/EOF
@@ -1150,7 +1305,10 @@ void Parser::ParseRestore(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
     if (token.IsEolOrEof())
+    {
+        model.paramline = 0;
         return;  // RESTORE without parameters
+    }
 
     if (token.type != TokenTypeNumber)
     {
