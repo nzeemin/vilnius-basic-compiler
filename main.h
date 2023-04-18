@@ -134,6 +134,8 @@ public:
     bool IsEmpty() { return nodes.size() == 0; }
     int GetParentIndex(int index);
     int AddOperationNode(ExpressionNode& node, int prev);  // Add binary operation node into the tree
+    void CalculateVTypes();  // Calculate vtype/const for all nodes
+    void CalculateVTypeForNode(int index);  // Calculate vtype/const for one node
 };
 
 struct SourceLineModel

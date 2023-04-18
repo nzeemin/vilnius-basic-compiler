@@ -69,7 +69,6 @@ void ExpressionNode::Dump(std::ostream& out) const
     out << " }";
 }
 
-
 string ExpressionNode::GetNodeVTypeStr() const
 {
     switch (vtype)
@@ -98,6 +97,97 @@ int ExpressionModel::GetParentIndex(int index)
     }
 
     return -1;  // Not found
+}
+
+int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
+{
+    int index = (int)nodes.size();
+    int pred = prev < 0 ? root : prev;
+
+    {
+        ExpressionNode& nodepred = nodes[pred];
+        if (!nodepred.node.IsBinaryOperation() || nodepred.brackets)
+        {
+            node.left = pred;
+            root = index;
+            nodes.push_back(node);
+            return index;
+        }
+    }
+
+    int pri = node.GetOperationPriority();
+    while (true)
+    {
+        ExpressionNode& nodepred = nodes[pred];
+        int pripred = nodepred.GetOperationPriority();
+
+        if (nodepred.brackets || pripred > pri)
+        {
+            node.left = nodepred.right;
+            nodepred.right = index;
+            break;
+        }
+
+        int parent = GetParentIndex(pred);
+        if (parent < 0)
+        {
+            node.left = pred;
+            root = index;
+            break;
+        }
+
+        pred = parent;
+    }
+
+    nodes.push_back(node);
+    return index;
+}
+
+void ExpressionModel::CalculateVTypes()
+{
+    if (root < 0)
+        return;
+
+    CalculateVTypeForNode(root);
+}
+
+void ExpressionModel::CalculateVTypeForNode(int index)
+{
+    ExpressionNode& node = nodes[index];
+    if (node.vtype != ValueTypeNone)
+        return;
+
+    if (node.left >= 0)
+        CalculateVTypeForNode(node.left);
+    if (node.right >= 0)
+        CalculateVTypeForNode(node.right);
+
+    const ExpressionNode& nodeleft = nodes[node.left];
+    const ExpressionNode& noderight = nodes[node.right];
+
+    node.constval = (nodeleft.constval && noderight.constval);
+
+    if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
+    {
+        std::cerr << "ERROR at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node.";
+        exit(EXIT_FAILURE);
+    }
+
+    //TODO: Use knowledge about the operation to make this decision
+
+    if (nodeleft.vtype == noderight.vtype)
+        node.vtype = nodeleft.vtype;
+
+    if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
+        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+        node.vtype = ValueTypeSingle;
+
+    if ((nodeleft.vtype == ValueTypeSingle || nodeleft.vtype == ValueTypeInteger) && noderight.vtype == ValueTypeString ||
+        nodeleft.vtype == ValueTypeString && (noderight.vtype == ValueTypeSingle || noderight.vtype == ValueTypeInteger))
+    {
+        std::cerr << "ERROR at " << node.node.line << ":" << node.node.pos << " - Value types are incompatible.";
+        exit(EXIT_FAILURE);
+    }
 }
 
 
@@ -364,49 +454,6 @@ void Parser::SkipTilEnd()
     }
 }
 
-int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
-{
-    int index = (int)nodes.size();
-    int pred = prev < 0 ? root : prev;
-
-    {
-        ExpressionNode& nodepred = nodes[pred];
-        if (!nodepred.node.IsBinaryOperation() || nodepred.brackets)
-        {
-            node.left = pred;
-            root = index;
-            nodes.push_back(node);
-            return index;
-        }
-    }
-
-    int pri = node.GetOperationPriority();
-    while (true)
-    {
-        ExpressionNode& nodepred = nodes[pred];
-        int pripred = nodepred.GetOperationPriority();
-
-        if (nodepred.brackets || pripred > pri)
-        {
-            node.left = nodepred.right;
-            nodepred.right = index;
-            break;
-        }
-
-        int parent = GetParentIndex(pred);
-        if (parent < 0)
-        {
-            node.left = pred;
-            root = index;
-            break;
-        }
-
-        pred = parent;
-    }
-
-    nodes.push_back(node);
-    return index;
-}
 
 ExpressionModel Parser::ParseExpression(SourceLineModel& model)
 {
@@ -589,7 +636,9 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
         isop = !isop;
     }
 
-    //TODO: Calculate vtype/const for all expression nodes
+    // Calculate vtype/const for all expression nodes
+    expression.CalculateVTypes();
+
     return expression;
 }
 
