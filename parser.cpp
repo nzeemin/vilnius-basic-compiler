@@ -109,6 +109,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordBEEP,	    &Parser::ParseBeep },
     { KeywordCLS,	    &Parser::ParseCls },
     { KeywordCOLOR,	    &Parser::ParseColor },
+    { KeywordDATA,	    &Parser::ParseData },
     { KeywordEND,	    &Parser::ParseEnd },
     { KeywordFOR,	    &Parser::ParseFor },
     { KeywordGOSUB,     &Parser::ParseGosub },
@@ -358,7 +359,7 @@ void Parser::SkipTilEnd()
     while (true)  // Skip til EOL/EOF
     {
         Token token = GetNextToken();
-        if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        if (token.IsEolOrEof())
             break;
     }
 }
@@ -595,7 +596,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
 void Parser::ParseBeep(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after BEEP.");
@@ -604,7 +605,7 @@ void Parser::ParseBeep(SourceLineModel& model)
 void Parser::ParseCls(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after CLS.");
@@ -613,7 +614,7 @@ void Parser::ParseCls(SourceLineModel& model)
 void Parser::ParseColor(SourceLineModel& model)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
     {
         Error(model, token, "Arguments expected in COLOR statement.");
         return;
@@ -660,16 +661,23 @@ void Parser::ParseColor(SourceLineModel& model)
     }
 
     token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after COLOR arguments.");
 }
 
+void Parser::ParseData(SourceLineModel& model)
+{
+    //TODO
+
+    SkipTilEnd();//STUB
+}
+
 void Parser::ParseEnd(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after END.");
@@ -719,7 +727,7 @@ void Parser::ParseFor(SourceLineModel& model)
     model.args.push_back(expr2);
 
     token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     if (token.type != TokenTypeKeyword || token.keyword != KeywordSTEP)
@@ -738,7 +746,7 @@ void Parser::ParseFor(SourceLineModel& model)
     model.args.push_back(expr3);
 
     token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after FOR operator.");
@@ -756,7 +764,7 @@ void Parser::ParseGosub(SourceLineModel& model)
     model.paramline = atoi(token.text.c_str());
 
     token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after GOSUB line number.");
@@ -774,7 +782,7 @@ void Parser::ParseGoto(SourceLineModel& model)
     model.paramline = atoi(token.text.c_str());
 
     token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after GOTO line number.");
@@ -829,7 +837,7 @@ void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
     model.args.push_back(expr);
 
     token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after LET expression.");
@@ -838,7 +846,7 @@ void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
 void Parser::ParseLocate(SourceLineModel& model)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
     {
         Error(model, token, "Arguments expected in LOCATE statement.");
         return;
@@ -885,7 +893,7 @@ void Parser::ParseLocate(SourceLineModel& model)
     }
 
     token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after LOCATE arguments.");
@@ -894,7 +902,7 @@ void Parser::ParseLocate(SourceLineModel& model)
 void Parser::ParseNext(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     while (true)
@@ -908,7 +916,7 @@ void Parser::ParseNext(SourceLineModel& model)
         model.params.push_back(token);
 
         token = GetNextTokenSkipDivider();
-        if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        if (token.IsEolOrEof())
             break;
 
         if (token.type != TokenTypeSymbol || token.symbol != ',')
@@ -934,19 +942,40 @@ void Parser::ParseOn(SourceLineModel& model)
     token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || (token.keyword != KeywordGOTO && token.keyword != KeywordGOSUB))
     {
-        Error(model, token, "Expected GOTO or GOSUB in ON statement.");
+        Error(model, token, "GOTO or GOSUB expected in ON statement.");
         return;
     }
+    model.gotogosub = (token.keyword == KeywordGOTO);
 
-    //TODO: Loop for line numbers, comma separated
+    // Loop for line numbers, comma separated
+    while (true)
+    {
+        token = PeekNextTokenSkipDivider();
+        if (token.type != TokenTypeNumber)
+        {
+            Error(model, token, "Line number expected in ON statement.");
+            return;
+        }
+        token = GetNextToken();
+        model.params.push_back(token);
 
-    SkipTilEnd(); //STUB
+        token = PeekNextTokenSkipDivider();
+        if (token.IsEolOrEof())
+            break;
+        if (!token.IsComma())
+        {
+            Error(model, token, "Unexpected text in ON statement.");
+            return;
+        }
+
+        GetNextToken();
+    }
 }
 
 void Parser::ParseOut(SourceLineModel& model)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
     {
         Error(model, token, "Arguments expected in OUT statement.");
         return;
@@ -993,7 +1022,7 @@ void Parser::ParseOut(SourceLineModel& model)
     }
 
     token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after OUT arguments.");
@@ -1003,7 +1032,7 @@ void Parser::ParseOut(SourceLineModel& model)
 void Parser::ParsePrint(SourceLineModel& model)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;  // Empty PRINT
 
     //TODO: Symbol #, optional
@@ -1014,7 +1043,7 @@ void Parser::ParsePrint(SourceLineModel& model)
     model.args.push_back(expr);
 
     token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     //TODO: Get separator
@@ -1052,7 +1081,7 @@ void Parser::ParsePoke(SourceLineModel& model)
     }
 
     token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after POKE arguments.");
@@ -1063,7 +1092,7 @@ void Parser::ParseRem(SourceLineModel& model)
     while (true)  // Skip til EOL/EOF
     {
         Token token = GetNextToken();
-        if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+        if (token.IsEolOrEof())
             break;
     }
 }
@@ -1071,7 +1100,7 @@ void Parser::ParseRem(SourceLineModel& model)
 void Parser::ParseRestore(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;  // RESTORE without parameters
 
     if (token.type != TokenTypeNumber)
@@ -1082,7 +1111,7 @@ void Parser::ParseRestore(SourceLineModel& model)
     model.paramline = (int)token.dvalue;
 
     token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after RESTORE argument.");
@@ -1091,7 +1120,7 @@ void Parser::ParseRestore(SourceLineModel& model)
 void Parser::ParseReturn(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after RETURN.");
@@ -1109,7 +1138,7 @@ void Parser::ParseScreen(SourceLineModel& model)
     model.params.push_back(token);
 
     token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after SCREEN argument.");
@@ -1118,7 +1147,7 @@ void Parser::ParseScreen(SourceLineModel& model)
 void Parser::ParseStop(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after STOP.");
@@ -1127,7 +1156,7 @@ void Parser::ParseStop(SourceLineModel& model)
 void Parser::ParseTron(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after TRON.");
@@ -1136,7 +1165,7 @@ void Parser::ParseTron(SourceLineModel& model)
 void Parser::ParseTroff(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeEOL || token.type == TokenTypeEOF)
+    if (token.IsEolOrEof())
         return;
 
     Error(model, token, "Unexpected text after TROFF.");

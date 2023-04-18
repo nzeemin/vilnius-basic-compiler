@@ -260,20 +260,33 @@ Token Tokenizer::GetNextToken()
 
     if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z')  // Identifier or Keyword
     {
-        token.text = ch;
+        token.text = toupper(ch);
 
         while (true)
         {
             ch = PeekNextChar();
-            if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z')
-                token.text.append(1, GetNextChar());
-            else if (ch == '$')
+            if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9')
+            {
+                ch = GetNextChar();
+                if (token.text.length() < 2)  // Only two chars are significant
+                    token.text.append(1, toupper(ch));
+            }
+            else if (ch == '$' || ch == '%' || ch == '!')
             {
                 token.text.append(1, GetNextChar());
+                if (ch == '$')
+                    token.vtype = ValueTypeString;
+                else if (ch == '%')
+                    token.vtype = ValueTypeInteger;
+                else
+                    token.vtype = ValueTypeSingle;
                 break;
             }
             else
+            {
+                token.vtype = ValueTypeSingle;
                 break;
+            }
         }
 
         token.type = TokenTypeIdentifier;

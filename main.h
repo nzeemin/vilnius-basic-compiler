@@ -82,6 +82,7 @@ public:
         line(0), pos(0), type(TokenTypeNone), symbol(0), keyword(KeywordNone), vtype(ValueTypeNone),
         dvalue(0) {}
 public:
+    bool IsEolOrEof() const { return type == TokenTypeEOL || type == TokenTypeEOF; }
     bool IsOpenBracket() const { return type == TokenTypeSymbol && symbol == '('; }
     bool IsCloseBracket() const { return type == TokenTypeSymbol && symbol == ')'; }
     bool IsComma() const { return type == TokenTypeSymbol && symbol == ','; }
@@ -144,6 +145,7 @@ struct SourceLineModel
     int		paramline;	// Line number parameter for GOTO, GOSUB, RESTORE
     Token	ident;	    // LET identifier at left, FOR variable
     bool    relative;   // PSET, PRESET, LINE, CIRCLE, PAINT with '@' sign
+    bool    gotogosub;  // true for ON GOTO, false for ON GOSUB
     std::vector<ExpressionModel> args;  // Statement arguments
     std::vector<Token> params;  // Statement params like list of variables
 };
@@ -215,6 +217,7 @@ private:
     void ParseBeep(SourceLineModel& model);
     void ParseCls(SourceLineModel& model);
     void ParseColor(SourceLineModel& model);
+    void ParseData(SourceLineModel& model);
     void ParseEnd(SourceLineModel& model);
     void ParseFor(SourceLineModel& model);
     void ParseGosub(SourceLineModel& model);
