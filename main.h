@@ -54,7 +54,7 @@ enum TokenType
     TokenTypeDivider    = 3,
     TokenTypeKeyword    = 4,
     TokenTypeIdentifier = 5,
-    TokenTypeSymbol     = 6,
+    TokenTypeSymbol     = 10,
     TokenTypeEOL        = 100,
     TokenTypeEOF        = 101,
 };

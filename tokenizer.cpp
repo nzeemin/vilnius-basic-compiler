@@ -61,122 +61,7 @@ KeywordIndex GetKeywordIndex(string& str)
 }
 
 
-string Token::GetTokenTypeStr() const
-{
-    switch (type)
-    {
-    case TokenTypeNone:     return "None";
-    case TokenTypeNumber:   return "Number";
-    case TokenTypeString:   return "String";
-    case TokenTypeDivider:  return "Divider";
-    case TokenTypeKeyword:  return "Keyword";
-    case TokenTypeIdentifier: return "Ident";
-    case TokenTypeSymbol:   return "Symbol";
-    case TokenTypeEOL:      return "EOL";
-    case TokenTypeEOF:      return "EOF";
-    default:
-        return "Unknown";
-    }
-}
-
-string Token::GetTokenVTypeStr() const
-{
-    switch (vtype)
-    {
-    case ValueTypeNone:     return "None";
-    case ValueTypeInteger:  return "Integer";
-    case ValueTypeSingle:   return "Single";
-    //case ValueTypeDouble:   return "Double";
-    case ValueTypeString:   return "String";
-    default:
-        return "unk";
-    }
-}
-
-void Token::ParseDValue()
-{
-    const char* str = text.c_str();
-    if (vtype == ValueTypeInteger)
-    {
-        if (*str == '&')
-        {
-            char* pend;
-            switch (str[1])
-            {
-            case 'H':
-                dvalue = (double)strtol(str + 2, &pend, 16);
-                break;
-            case 'O':
-                dvalue = (double)strtol(str + 2, &pend, 8);
-                break;
-            case 'B':
-                dvalue = (double)strtol(str + 2, &pend, 2);
-                break;
-            }
-        }
-        else
-            dvalue = (double)atoi(str);
-    }
-    if (vtype == ValueTypeSingle)
-    {
-        int strlen = text.length();
-        int dotpos = text.find('.');
-        int epos = text.find('E');
-        
-        int epart = 0;
-        if (epos > 0)
-            epart = atoi(str + epos + 1);
-        double ipart = (double)atoi(str);  // integer part including sign
-        double fpart = 0;
-
-        if (dotpos >= 0 && epos < 0)  // 123.45 or .45 or 123.
-        {
-            int fpartlen = strlen - dotpos - 1;
-            fpart = fpartlen > 0 ? (double)atoi(str + dotpos + 1) : 0;
-            for (int i = 0; i < fpartlen; i++)
-                fpart /= 10.0;
-        }
-        else if (dotpos >= 0 && epos >= 0)  // 123.45E12
-        {
-            int fpartlen = epos - dotpos - 1;
-            fpart = fpartlen > 0 ? (double)atoi(str + dotpos + 1) : 0;
-            for (int i = 0; i < fpartlen; i++)
-                fpart /= 10.0;
-        }
-
-        dvalue = ipart + fpart;
-
-        if (epart < 0)
-            for (int i = 0; i < -epart; i++)
-                dvalue /= 10.0;
-        else if (epart > 0)
-            for (int i = 0; i < epart; i++)
-                dvalue *= 10.0;
-    }
-}
-
-void Token::Dump(std::ostream& out) const
-{
-    out << "{Token " << line << ":" << std::left << std::setw(3) << pos;
-    out << " type: " << std::left << std::setw(7);
-    if (type == TokenTypeNumber)
-        out << GetTokenVTypeStr();
-    else
-        out << GetTokenTypeStr();
-    if (!text.empty())
-        out << " text:\"" << text << "\"";  //TODO: Escape special chars
-    if (type == TokenTypeSymbol || symbol != 0)
-        out << " symb:\'" << symbol << "\'";  //TODO: Escape special chars
-    if (type == TokenTypeNumber)
-    {
-        std::cout.unsetf(std::ios::floatfield);
-        if (IsDValueInteger())
-            out << " d:" << dvalue;
-        else
-            out << " d:" << std::scientific << dvalue;
-    }
-    out << " }";
-}
+//////////////////////////////////////////////////////////////////////
 
 
 Tokenizer::Tokenizer(std::istream * pInput)
@@ -450,3 +335,6 @@ Token Tokenizer::GetNextToken()
     token.type = TokenTypeSymbol;
     return token;
 }
+
+
+//////////////////////////////////////////////////////////////////////

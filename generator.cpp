@@ -5,6 +5,9 @@
 #include "main.h"
 
 
+//////////////////////////////////////////////////////////////////////
+
+
 const GeneratorKeywordSpec Generator::m_keywordspecs[] =
 {
     { KeywordBEEP,	    &Generator::GenerateBeep },
@@ -191,3 +194,6 @@ void Generator::GenerateTroff(SourceLineModel& line)
 {
     // Do nothing
 }
+
+
+//////////////////////////////////////////////////////////////////////
