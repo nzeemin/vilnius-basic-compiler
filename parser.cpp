@@ -16,6 +16,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordCOLOR,     &Parser::ParseColor },
     { KeywordDATA,      &Parser::ParseData },
     { KeywordDIM,       &Parser::ParseDim },
+    { KeywordDRAW,      &Parser::ParseDraw },
     { KeywordEND,       &Parser::ParseEnd },
     { KeywordFOR,       &Parser::ParseFor },
     { KeywordGOSUB,     &Parser::ParseGosub },
@@ -143,6 +144,12 @@ Token Parser::PeekNextTokenSkipDivider()
     return token;
 }
 
+void Parser::CheckExpressionNotEmpty(SourceLineModel& model, Token& token, ExpressionModel& expr)
+{
+    if (expr.IsEmpty())
+        Error(model, token, "Expression should not be empty.");
+}
+
 SourceLineModel Parser::ParseNextLine()
 {
     Token token = GetNextToken();
@@ -266,7 +273,6 @@ void Parser::SkipTilEnd()
             break;
     }
 }
-
 
 ExpressionModel Parser::ParseExpression(SourceLineModel& model)
 {
@@ -475,11 +481,7 @@ void Parser::ParseClear(SourceLineModel& model)
 
     ExpressionModel expr1 = ParseExpression(model);
     model.args.push_back(expr1);
-    if (expr1.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr1);
 
     token = GetNextTokenSkipDivider();
     if (token.IsEolOrEof())
@@ -494,11 +496,7 @@ void Parser::ParseClear(SourceLineModel& model)
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr2 = ParseExpression(model);
     model.args.push_back(expr2);
-    if (expr2.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr2);
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsEolOrEof())
@@ -525,11 +523,7 @@ void Parser::ParseColor(SourceLineModel& model)
 
     ExpressionModel expr1 = ParseExpression(model);
     model.args.push_back(expr1);
-    if (expr1.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr1);
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsComma())
@@ -541,11 +535,7 @@ void Parser::ParseColor(SourceLineModel& model)
 
     ExpressionModel expr2 = ParseExpression(model);
     model.args.push_back(expr2);
-    if (expr2.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr2);
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsComma())
@@ -557,11 +547,7 @@ void Parser::ParseColor(SourceLineModel& model)
 
     ExpressionModel expr3 = ParseExpression(model);
     model.args.push_back(expr3);
-    if (expr3.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr3);
 
     token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
@@ -624,6 +610,28 @@ void Parser::ParseDim(SourceLineModel& model)
     }
 }
 
+void Parser::ParseDraw(SourceLineModel& model)
+{
+    Token token = GetNextTokenSkipDivider();
+    if (token.IsEolOrEof())
+    {
+        Error(model, token, "Argument expected in DRAW statement.");
+        return;
+    }
+    if (token.type != TokenTypeString)
+    {
+        Error(model, token, "String argument expected in DRAW statement.");
+        return;
+    }
+    model.params.push_back(token);
+
+    token = GetNextTokenSkipDivider();
+    if (token.IsEolOrEof())
+        return;
+
+    Error(model, token, "Unexpected text after DRAW argument.");
+}
+
 void Parser::ParseEnd(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
@@ -653,11 +661,7 @@ void Parser::ParseFor(SourceLineModel& model)
 
     token = PeekNextToken();
     ExpressionModel expr1 = ParseExpression(model);
-    if (expr1.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr1);
     model.args.push_back(expr1);
 
     token = GetNextTokenSkipDivider();
@@ -669,11 +673,7 @@ void Parser::ParseFor(SourceLineModel& model)
 
     token = PeekNextToken();
     ExpressionModel expr2 = ParseExpression(model);
-    if (expr2.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr2);
     model.args.push_back(expr2);
 
     token = GetNextTokenSkipDivider();
@@ -688,11 +688,7 @@ void Parser::ParseFor(SourceLineModel& model)
 
     token = PeekNextToken();
     ExpressionModel expr3 = ParseExpression(model);
-    if (expr3.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr3);
     model.args.push_back(expr3);
 
     token = GetNextTokenSkipDivider();
@@ -742,11 +738,7 @@ void Parser::ParseIf(SourceLineModel& model)
 {
     Token token = PeekNextToken();
     ExpressionModel expr = ParseExpression(model);
-    if (expr.IsEmpty())
-    {
-        Error(model, token, "IF condition should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr);
 
     //TODO
 
@@ -779,11 +771,7 @@ void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
     }
 
     ExpressionModel expr = ParseExpression(model);
-    if (expr.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr);
     model.args.push_back(expr);
 
     token = GetNextTokenSkipDivider();
@@ -804,11 +792,7 @@ void Parser::ParseLocate(SourceLineModel& model)
 
     ExpressionModel expr1 = ParseExpression(model);
     model.args.push_back(expr1);
-    if (expr1.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr1);
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsComma())
@@ -820,11 +804,7 @@ void Parser::ParseLocate(SourceLineModel& model)
 
     ExpressionModel expr2 = ParseExpression(model);
     model.args.push_back(expr2);
-    if (expr2.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr2);
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsComma())
@@ -836,11 +816,7 @@ void Parser::ParseLocate(SourceLineModel& model)
 
     ExpressionModel expr3 = ParseExpression(model);
     model.args.push_back(expr3);
-    if (expr3.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr3);
 
     token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
@@ -883,11 +859,7 @@ void Parser::ParseOn(SourceLineModel& model)
 {
     Token token = PeekNextTokenSkipDivider();
     ExpressionModel expr = ParseExpression(model);
-    if (expr.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr);
 
     token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || (token.keyword != KeywordGOTO && token.keyword != KeywordGOSUB))
@@ -933,11 +905,7 @@ void Parser::ParseOut(SourceLineModel& model)
 
     ExpressionModel expr1 = ParseExpression(model);
     model.args.push_back(expr1);
-    if (expr1.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr1);
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsComma())
@@ -949,11 +917,7 @@ void Parser::ParseOut(SourceLineModel& model)
 
     ExpressionModel expr2 = ParseExpression(model);
     model.args.push_back(expr2);
-    if (expr2.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr2);
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsComma())
@@ -965,11 +929,7 @@ void Parser::ParseOut(SourceLineModel& model)
 
     ExpressionModel expr3 = ParseExpression(model);
     model.args.push_back(expr3);
-    if (expr3.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr3);
 
     token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
@@ -1007,11 +967,7 @@ void Parser::ParsePrint(SourceLineModel& model)
             }
 
             ExpressionModel expr1 = ParseExpression(model);
-            if (expr1.IsEmpty())
-            {
-                Error(model, token, "Expression should not be empty.");
-                return;
-            }
+            CheckExpressionNotEmpty(model, token, expr1);
 
             token = GetNextToken();
             if (!token.IsComma())
@@ -1021,11 +977,7 @@ void Parser::ParsePrint(SourceLineModel& model)
             }
 
             ExpressionModel expr2 = ParseExpression(model);
-            if (expr2.IsEmpty())
-            {
-                Error(model, token, "Expression should not be empty.");
-                return;
-            }
+            CheckExpressionNotEmpty(model, token, expr2);
 
             token = GetNextToken();
             if (!token.IsCloseBracket())
@@ -1058,11 +1010,7 @@ void Parser::ParsePrint(SourceLineModel& model)
             }
 
             ExpressionModel expr1 = ParseExpression(model);
-            if (expr1.IsEmpty())
-            {
-                Error(model, token, "Expression should not be empty.");
-                return;
-            }
+            CheckExpressionNotEmpty(model, token, expr1);
 
             token = GetNextToken();
             if (!token.IsCloseBracket())
@@ -1094,11 +1042,7 @@ void Parser::ParsePrint(SourceLineModel& model)
             }
 
             ExpressionModel expr1 = ParseExpression(model);
-            if (expr1.IsEmpty())
-            {
-                Error(model, token, "Expression should not be empty.");
-                return;
-            }
+            CheckExpressionNotEmpty(model, token, expr1);
 
             token = GetNextToken();
             if (!token.IsCloseBracket())
@@ -1143,11 +1087,7 @@ void Parser::ParsePoke(SourceLineModel& model)
 {
     Token token = PeekNextTokenSkipDivider();
     ExpressionModel expr1 = ParseExpression(model);
-    if (expr1.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr1);
     model.args.push_back(expr1);
 
     token = PeekNextTokenSkipDivider();
@@ -1160,11 +1100,7 @@ void Parser::ParsePoke(SourceLineModel& model)
 
     ExpressionModel expr2 = ParseExpression(model);
     model.args.push_back(expr2);
-    if (expr2.IsEmpty())
-    {
-        Error(model, token, "Expression should not be empty.");
-        return;
-    }
+    CheckExpressionNotEmpty(model, token, expr2);
 
     token = GetNextTokenSkipDivider();
     if (!token.IsEolOrEof())
@@ -1188,12 +1124,7 @@ void Parser::ParseRead(SourceLineModel& model)
             while (true)
             {
                 ExpressionModel expr = ParseExpression(model);
-
-                if (expr.IsEmpty())
-                {
-                    Error(model, token, "Expression should not be empty.");
-                    return;
-                }
+                CheckExpressionNotEmpty(model, token, expr);
                 //TODO: save to model
 
                 token = GetNextTokenSkipDivider();

@@ -214,6 +214,7 @@ private:
     Token GetNextTokenSkipDivider();
     Token PeekNextToken();
     Token PeekNextTokenSkipDivider();
+    void CheckExpressionNotEmpty(SourceLineModel& model, Token& token, ExpressionModel& expr);
     void SkipTilEnd();
     void Error(SourceLineModel& model, Token& token, const char* message);
     ExpressionModel ParseExpression(SourceLineModel& model);
@@ -225,6 +226,7 @@ private:
     void ParseColor(SourceLineModel& model);
     void ParseData(SourceLineModel& model);
     void ParseDim(SourceLineModel& model);
+    void ParseDraw(SourceLineModel& model);
     void ParseEnd(SourceLineModel& model);
     void ParseFor(SourceLineModel& model);
     void ParseGosub(SourceLineModel& model);
