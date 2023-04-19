@@ -36,6 +36,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordSTOP,      &Parser::ParseStop },
     { KeywordTRON,      &Parser::ParseTron },
     { KeywordTRON,      &Parser::ParseTroff },
+    { KeywordWIDTH,     &Parser::ParseWidth },
 };
 
 const ParserFunctionSpec Parser::m_funcspecs[] =
@@ -188,11 +189,9 @@ SourceLineModel Parser::ParseNextLine()
 
     token = GetNextTokenSkipDivider();
 
-    if (token.type == TokenTypeSymbol && token.symbol == '\'')  // REM short form
+    if (token.type == TokenTypeEndComment)  // REM short form
     {
-        ParseRem(model);
-        model.statement = token;
-        return model;
+        return model;  // Empty line with end-line comment
     }
     if (token.type == TokenTypeSymbol && token.symbol == '?')  // PRINT short form
     {
@@ -994,6 +993,131 @@ void Parser::ParsePrint(SourceLineModel& model)
 
     while (true)
     {
+        token = PeekNextTokenSkipDivider();
+        if (token.type == TokenTypeKeyword && token.keyword == KeywordAT)
+        {
+            ExpressionNode node0;
+            node0.node = GetNextToken();  // AT keyword
+
+            token = GetNextToken();
+            if (!token.IsOpenBracket())
+            {
+                Error(model, token, "Open bracket expected after AT.");
+                return;
+            }
+
+            ExpressionModel expr1 = ParseExpression(model);
+            if (expr1.IsEmpty())
+            {
+                Error(model, token, "Expression should not be empty.");
+                return;
+            }
+
+            token = GetNextToken();
+            if (!token.IsComma())
+            {
+                Error(model, token, "Comma expected after first argument of AT.");
+                return;
+            }
+
+            ExpressionModel expr2 = ParseExpression(model);
+            if (expr2.IsEmpty())
+            {
+                Error(model, token, "Expression should not be empty.");
+                return;
+            }
+
+            token = GetNextToken();
+            if (!token.IsCloseBracket())
+            {
+                Error(model, token, "Close bracket expected after arguments of AT.");
+                return;
+            }
+
+            node0.args.push_back(expr1);
+            node0.args.push_back(expr2);
+
+            ExpressionModel expr0;
+            expr0.nodes.push_back(node0);
+            expr0.root = 0;
+
+            model.args.push_back(expr0);
+
+            continue;
+        }
+        if (token.type == TokenTypeKeyword && token.keyword == KeywordTAB)
+        {
+            ExpressionNode node0;
+            node0.node = GetNextToken();  // TAB keyword
+
+            token = GetNextToken();
+            if (!token.IsOpenBracket())
+            {
+                Error(model, token, "Open bracket expected after TAB.");
+                return;
+            }
+
+            ExpressionModel expr1 = ParseExpression(model);
+            if (expr1.IsEmpty())
+            {
+                Error(model, token, "Expression should not be empty.");
+                return;
+            }
+
+            token = GetNextToken();
+            if (!token.IsCloseBracket())
+            {
+                Error(model, token, "Close bracket expected after argument of TAB.");
+                return;
+            }
+
+            node0.args.push_back(expr1);
+
+            ExpressionModel expr0;
+            expr0.nodes.push_back(node0);
+            expr0.root = 0;
+
+            model.args.push_back(expr0);
+
+            continue;
+        }
+        if (token.type == TokenTypeKeyword && token.keyword == KeywordSPC)
+        {
+            ExpressionNode node0;
+            node0.node = GetNextToken();  // SPC keyword
+            
+            token = GetNextToken();
+            if (!token.IsOpenBracket())
+            {
+                Error(model, token, "Open bracket expected after SPC.");
+                return;
+            }
+
+            ExpressionModel expr1 = ParseExpression(model);
+            if (expr1.IsEmpty())
+            {
+                Error(model, token, "Expression should not be empty.");
+                return;
+            }
+
+            token = GetNextToken();
+            if (!token.IsCloseBracket())
+            {
+                Error(model, token, "Close bracket expected after argument of SPC.");
+                return;
+            }
+
+            node0.args.push_back(expr1);
+
+            ExpressionModel expr0;
+            expr0.nodes.push_back(node0);
+            expr0.root = 0;
+
+            model.args.push_back(expr0);
+
+            continue;
+        }
+
         ExpressionModel expr = ParseExpression(model);
         model.args.push_back(expr);
 
@@ -1042,11 +1166,9 @@ void Parser::ParsePoke(SourceLineModel& model)
         return;
     }
 
-    token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-        return;
-
-    Error(model, token, "Unexpected text after POKE arguments.");
+    token = GetNextTokenSkipDivider();
+    if (!token.IsEolOrEof())
+        Error(model, token, "Unexpected text after POKE arguments.");
 }
 
 void Parser::ParseRead(SourceLineModel& model)
@@ -1184,5 +1306,9 @@ void Parser::ParseTroff(SourceLineModel& model)
     Error(model, token, "Unexpected text after TROFF.");
 }
 
+void Parser::ParseWidth(SourceLineModel& model)
+{
+    SkipTilEnd();
+}
 
 //////////////////////////////////////////////////////////////////////

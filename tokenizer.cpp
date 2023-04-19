@@ -29,6 +29,7 @@ const char* Keywords[] = {
     "TAB", "TAN", "THEN", "TO", "TROFF", "TRON",
     "USR",
     "VAL",
+    "WIDTH",
     "XOR"
 };
 
@@ -143,6 +144,26 @@ Token Tokenizer::GetNextToken()
         return token;
     }
 
+    if (ch == '\'')  // Comment from here till end of line
+    {
+        token.type = TokenTypeEndComment;
+        token.text = ch;
+        while (true)
+        {
+            ch = GetNextChar();
+            if (ch == '\n')
+                return token;
+            if (ch == '\r')
+            {
+                char next = PeekNextChar();
+                if (next == '\n')
+                    GetNextChar();
+                return token;
+            }
+            token.text.append(1, ch);
+        }
+    }
+
     if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z')  // Identifier or Keyword
     {
         token.text = toupper(ch);
@@ -254,6 +275,7 @@ Token Tokenizer::GetNextToken()
         }
 
         token.type = TokenTypeString;
+        token.vtype = ValueTypeString;
         return token;
     }
 

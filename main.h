@@ -41,6 +41,7 @@ enum KeywordIndex
     KeywordTAB, KeywordTAN, KeywordTHEN, KeywordTO, KeywordTROFF, KeywordTRON,
     KeywordUSR,
     KeywordVAL,
+    KeywordWIDTH,
     KeywordXOR
 };
 
@@ -56,7 +57,8 @@ enum TokenType
     TokenTypeIdentifier = 5,
     TokenTypeSymbol     = 10,
     TokenTypeEOL        = 100,
-    TokenTypeEOF        = 101,
+    TokenTypeEndComment = 101,  // Apostroph and text after that, including EOL
+    TokenTypeEOF        = 200,
 };
 
 enum ValueType
@@ -82,14 +84,14 @@ public:
         line(0), pos(0), type(TokenTypeNone), symbol(0), keyword(KeywordNone), vtype(ValueTypeNone),
         dvalue(0) {}
 public:
-    bool IsEolOrEof() const { return type == TokenTypeEOL || type == TokenTypeEOF; }
+    bool IsEolOrEof() const { return type == TokenTypeEOL || type == TokenTypeEndComment || type == TokenTypeEOF; }
     bool IsOpenBracket() const { return type == TokenTypeSymbol && symbol == '('; }
     bool IsCloseBracket() const { return type == TokenTypeSymbol && symbol == ')'; }
     bool IsComma() const { return type == TokenTypeSymbol && symbol == ','; }
     bool IsSemicolon() const { return type == TokenTypeSymbol && symbol == ';'; }
     bool IsEndOfExpression() const
     {
-        return type == TokenTypeEOL || type == TokenTypeEOF ||
+        return type == TokenTypeEOL || type == TokenTypeEndComment || type == TokenTypeEOF ||
             type == TokenTypeSymbol && (symbol == ',' || symbol == ';' || symbol == ')') ||
             //TODO: Keyword which is not MOD of function
             type == TokenTypeKeyword && !IsFunctionKeyword(keyword);
@@ -243,6 +245,7 @@ private:
     void ParseStop(SourceLineModel& model);
     void ParseTron(SourceLineModel& model);
     void ParseTroff(SourceLineModel& model);
+    void ParseWidth(SourceLineModel& model);
 };
 
 class Generator;
