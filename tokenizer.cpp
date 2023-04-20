@@ -167,12 +167,25 @@ Token Tokenizer::GetNextToken()
     if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z')  // Identifier or Keyword
     {
         token.text = toupper(ch);
-
+        bool firstdigit = true;
         while (true)
         {
             ch = PeekNextChar();
             if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9')
             {
+                if (ch >= '0' && ch <= '9' && firstdigit)  // check for like "THEN70"
+                {
+                    KeywordIndex kw = GetKeywordIndex(token.text);
+                    if (kw != KeywordNone)
+                    {
+                        token.keyword = kw;
+                        token.type = TokenTypeKeyword;
+                        return token;
+                    }
+
+                    firstdigit = false;
+                }
+
                 ch = GetNextChar();
                 token.text.append(1, toupper(ch));
             }
@@ -350,7 +363,29 @@ Token Tokenizer::GetNextToken()
             token.ParseDValue();
             return token;
         }
+
         // else it is Symbol
+    }
+    else if (ch == '-' || ch == '+' || ch == '/' || ch == '*' || ch == '^' || ch == '\\' || ch == '=' ||
+        ch == '<' || ch == '>')
+    {
+        token.type = TokenTypeOperation;
+        token.text = ch;
+
+        if (ch == '<')
+        {
+            char next = PeekNextChar();
+            if (next == '>' || next == '=')
+                token.text.append(1, GetNextChar());
+        }
+        else if (ch == '>')
+        {
+            char next = PeekNextChar();
+            if (next == '<' || next == '=')
+                token.text.append(1, GetNextChar());
+        }
+
+        return token;
     }
 
     token.symbol = ch;

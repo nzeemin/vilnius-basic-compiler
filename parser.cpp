@@ -85,6 +85,13 @@ const ParserFunctionSpec Parser::m_funcspecs[] =
     //NOTE: USR has special syntax
 };
 
+const char* MSG_UNEXPECTED = "Unexpected text.";
+const char* MSG_UNEXPECTED_AT_END_OF_STATEMENT = "Unexpected text at the end of the statement.";
+const char* MSG_EXPRESSION_SHOULDNOT_BE_EMPTY = "Expression should not be empty.";
+const char* MSG_COMMA_EXPECTED = "Comma expected.";
+const char* MSG_OPEN_BRACKET_EXPECTED = "Open bracket expected.";
+const char* MSG_CLOSE_BRACKET_EXPECTED = "Close bracket expected.";
+
 
 const int Parser::FindFunctionSpec(KeywordIndex keyword)
 {
@@ -149,7 +156,7 @@ Token Parser::PeekNextTokenSkipDivider()
 void Parser::CheckExpressionNotEmpty(SourceLineModel& model, Token& token, ExpressionModel& expr)
 {
     if (expr.IsEmpty())
-        Error(model, token, "Expression should not be empty.");
+        Error(model, token, MSG_EXPRESSION_SHOULDNOT_BE_EMPTY);
 }
 
 SourceLineModel Parser::ParseNextLine()
@@ -281,7 +288,7 @@ void Parser::SkipComma(SourceLineModel& model)
     Token token = GetNextTokenSkipDivider();
     if (!token.IsComma())
     {
-        Error(model, token, "Comma expected.");
+        Error(model, token, MSG_COMMA_EXPECTED);
         return;
     }
 }
@@ -479,7 +486,7 @@ void Parser::ParseStatementNoParams(SourceLineModel& model)
     if (token.IsEolOrEof())
         return;
 
-    Error(model, token, "Unexpected text after the statement.");
+    Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseClear(SourceLineModel& model)
@@ -487,7 +494,7 @@ void Parser::ParseClear(SourceLineModel& model)
     Token token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
     {
-        Error(model, token, "Argument expected in CLEAR statement.");
+        Error(model, token, "Argument expected.");
         return;
     }
 
@@ -501,7 +508,7 @@ void Parser::ParseClear(SourceLineModel& model)
 
     if (!token.IsComma())
     {
-        Error(model, token, "Unexpected text in CLEAR statement.");
+        Error(model, token, MSG_UNEXPECTED);
         return;
     }
 
@@ -512,7 +519,7 @@ void Parser::ParseClear(SourceLineModel& model)
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsEolOrEof())
-        Error(model, token, "Unexpected text after CLEAR arguments.");
+        Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseColor(SourceLineModel& model)
@@ -538,7 +545,7 @@ void Parser::ParseColor(SourceLineModel& model)
     token = PeekNextTokenSkipDivider();
     if (!token.IsComma())
     {
-        Error(model, token, "Comma expected after the argument.");
+        Error(model, token, MSG_COMMA_EXPECTED);
         return;
     }
     GetNextToken();  // Comma
@@ -547,11 +554,9 @@ void Parser::ParseColor(SourceLineModel& model)
     model.args.push_back(expr3);
     CheckExpressionNotEmpty(model, token, expr3);
 
-    token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-        return;
-
-    Error(model, token, "Unexpected text at the end of the statement.");
+    token = GetNextTokenSkipDivider();
+    if (!token.IsEolOrEof())
+        Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseData(SourceLineModel& model)
@@ -590,7 +595,7 @@ void Parser::ParseDim(SourceLineModel& model)
                     break;
                 if (!token.IsComma())
                 {
-                    Error(model, token, "Comma expected.");
+                    Error(model, token, MSG_COMMA_EXPECTED);
                     return;
                 }
             }
@@ -602,7 +607,7 @@ void Parser::ParseDim(SourceLineModel& model)
 
         if (!token.IsComma())
         {
-            Error(model, token, "Comma expected.");
+            Error(model, token, MSG_COMMA_EXPECTED);
             return;
         }
     }
@@ -627,7 +632,7 @@ void Parser::ParseDraw(SourceLineModel& model)
     if (token.IsEolOrEof())
         return;
 
-    Error(model, token, "Unexpected text at the end of the statement.");
+    Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseFor(SourceLineModel& model)
@@ -642,7 +647,7 @@ void Parser::ParseFor(SourceLineModel& model)
     model.ident = token;
 
     token = GetNextTokenSkipDivider();
-    if (token.type != TokenTypeSymbol || token.symbol != '=')
+    if (!token.IsEqualSign())
     {
         Error(model, token, "FOR \'=\' symbol expected.");
         return;
@@ -671,7 +676,7 @@ void Parser::ParseFor(SourceLineModel& model)
 
     if (token.type != TokenTypeKeyword || token.keyword != KeywordSTEP)
     {
-        Error(model, token, "Unepected text in FOR operator.");
+        Error(model, token, MSG_UNEXPECTED);
         return;
     }
 
@@ -684,7 +689,7 @@ void Parser::ParseFor(SourceLineModel& model)
     if (token.IsEolOrEof())
         return;
 
-    Error(model, token, "Unexpected text at the end of the statement.");
+    Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseGotoGosub(SourceLineModel& model)
@@ -701,7 +706,7 @@ void Parser::ParseGotoGosub(SourceLineModel& model)
     if (token.IsEolOrEof())
         return;
 
-    Error(model, token, "Unexpected text at the end of the statement.");
+    Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseIf(SourceLineModel& model)
@@ -734,7 +739,10 @@ void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
     model.ident = tokenIdent;
 
     Token token = GetNextTokenSkipDivider();
-    if (token.type != TokenTypeSymbol || token.symbol != '=')
+    //TODO: Open bracket
+    //TODO: MID
+
+    if (!token.IsEqualSign())
     {
         Error(model, token, "Equal sign (\'=\') expected.");
         return;
@@ -748,7 +756,7 @@ void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
     if (token.IsEolOrEof())
         return;
 
-    Error(model, token, "Unexpected text at the end of the statement.");
+    Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseLocate(SourceLineModel& model)
@@ -782,7 +790,7 @@ void Parser::ParseLocate(SourceLineModel& model)
     if (token.IsEolOrEof())
         return;
 
-    Error(model, token, "Unexpected text at the end of the statement.");
+    Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseNext(SourceLineModel& model)
@@ -798,6 +806,7 @@ void Parser::ParseNext(SourceLineModel& model)
             Error(model, token, "Identifier expected.");
             return;
         }
+        //TODO: Check for numeric variable
 
         model.params.push_back(token);
 
@@ -846,7 +855,7 @@ void Parser::ParseOn(SourceLineModel& model)
             break;
         if (!token.IsComma())
         {
-            Error(model, token, "Unexpected text.");
+            Error(model, token, MSG_UNEXPECTED);
             return;
         }
 
@@ -885,7 +894,7 @@ void Parser::ParseOut(SourceLineModel& model)
     if (token.IsEolOrEof())
         return;
 
-    Error(model, token, "Unexpected text at the end of the statement.");
+    Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 //TODO: LPRINT
@@ -909,30 +918,30 @@ void Parser::ParsePrint(SourceLineModel& model)
             ExpressionNode node0;
             node0.node = GetNextToken();  // AT keyword
 
-            token = GetNextToken();
+            token = GetNextTokenSkipDivider();
             if (!token.IsOpenBracket())
             {
-                Error(model, token, "Open bracket expected.");
+                Error(model, token, MSG_OPEN_BRACKET_EXPECTED);
                 return;
             }
 
             ExpressionModel expr1 = ParseExpression(model);
             CheckExpressionNotEmpty(model, token, expr1);
 
-            token = GetNextToken();
+            token = GetNextTokenSkipDivider();
             if (!token.IsComma())
             {
-                Error(model, token, "Comma expected.");
+                Error(model, token, MSG_COMMA_EXPECTED);
                 return;
             }
 
             ExpressionModel expr2 = ParseExpression(model);
             CheckExpressionNotEmpty(model, token, expr2);
 
-            token = GetNextToken();
+            token = GetNextTokenSkipDivider();
             if (!token.IsCloseBracket())
             {
-                Error(model, token, "Close bracket expected.");
+                Error(model, token, MSG_CLOSE_BRACKET_EXPECTED);
                 return;
             }
 
@@ -952,20 +961,20 @@ void Parser::ParsePrint(SourceLineModel& model)
             ExpressionNode node0;
             node0.node = GetNextToken();  // TAB keyword
 
-            token = GetNextToken();
+            token = GetNextTokenSkipDivider();
             if (!token.IsOpenBracket())
             {
-                Error(model, token, "Open bracket expected.");
+                Error(model, token, MSG_OPEN_BRACKET_EXPECTED);
                 return;
             }
 
             ExpressionModel expr1 = ParseExpression(model);
             CheckExpressionNotEmpty(model, token, expr1);
 
-            token = GetNextToken();
+            token = GetNextTokenSkipDivider();
             if (!token.IsCloseBracket())
             {
-                Error(model, token, "Close bracket expected.");
+                Error(model, token, MSG_CLOSE_BRACKET_EXPECTED);
                 return;
             }
 
@@ -984,20 +993,20 @@ void Parser::ParsePrint(SourceLineModel& model)
             ExpressionNode node0;
             node0.node = GetNextToken();  // SPC keyword
             
-            token = GetNextToken();
+            token = GetNextTokenSkipDivider();
             if (!token.IsOpenBracket())
             {
-                Error(model, token, "Open bracket expected.");
+                Error(model, token, MSG_OPEN_BRACKET_EXPECTED);
                 return;
             }
 
             ExpressionModel expr1 = ParseExpression(model);
             CheckExpressionNotEmpty(model, token, expr1);
 
-            token = GetNextToken();
+            token = GetNextTokenSkipDivider();
             if (!token.IsCloseBracket())
             {
-                Error(model, token, "Close bracket expected.");
+                Error(model, token, MSG_CLOSE_BRACKET_EXPECTED);
                 return;
             }
 
@@ -1049,7 +1058,7 @@ void Parser::ParsePoke(SourceLineModel& model)
 
     token = GetNextTokenSkipDivider();
     if (!token.IsEolOrEof())
-        Error(model, token, "Unexpected text at the end of the statement.");
+        Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParsePsetPreset(SourceLineModel& model)
@@ -1064,7 +1073,7 @@ void Parser::ParsePsetPreset(SourceLineModel& model)
 
     if (!token.IsOpenBracket())
     {
-        Error(model, token, "Open bracket expected.");
+        Error(model, token, MSG_OPEN_BRACKET_EXPECTED);
         return;
     }
 
@@ -1083,7 +1092,7 @@ void Parser::ParsePsetPreset(SourceLineModel& model)
     token = GetNextTokenSkipDivider();
     if (!token.IsCloseBracket())
     {
-        Error(model, token, "Close bracket expected.");
+        Error(model, token, MSG_CLOSE_BRACKET_EXPECTED);
         return;
     }
 
@@ -1103,7 +1112,7 @@ void Parser::ParsePsetPreset(SourceLineModel& model)
 
     token = GetNextTokenSkipDivider();
     if (!token.IsEolOrEof())
-        Error(model, token, "Unexpected text at the end of the statement.");
+        Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseRead(SourceLineModel& model)
@@ -1131,7 +1140,7 @@ void Parser::ParseRead(SourceLineModel& model)
                     break;
                 if (!token.IsComma())
                 {
-                    Error(model, token, "Comma expected.");
+                    Error(model, token, MSG_COMMA_EXPECTED);
                     return;
                 }
             }
@@ -1143,7 +1152,7 @@ void Parser::ParseRead(SourceLineModel& model)
 
         if (!token.IsComma())
         {
-            Error(model, token, "Comma expected.");
+            Error(model, token, MSG_COMMA_EXPECTED);
             return;
         }
     }
@@ -1177,7 +1186,7 @@ void Parser::ParseRestore(SourceLineModel& model)
 
     token = GetNextTokenSkipDivider();
     if (!token.IsEolOrEof())
-        Error(model, token, "Unexpected text at the end of the statement.");
+        Error(model, token, MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseScreen(SourceLineModel& model)

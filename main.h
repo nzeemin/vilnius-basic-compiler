@@ -55,7 +55,8 @@ enum TokenType
     TokenTypeDivider    = 3,
     TokenTypeKeyword    = 4,
     TokenTypeIdentifier = 5,
-    TokenTypeSymbol     = 10,
+    TokenTypeSymbol     = 6,
+    TokenTypeOperation  = 7,
     TokenTypeEOL        = 100,
     TokenTypeEndComment = 101,  // Apostroph and text after that, including EOL
     TokenTypeEOF        = 200,
@@ -89,18 +90,17 @@ public:
     bool IsCloseBracket() const { return type == TokenTypeSymbol && symbol == ')'; }
     bool IsComma() const { return type == TokenTypeSymbol && symbol == ','; }
     bool IsSemicolon() const { return type == TokenTypeSymbol && symbol == ';'; }
+    bool IsEqualSign() const { return type == TokenTypeOperation && text == "="; }
     bool IsEndOfExpression() const
     {
         return type == TokenTypeEOL || type == TokenTypeEndComment || type == TokenTypeEOF ||
             type == TokenTypeSymbol && (symbol == ',' || symbol == ';' || symbol == ')') ||
-            //TODO: Keyword which is not MOD of function
             type == TokenTypeKeyword && !IsFunctionKeyword(keyword);
     }
     bool IsBinaryOperation() const
     {
         return
-            type == TokenTypeSymbol && (
-                symbol == '+' || symbol == '-' || symbol == '*' || symbol == '/' || symbol == '\\' || symbol == '^') ||
+            type == TokenTypeOperation ||
             type == TokenTypeKeyword && keyword == KeywordMOD;
     }
     string GetTokenTypeStr() const;
