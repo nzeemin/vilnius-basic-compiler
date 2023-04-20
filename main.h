@@ -216,21 +216,19 @@ private:
     Token PeekNextTokenSkipDivider();
     void CheckExpressionNotEmpty(SourceLineModel& model, Token& token, ExpressionModel& expr);
     void SkipTilEnd();
+    void SkipComma(SourceLineModel& model);
     void Error(SourceLineModel& model, Token& token, const char* message);
     ExpressionModel ParseExpression(SourceLineModel& model);
     void ParseLetShort(Token& tokenIdent, SourceLineModel& model);
 private:
-    void ParseBeep(SourceLineModel& model);
+    void ParseStatementNoParams(SourceLineModel& model);
     void ParseClear(SourceLineModel& model);
-    void ParseCls(SourceLineModel& model);
     void ParseColor(SourceLineModel& model);
     void ParseData(SourceLineModel& model);
     void ParseDim(SourceLineModel& model);
     void ParseDraw(SourceLineModel& model);
-    void ParseEnd(SourceLineModel& model);
     void ParseFor(SourceLineModel& model);
-    void ParseGosub(SourceLineModel& model);
-    void ParseGoto(SourceLineModel& model);
+    void ParseGotoGosub(SourceLineModel& model);
     void ParseIf(SourceLineModel& model);
     void ParseLet(SourceLineModel& model);
     void ParseLocate(SourceLineModel& model);
@@ -239,14 +237,11 @@ private:
     void ParseOut(SourceLineModel& model);
     void ParsePrint(SourceLineModel& model);
     void ParsePoke(SourceLineModel& model);
+    void ParsePsetPreset(SourceLineModel& model);
     void ParseRead(SourceLineModel& model);
     void ParseRem(SourceLineModel& model);
     void ParseRestore(SourceLineModel& model);
-    void ParseReturn(SourceLineModel& model);
     void ParseScreen(SourceLineModel& model);
-    void ParseStop(SourceLineModel& model);
-    void ParseTron(SourceLineModel& model);
-    void ParseTroff(SourceLineModel& model);
     void ParseWidth(SourceLineModel& model);
 };
 
