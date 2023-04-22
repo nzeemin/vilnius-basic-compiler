@@ -91,6 +91,7 @@ const char* MSG_EXPRESSION_SHOULDNOT_BE_EMPTY = "Expression should not be empty.
 const char* MSG_COMMA_EXPECTED = "Comma expected.";
 const char* MSG_OPEN_BRACKET_EXPECTED = "Open bracket expected.";
 const char* MSG_CLOSE_BRACKET_EXPECTED = "Close bracket expected.";
+const char* MSG_ARGUMENTS_EXPECTED = "Arguments expected.";
 
 
 const int Parser::FindFunctionSpec(KeywordIndex keyword)
@@ -216,6 +217,17 @@ SourceLineModel Parser::ParseNextLine()
         return model;
     }
     if (token.type == TokenTypeIdentifier)  // LET without the keyword
+    {
+        Token tokenlet;
+        tokenlet.type = TokenTypeKeyword;
+        tokenlet.keyword = KeywordLET;
+        tokenlet.text = "LET";
+        model.statement = tokenlet;
+
+        ParseLetShort(token, model);
+        return model;
+    }
+    if (token.type == TokenTypeKeyword && token.keyword == KeywordMID)
     {
         Token tokenlet;
         tokenlet.type = TokenTypeKeyword;
@@ -527,7 +539,7 @@ void Parser::ParseColor(SourceLineModel& model)
     Token token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
     {
-        Error(model, token, "Arguments expected.");
+        Error(model, token, MSG_ARGUMENTS_EXPECTED);
         return;
     }
 
@@ -577,8 +589,16 @@ void Parser::ParseDim(SourceLineModel& model)
             Error(model, token, "Identifier expected.");
             return;
         }
+
+        VariableModel var;
+        var.name = token.text;  //TODO: canonic form
+            
         token = GetNextTokenSkipDivider();
-        if (token.IsOpenBracket())
+        if (token.IsComma())  // end of definition
+        {
+            model.variables.push_back(var);
+        }
+        else if (token.IsOpenBracket())  // Array
         {
             while (true)
             {
@@ -588,9 +608,20 @@ void Parser::ParseDim(SourceLineModel& model)
                     Error(model, token, "Array size expected.");
                     return;
                 }
-                //TODO: save to model
+                if (!token.IsDValueInteger())
+                {
+                    Error(model, token, "Array size should be an integer.");
+                    return;
+                }
+                //TODO: Check for limits
+                var.indices.push_back((int)token.dvalue);
 
                 token = GetNextTokenSkipDivider();
+                if (token.IsCloseBracket())  // end of definition
+                {
+                    model.variables.push_back(var);
+                }
+
                 if (token.IsCloseBracket())
                     break;
                 if (!token.IsComma())
@@ -734,13 +765,79 @@ void Parser::ParseLet(SourceLineModel& model)
     ParseLetShort(token, model);
 }
 
-void Parser::ParseLetShort(Token& tokenIdent, SourceLineModel& model)
+void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
 {
-    model.ident = tokenIdent;
+    model.ident = tokenIdentOrMid;
 
-    Token token = GetNextTokenSkipDivider();
-    //TODO: Open bracket
-    //TODO: MID
+    Token token;
+    if (tokenIdentOrMid.type == TokenTypeIdentifier)
+    {
+        VariableModel var;
+        var.name = tokenIdentOrMid.text;  //TODO: canonic form
+        //TODO: Check for open bracket, parse variable indices
+        model.variables.push_back(var);
+
+        token = GetNextTokenSkipDivider();
+        if (token.IsOpenBracket())  // Open bracket - read array indices
+        {
+            token = GetNextTokenSkipDivider();
+            //TODO
+
+            //TODO: Close bracket
+            token = GetNextTokenSkipDivider();
+
+            token = GetNextTokenSkipDivider();  // get token after the close bracket
+        }
+    }
+    else if (tokenIdentOrMid.type == TokenTypeKeyword && tokenIdentOrMid.keyword == KeywordMID)
+    {
+        token = GetNextTokenSkipDivider();
+        if (!token.IsOpenBracket())
+        {
+            Error(model, token, MSG_OPEN_BRACKET_EXPECTED);
+            return;
+        }
+
+        token = GetNextTokenSkipDivider();
+        if (token.type != TokenTypeIdentifier)
+        {
+            Error(model, token, "Identifier expected.");
+            return;
+        }
+        VariableModel var;
+        var.name = token.text;  //TODO: canonic form
+        //TODO: Check for open bracket, parse variable indices
+        model.variables.push_back(var);
+
+        SkipComma(model);
+
+        token = GetNextTokenSkipDivider();
+        if (token.type != TokenTypeNumber || !token.IsDValueInteger())
+        {
+            Error(model, token, "Integer argument expected.");
+            return;
+        }
+        model.params.push_back(token);
+
+        SkipComma(model);
+
+        token = GetNextTokenSkipDivider();
+        if (token.type != TokenTypeNumber || !token.IsDValueInteger())
+        {
+            Error(model, token, "Integer argument expected.");
+            return;
+        }
+        model.params.push_back(token);
+
+        token = GetNextTokenSkipDivider();
+        if (!token.IsCloseBracket())
+        {
+            Error(model, token, MSG_CLOSE_BRACKET_EXPECTED);
+            return;
+        }
+
+        token = GetNextTokenSkipDivider();
+    }
 
     if (!token.IsEqualSign())
     {
@@ -764,7 +861,7 @@ void Parser::ParseLocate(SourceLineModel& model)
     Token token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
     {
-        Error(model, token, "Arguments expected.");
+        Error(model, token, MSG_ARGUMENTS_EXPECTED);
         return;
     }
 
@@ -868,7 +965,7 @@ void Parser::ParseOut(SourceLineModel& model)
     Token token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
     {
-        Error(model, token, "Arguments expected.");
+        Error(model, token, MSG_ARGUMENTS_EXPECTED);
         return;
     }
 
@@ -1179,7 +1276,7 @@ void Parser::ParseRestore(SourceLineModel& model)
 
     if (token.type != TokenTypeNumber)
     {
-        Error(model, token, "Number argument expected.");
+        Error(model, token, "Numeric argument expected.");
         return;
     }
     model.paramline = (int)token.dvalue;
@@ -1194,7 +1291,7 @@ void Parser::ParseScreen(SourceLineModel& model)
     Token token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
     {
-        Error(model, token, "Number argument expected.");
+        Error(model, token, "Numeric argument expected.");
         return;
     }
 

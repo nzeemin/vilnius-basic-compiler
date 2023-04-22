@@ -44,7 +44,7 @@ void ShowTokenization()
 
 void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
 {
-    std::cout << std::endl << std::setw(indent * 2) << "  " << number << ":";
+    std::cout << std::endl << std::setw(indent * 2) << "  exp" << number << ":";
     if (expr.IsEmpty())
     {
         std::cout << " empty";
@@ -108,25 +108,46 @@ void ShowParsing()
         if (line.ident.type != TokenTypeNone)
             std::cout << " ident:" << line.ident.text;
         if (line.args.size() > 0)
+            std::cout << " args(" << line.args.size() << ")";
+        if (line.params.size() > 0)
+            std::cout << " params(" << line.params.size() << ")";
+        if (line.variables.size() > 0)
+            std::cout << " vars(" << line.variables.size() << ")";
+        if (line.args.size() > 0)
         {
-            std::cout << " args(" << line.args.size() << "): [";
             for (size_t i = 0; i < line.args.size(); i++)
             {
                 ExpressionModel& expr = line.args[i];
                 PrintExpression(expr, i);
             }
-            std::cout << " ]";
         }
         if (line.params.size() > 0)
         {
-            std::cout << " params(" << line.params.size() << "): [";
             for (size_t i = 0; i < line.params.size(); i++)
             {
                 Token& token = line.params[i];
-                std::cout << std::endl << std::setw(2) << "  " << i << ": ";
+                std::cout << std::endl << std::setw(2) << "  par" << i << ": ";
                 token.Dump(std::cout);
             }
-            std::cout << " ]";
+        }
+        if (line.variables.size() > 0)
+        {
+            for (size_t i = 0; i < line.variables.size(); i++)
+            {
+                VariableModel& var = line.variables[i];
+                std::cout << std::endl << std::setw(2) << "  var" << i << ": ";
+                std::cout << var.name;
+                if (var.indices.size() > 0)
+                {
+                    std::cout << "(";
+                    for (size_t j = 0; j < var.indices.size(); j++)
+                    {
+                        if (j > 0) std::cout << ",";
+                        std::cout << var.indices[j];
+                    }
+                    std::cout << ")";
+                }
+            }
         }
         std::cout << std::endl;
 

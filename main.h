@@ -14,7 +14,6 @@
 const int MAX_LINE_NUMBER = 65535;
 
 typedef std::string string;
-typedef std::vector<string> stringvec;
 
 enum KeywordIndex
 {
@@ -110,6 +109,12 @@ public:
     void Dump(std::ostream& out) const;
 };
 
+struct VariableModel
+{
+    string name;  // Variable name in canonic form
+    std::vector<int> indices;  // List of variable indices if any
+};
+
 struct ExpressionModel;
 
 struct ExpressionNode
@@ -153,6 +158,7 @@ struct SourceLineModel
     bool    gotogosub;  // true for ON GOTO, false for ON GOSUB
     std::vector<ExpressionModel> args;  // Statement arguments
     std::vector<Token> params;  // Statement params like list of variables
+    std::vector<VariableModel> variables;
 };
 
 struct SourceModel
@@ -219,7 +225,7 @@ private:
     void SkipComma(SourceLineModel& model);
     void Error(SourceLineModel& model, Token& token, const char* message);
     ExpressionModel ParseExpression(SourceLineModel& model);
-    void ParseLetShort(Token& tokenIdent, SourceLineModel& model);
+    void ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model);
 private:
     void ParseStatementNoParams(SourceLineModel& model);
     void ParseClear(SourceLineModel& model);
