@@ -165,8 +165,9 @@ SourceLineModel Parser::ParseNextLine()
     Token token = GetNextToken();
 
     SourceLineModel model;
+    model.text = m_tokenizer->GetLineText();
 
-    if (token.type == TokenTypeEOF)
+    if (token.type == TokenTypeEOT)
     {
         model.number = 0;
         return model;
@@ -179,7 +180,7 @@ SourceLineModel Parser::ParseNextLine()
             token = GetNextToken();
             if (token.type == TokenTypeEOL || token.type == TokenTypeDivider)
                 continue;
-            if (token.type == TokenTypeEOF)
+            if (token.type == TokenTypeEOT)
             {
                 model.number = 0;
                 return model;
@@ -242,12 +243,12 @@ SourceLineModel Parser::ParseNextLine()
     if (token.type != TokenTypeKeyword)
     {
         Error(model, token, "Statement keyword expected.");
-        exit(EXIT_FAILURE);
+        return model;
     }
     if (IsFunctionKeyword(token.keyword))
     {
         Error(model, token, "Statement keyword expected, function keyword found.");
-        exit(EXIT_FAILURE);
+        return model;
     }
 
     model.statement = token;
@@ -265,10 +266,13 @@ SourceLineModel Parser::ParseNextLine()
     if (methodref == nullptr)
     {
         Error(model, token, "Parser not found for the keyword.");
-        exit(EXIT_FAILURE);
+        return model;
     }
 
     (this->*methodref)(model);
+
+    if (model.error)
+        SkipTilEnd();
 
     return model;
 }
@@ -276,13 +280,14 @@ SourceLineModel Parser::ParseNextLine()
 void Parser::Error(SourceLineModel& model, Token& token, const char* message)
 {
     std::cerr << "ERROR at " << token.line << ":" << token.pos << " line " << model.number << " - " << message << std::endl;
-    string linetext = m_tokenizer->GetLineText();
+    const string& linetext = model.text;
     if (!linetext.empty())
     {
         std::cerr << linetext << std::endl;
-        std::cerr << std::right << std::setw(token.pos) << "^";
+        std::cerr << std::right << std::setw(token.pos) << "^" << std::endl;
     }
-    exit(EXIT_FAILURE);
+    model.error = true;
+    RegisterError();
 }
 
 void Parser::SkipTilEnd()
@@ -591,14 +596,14 @@ void Parser::ParseDim(SourceLineModel& model)
         }
 
         VariableModel var;
-        var.name = token.text;  //TODO: canonic form
+        var.name = GetCanonicVariableName(token.text);
             
         token = GetNextTokenSkipDivider();
         if (token.IsComma() || token.IsEolOrEof())  // end of definition
         {
             model.variables.push_back(var);
         }
-        else if (token.IsOpenBracket())  // Array
+        else if (token.IsOpenBracket())  // Array indices
         {
             while (true)
             {
@@ -774,7 +779,7 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
     if (tokenIdentOrMid.type == TokenTypeIdentifier)
     {
         VariableModel var;
-        var.name = tokenIdentOrMid.text;  //TODO: canonic form
+        var.name = GetCanonicVariableName(tokenIdentOrMid.text);
         //TODO: Check for open bracket, parse variable indices
         model.variables.push_back(var);
 
@@ -806,7 +811,7 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
             return;
         }
         VariableModel var;
-        var.name = token.text;  //TODO: canonic form
+        var.name = GetCanonicVariableName(token.text);
         //TODO: Check for open bracket, parse variable indices
         model.variables.push_back(var);
 
@@ -1311,5 +1316,6 @@ void Parser::ParseWidth(SourceLineModel& model)
 
     SkipTilEnd();
 }
+
 
 //////////////////////////////////////////////////////////////////////

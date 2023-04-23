@@ -155,7 +155,7 @@ Token Tokenizer::GetNextToken()
 
     if (ch == 0)
     {
-        token.type = TokenTypeEOF;
+        token.type = TokenTypeEOT;
         return token;
     }
 

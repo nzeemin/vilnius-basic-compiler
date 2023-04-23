@@ -58,7 +58,7 @@ enum TokenType
     TokenTypeOperation  = 7,
     TokenTypeEOL        = 100,
     TokenTypeEndComment = 101,  // Apostroph and text after that, including EOL
-    TokenTypeEOF        = 200,
+    TokenTypeEOT        = 200,  // End of text
 };
 
 enum ValueType
@@ -84,7 +84,7 @@ public:
         line(0), pos(0), type(TokenTypeNone), symbol(0), keyword(KeywordNone), vtype(ValueTypeNone),
         dvalue(0) {}
 public:
-    bool IsEolOrEof() const { return type == TokenTypeEOL || type == TokenTypeEndComment || type == TokenTypeEOF; }
+    bool IsEolOrEof() const { return type == TokenTypeEOL || type == TokenTypeEndComment || type == TokenTypeEOT; }
     bool IsOpenBracket() const { return type == TokenTypeSymbol && symbol == '('; }
     bool IsCloseBracket() const { return type == TokenTypeSymbol && symbol == ')'; }
     bool IsComma() const { return type == TokenTypeSymbol && symbol == ','; }
@@ -92,7 +92,7 @@ public:
     bool IsEqualSign() const { return type == TokenTypeOperation && text == "="; }
     bool IsEndOfExpression() const
     {
-        return type == TokenTypeEOL || type == TokenTypeEndComment || type == TokenTypeEOF ||
+        return type == TokenTypeEOL || type == TokenTypeEndComment || type == TokenTypeEOT ||
             type == TokenTypeSymbol && (symbol == ',' || symbol == ';' || symbol == ')') ||
             type == TokenTypeKeyword && !IsFunctionKeyword(keyword);
     }
@@ -114,6 +114,10 @@ struct VariableModel
     string name;  // Variable name in canonic form
     std::vector<int> indices;  // List of variable indices if any
 };
+
+extern void RegisterError();
+
+extern string GetCanonicVariableName(const string& name);
 
 struct ExpressionModel;
 
@@ -149,7 +153,8 @@ public:
 struct SourceLineModel
 {
     int		number;		// Line number
-    //TODO: text;         // Full line text
+    string  text;       // Full line text
+    bool    error;      // Flag indicating that this line has an error
     //TODO: StatementModel
     Token	statement;
     int		paramline;	// Line number parameter for GOTO, GOSUB, RESTORE
@@ -159,11 +164,16 @@ struct SourceLineModel
     std::vector<ExpressionModel> args;  // Statement arguments
     std::vector<Token> params;  // Statement params like list of variables
     std::vector<VariableModel> variables;
+public:
+    SourceLineModel() : number(0), error(false), paramline(0), relative(false), gotogosub(false) {}
 };
 
 struct SourceModel
 {
     std::vector<SourceLineModel> lines;
+    std::vector<VariableModel> vars;//TODO: change to set
+public:
+    bool RegisterVariable(VariableModel& var);
 };
 
 struct IntermedModel
@@ -251,6 +261,30 @@ private:
     void ParseRestore(SourceLineModel& model);
     void ParseScreen(SourceLineModel& model);
     void ParseWidth(SourceLineModel& model);
+};
+
+class Validator;
+typedef void (Validator::* ValidatorMethodRef)(SourceLineModel&);
+struct ValidatorKeywordSpec
+{
+    KeywordIndex keyword;
+    ValidatorMethodRef methodref;
+};
+
+class Validator
+{
+    SourceModel*    m_source;
+    int             m_lineindex;
+private:
+    static const ValidatorKeywordSpec m_keywordspecs[];
+public:
+    Validator(SourceModel* source);
+public:
+    bool ProcessLine();
+private:
+    void Error(SourceLineModel& line, const char* message);
+    void ValidateNothing(SourceLineModel& model);
+    void ValidateDim(SourceLineModel& model);
 };
 
 class Generator;

@@ -11,10 +11,17 @@ string g_infilename;    // Input file name
 bool g_quiet = false;   // Be quiet
 bool g_showtokens = false;  // Show tokenization and quit
 bool g_showparsing = false;  // Show parsing result and quit
+bool g_showvalidation = false;  // Show validation result and quit
 
 SourceModel g_source;
 IntermedModel g_intermed;
 
+static int g_errorcount = 0;
+
+void RegisterError()
+{
+    g_errorcount++;
+}
 
 void ShowTokenization()
 {
@@ -35,7 +42,7 @@ void ShowTokenization()
         token.Dump(std::cout);
         std::cout << std::endl;
 
-        if (token.type == TokenTypeEOF)
+        if (token.type == TokenTypeEOT)
             break;
     }
 
@@ -102,6 +109,8 @@ void ShowParsing()
         if (line.number == 0)
             break;
 
+        if (!line.error)
+            std::cout << line.text << std::endl;
         std::cout << "Line " << line.number << " " << line.statement.text << line.statement.symbol;
         if (line.paramline > 0)
             std::cout << " " << line.paramline;
@@ -151,10 +160,53 @@ void ShowParsing()
         }
         std::cout << std::endl;
 
+        if (line.error)
+            break;
+
         g_source.lines.push_back(line);
     }
 
     instream.close();
+
+    //if (g_errorcount > 0)
+    //    std::cout << std::endl << "ERRORS: " << g_errorcount << std::endl;
+}
+
+void ShowValidation()
+{
+    std::ifstream instream;
+    instream.open(g_infilename);
+    if (!instream.is_open())
+    {
+        std::cerr << "Failed to open the Input file." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    Tokenizer tokenizer(&instream);
+
+    Parser parser(&tokenizer);
+
+    while (true)
+    {
+        SourceLineModel line = parser.ParseNextLine();
+        if (line.number == 0)
+            break;
+
+        if (!line.error)
+            std::cout << line.text << std::endl;
+
+        if (line.error)
+            break;
+
+        g_source.lines.push_back(line);
+    }
+
+    instream.close();
+
+    Validator validator(&g_source);
+
+    while (validator.ProcessLine())
+        ;
 }
 
 void ShowGeneration()
@@ -189,6 +241,8 @@ void ParseCommandLine(int argc, char** argv)
                 g_showtokens = true;
             if (_stricmp(arg + 1, "p") == 0 || _stricmp(arg, "--showparsing") == 0)
                 g_showparsing = true;
+            if (_stricmp(arg + 1, "v") == 0 || _stricmp(arg, "--showvalidation") == 0)
+                g_showvalidation = true;
         }
         else
         {
@@ -222,6 +276,12 @@ int main(int argc, char* argv[])
     {
         std::cout << std::endl;
         ShowParsing();
+        return EXIT_SUCCESS;
+    }
+    if (g_showvalidation)
+    {
+        std::cout << std::endl;
+        ShowValidation();
         return EXIT_SUCCESS;
     }
 

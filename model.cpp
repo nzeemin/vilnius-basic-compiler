@@ -7,6 +7,42 @@
 
 
 //////////////////////////////////////////////////////////////////////
+
+string GetCanonicVariableName(const string& name)
+{
+    const char* str = name.c_str();
+    char ch = *str;
+    if (ch == 0)
+        return str;
+    string result;
+    if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z')
+    {
+        result.append(1, toupper(ch));
+        str++;
+        ch = *str;
+        if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9')
+            result.append(1, toupper(ch));
+        char chtype = '!';
+        while (true)
+        {
+            if (ch == '$' || ch == '!' || ch == '%')
+            {
+                chtype = ch;
+                break;
+            }
+            if (ch == 0)
+                break;
+            str++;
+            ch = *str;
+        }
+        result.append(1, toupper(chtype));
+        return result;
+    }
+    return name;
+}
+
+
+//////////////////////////////////////////////////////////////////////
 // Token
 
 string Token::GetTokenTypeStr() const
@@ -21,7 +57,7 @@ string Token::GetTokenTypeStr() const
     case TokenTypeIdentifier: return "Ident";
     case TokenTypeSymbol:   return "Symbol";
     case TokenTypeEOL:      return "EOL";
-    case TokenTypeEOF:      return "EOF";
+    case TokenTypeEOT:      return "EOT";
     default:
         return "Unknown";
     }
@@ -315,6 +351,23 @@ void ExpressionModel::CalculateVTypeForNode(int index)
             exit(EXIT_FAILURE);
         }
     }
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// SourceModel
+
+bool SourceModel::RegisterVariable(VariableModel& var)
+{
+    for (size_t i = 0; i < vars.size(); i++)
+    {
+        if (vars[i].name == var.name)
+            return false;  // Variable redefinition
+    }
+
+    vars.push_back(var);
+
+    return true;
 }
 
 

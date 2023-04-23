@@ -35,5 +35,8 @@
     <ClCompile Include="model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="validator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -52,7 +52,7 @@ void Generator::ProcessEnd()
 
 bool Generator::ProcessLine()
 {
-    if (m_lineindex > MAX_LINE_NUMBER)
+    if (m_lineindex == INT_MAX)
         return false;
 
     if (m_lineindex < 0)
