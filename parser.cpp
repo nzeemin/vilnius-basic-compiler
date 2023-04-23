@@ -594,7 +594,7 @@ void Parser::ParseDim(SourceLineModel& model)
         var.name = token.text;  //TODO: canonic form
             
         token = GetNextTokenSkipDivider();
-        if (token.IsComma())  // end of definition
+        if (token.IsComma() || token.IsEolOrEof())  // end of definition
         {
             model.variables.push_back(var);
         }
@@ -633,6 +633,7 @@ void Parser::ParseDim(SourceLineModel& model)
 
             token = GetNextTokenSkipDivider();
         }
+
         if (token.IsEolOrEof())
             return;  // End of the list
 

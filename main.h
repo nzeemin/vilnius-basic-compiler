@@ -119,7 +119,7 @@ struct ExpressionModel;
 
 struct ExpressionNode
 {
-    Token	    node;
+    Token	    node;//TODO: rename to token
     int         left;
     int         right;
     std::vector<ExpressionModel> args;  // Function argument list
@@ -174,8 +174,9 @@ struct IntermedModel
 class Tokenizer
 {
     std::istream* m_pInput;
-    int m_line, m_pos;
-    string m_text;      // Line text up to current position
+    string m_text;      // Line text
+    int m_line, m_pos;  // Line number (1-based) and position (1-based)
+    bool m_eof;
     bool m_atend;       // Flag indicating that we should clear m_text on next char
 public:
     Tokenizer(std::istream* pInput);
@@ -183,6 +184,7 @@ public:
     Token GetNextToken();
     string GetLineText() { return m_text; }
 private:
+    void PrepareLine();
     char GetNextChar();
     char PeekNextChar();
 };

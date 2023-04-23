@@ -69,54 +69,90 @@ Tokenizer::Tokenizer(std::istream * pInput)
 {
     assert(pInput != nullptr);
     m_pInput = pInput;
-    m_line = m_pos = 1;
+    m_line = m_pos = 0;
+    m_eof = false;
     m_atend = false;
+
+    PrepareLine();
+}
+
+void Tokenizer::PrepareLine()
+{
+    if (m_eof)
+        return;
+    if (m_pInput->eof())
+    {
+        m_eof = true;
+        return;
+    }
+    m_text.clear();
+    m_pos = 0;
+    m_line++;
+    while (true)
+    {
+        if (m_pInput->eof())
+            break;
+
+        char ch = m_pInput->get();
+        if (ch == -1)
+            break;
+        //TODO: if (ch == 0)
+        if (ch == '\n')
+            break;
+        if (ch == '\r')
+        {
+            ch = m_pInput->peek();
+            if (ch == '\n')
+                m_pInput->get();
+            break;
+        }
+
+        m_text.append(1, ch);
+    }
 }
 
 char Tokenizer::GetNextChar()
 {
-    if (m_pInput->eof())
+    if (m_eof)
         return 0;
-
-    char ch = m_pInput->get();
-    if (ch == -1)
-        return 0;
-    //TODO: if (ch == 0)
-
-    if (ch == '\n')
-    {
-        m_line++;  m_pos = 1;
-        m_atend = true;
-        return ch;
-    }
-    if (ch == '\r')
-        return ch;
-
     if (m_atend)
     {
-        m_text.clear();
         m_atend = false;
+        PrepareLine();
+        if (m_eof)
+            return 0;
     }
-    m_text.append(1, ch);
+    if (m_pos == (int)m_text.size())
+    {
+        m_atend = true;
+        m_pos++;
+        return '\n';
+    }
+
+    char ch = m_text[m_pos];
     m_pos++;
     return ch;
 }
 
 char Tokenizer::PeekNextChar()
 {
-    if (m_pInput->eof())
+    if (m_eof)
         return 0;
+    if (m_atend)
+        return '\n';
+    if (m_pos >= (int)m_text.size())
+        return '\r';
 
-    return m_pInput->peek();
+    return m_text[m_pos];
 }
 
 Token Tokenizer::GetNextToken()
 {
+    char ch = GetNextChar();
     Token token;
     token.line = m_line;
     token.pos = m_pos;
 
-    char ch = GetNextChar();
     if (ch == 0)
     {
         token.type = TokenTypeEOF;
