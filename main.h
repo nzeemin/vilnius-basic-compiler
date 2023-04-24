@@ -173,7 +173,9 @@ struct SourceModel
     std::vector<SourceLineModel> lines;
     std::vector<VariableModel> vars;//TODO: change to set
 public:
-    bool RegisterVariable(VariableModel& var);
+    bool RegisterVariable(VariableModel& var);  // Add variable to the list
+    bool IsLineNumberExists(int linenumber);
+    void CheckLineNumber(SourceLineModel& line, int linenumber);
 };
 
 struct IntermedModel
@@ -282,9 +284,13 @@ public:
 public:
     bool ProcessLine();
 private:
-    void Error(SourceLineModel& line, const char* message);
+    void Error(SourceLineModel& line, string message);
     void ValidateNothing(SourceLineModel& model);
+    void ValidateColor(SourceLineModel& model);
     void ValidateDim(SourceLineModel& model);
+    void ValidateDraw(SourceLineModel& model);
+    void ValidateGotoGosub(SourceLineModel& model);
+    void ValidateRestore(SourceLineModel& model);
 };
 
 class Generator;

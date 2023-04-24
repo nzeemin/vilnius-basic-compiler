@@ -370,5 +370,30 @@ bool SourceModel::RegisterVariable(VariableModel& var)
     return true;
 }
 
+bool SourceModel::IsLineNumberExists(int linenumber)
+{
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        if (lines[i].number == linenumber)
+            return true;
+    }
+    return false;
+}
+
+void SourceModel::CheckLineNumber(SourceLineModel& line, int linenumber)
+{
+    if (linenumber > 0 && linenumber <= MAX_LINE_NUMBER &&
+        IsLineNumberExists(linenumber))
+        return;
+
+    if (!line.error)
+    {
+        line.error = true;
+        RegisterError();
+    }
+
+    std::cerr << "ERROR at line " << line.number << " - Invalid line number " << linenumber << "." << std::endl;
+}
+
 
 //////////////////////////////////////////////////////////////////////

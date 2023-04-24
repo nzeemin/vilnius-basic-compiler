@@ -37,7 +37,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordRETURN,    &Parser::ParseStatementNoParams },
     { KeywordSCREEN,    &Parser::ParseScreen },
     { KeywordSTOP,      &Parser::ParseStatementNoParams },
-    { KeywordTRON,      &Parser::ParseStatementNoParams },
+    { KeywordTROFF,     &Parser::ParseStatementNoParams },
     { KeywordTRON,      &Parser::ParseStatementNoParams },
     { KeywordWIDTH,     &Parser::ParseWidth },
 };
@@ -559,14 +559,9 @@ void Parser::ParseColor(SourceLineModel& model)
     model.args.push_back(expr2);
     CheckExpressionNotEmpty(model, token, expr2);
 
-    token = PeekNextTokenSkipDivider();
-    if (!token.IsComma())
-    {
-        Error(model, token, MSG_COMMA_EXPECTED);
-        return;
-    }
-    GetNextToken();  // Comma
+    SkipComma(model);
 
+    token = PeekNextTokenSkipDivider();
     ExpressionModel expr3 = ParseExpression(model);
     model.args.push_back(expr3);
     CheckExpressionNotEmpty(model, token, expr3);
@@ -1285,6 +1280,7 @@ void Parser::ParseRestore(SourceLineModel& model)
         Error(model, token, "Numeric argument expected.");
         return;
     }
+    //TODO: Check for valid range
     model.paramline = (int)token.dvalue;
 
     token = GetNextTokenSkipDivider();
