@@ -12,19 +12,29 @@
 const ValidatorKeywordSpec Validator::m_keywordspecs[] =
 {
     { KeywordBEEP,	    &Validator::ValidateNothing },
+    { KeywordCLEAR,	    &Validator::ValidateClear },
     { KeywordCLS,	    &Validator::ValidateNothing },
     { KeywordCOLOR,     &Validator::ValidateColor },
     { KeywordDIM,       &Validator::ValidateDim },
     { KeywordDRAW,      &Validator::ValidateDraw },
     { KeywordEND,	    &Validator::ValidateNothing },
+    { KeywordFOR,       &Validator::ValidateFor },
     { KeywordREM,       &Validator::ValidateNothing },
     { KeywordGOSUB,     &Validator::ValidateGotoGosub },
     { KeywordGOTO,      &Validator::ValidateGotoGosub },
+    { KeywordLOCATE,    &Validator::ValidateLocate },
+    { KeywordNEXT,      &Validator::ValidateNext },
+    { KeywordON,        &Validator::ValidateOn },
+    { KeywordOUT,       &Validator::ValidateOut },
+    { KeywordPOKE,      &Validator::ValidatePoke },
+    { KeywordPRINT,     &Validator::ValidatePrint },
     { KeywordRESTORE,   &Validator::ValidateRestore },
     { KeywordRETURN,    &Validator::ValidateNothing },
+    { KeywordSCREEN,    &Validator::ValidateScreen },
     { KeywordSTOP,      &Validator::ValidateNothing },
     { KeywordTROFF,     &Validator::ValidateNothing },
     { KeywordTRON,      &Validator::ValidateNothing },
+    { KeywordWIDTH,     &Validator::ValidateWidth },
 };
 
 
@@ -67,13 +77,13 @@ bool Validator::ProcessLine()
         }
     }
 
-    if (methodref != nullptr)
+    if (methodref == nullptr)
     {
-        (this->*methodref)(line);
+        Error(line, "Validator not found for the keyword.");
     }
     else
     {
-        //TODO error
+        (this->*methodref)(line);
     }
 
     return true;
@@ -86,16 +96,75 @@ void Validator::Error(SourceLineModel& line, string message)
     RegisterError();
 }
 
+bool Validator::CheckIntegerExpression(SourceLineModel& model, ExpressionModel& expr)
+{
+    if (expr.IsEmpty())
+    {
+        Error(model, "Expression should not be empty.");
+        return false;
+    }
+    
+    //TODO: Validate the expression
+    
+    //TODO: Check the expression result is integer
+
+    return true;
+}
+
 void Validator::ValidateNothing(SourceLineModel& model)
 {
     // Nothing to validate
 }
 
+void Validator::ValidateClear(SourceLineModel& model)
+{
+    if (model.args.size() == 0)
+    {
+        Error(model, "Expression expected.");
+        return;
+    }
+
+    ExpressionModel& expr1 = model.args[0];
+    if (!CheckIntegerExpression(model, expr1))
+        return;
+    
+    if (model.args.size() > 1)
+    {
+        ExpressionModel& expr2 = model.args[1];
+        if (!CheckIntegerExpression(model, expr2))
+            return;
+    }
+}
+
 void Validator::ValidateColor(SourceLineModel& model)
 {
-    //TODO: Check expr1 is empty, or valid and integer
-    //TODO: Check expr2 is empty, or valid and integer
-    //TODO: Check expr3 is empty, or valid and integer
+    if (model.args.size() == 0)
+    {
+        Error(model, "Expression expected.");
+        return;
+    }
+    {
+        ExpressionModel& expr1 = model.args[0];
+        if (!expr1.IsEmpty() && !CheckIntegerExpression(model, expr1))
+            return;
+    }
+    if (model.args.size() > 1)
+    {
+        ExpressionModel& expr2 = model.args[1];
+        if (!expr2.IsEmpty() && !CheckIntegerExpression(model, expr2))
+            return;
+    }
+    if (model.args.size() > 2)
+    {
+        ExpressionModel& expr3 = model.args[2];
+        if (!expr3.IsEmpty() && !CheckIntegerExpression(model, expr3))
+            return;
+    }
+    if (model.args.size() > 3)
+    {
+        Error(model, "Too many expressions.");
+        return;
+    }
 }
 
 void Validator::ValidateDim(SourceLineModel& model)
@@ -126,16 +195,214 @@ void Validator::ValidateDraw(SourceLineModel& model)
     }
 }
 
+void Validator::ValidateFor(SourceLineModel& model)
+{
+    if (model.ident.type != TokenTypeIdentifier)
+    {
+        Error(model, "Identifier expected.");
+        return;
+    }
+
+    VariableModel var;
+    var.name = GetCanonicVariableName(model.ident.text);
+    m_source->RegisterVariable(var);
+
+    //TODO: Add FOR to FOR/NEXT stack
+
+    if (model.args.size() < 2)
+    {
+        Error(model, "Two expressions expected.");
+        return;
+    }
+
+    ExpressionModel& expr1 = model.args[0];
+    if (!CheckIntegerExpression(model, expr1))
+        return;
+
+    ExpressionModel& expr2 = model.args[1];
+    if (!CheckIntegerExpression(model, expr2))
+        return;
+
+    if (model.args.size() > 2)
+    {
+        ExpressionModel& expr3 = model.args[1];
+        if (!CheckIntegerExpression(model, expr3))
+            return;
+
+        if (model.args.size() > 3)
+        {
+            Error(model, "Too many expressions.");
+            return;
+        }
+    }
+}
+
 void Validator::ValidateGotoGosub(SourceLineModel& model)
 {
-    m_source->CheckLineNumber(model, model.paramline);
+    if (!m_source->IsLineNumberExists(model.paramline))
+        Error(model, "Invalid line number " + std::to_string(model.paramline) + ".");
+}
+
+void Validator::ValidateLocate(SourceLineModel& model)
+{
+    if (model.args.size() == 0)
+    {
+        Error(model, "Expression expected.");
+        return;
+    }
+    {
+        ExpressionModel& expr1 = model.args[0];
+        if (!expr1.IsEmpty() && !CheckIntegerExpression(model, expr1))
+            return;
+    }
+    if (model.args.size() > 1)
+    {
+        ExpressionModel& expr2 = model.args[1];
+        if (!expr2.IsEmpty() && !CheckIntegerExpression(model, expr2))
+            return;
+    }
+    if (model.args.size() > 2)
+    {
+        ExpressionModel& expr3 = model.args[2];
+        if (!expr3.IsEmpty() && !CheckIntegerExpression(model, expr3))
+            return;
+    }
+    if (model.args.size() > 3)
+    {
+        Error(model, "Too many expressions.");
+        return;
+    }
+}
+
+void Validator::ValidateNext(SourceLineModel& model)
+{
+    //TODO: Process NEXT with FOR/NEXT stack
+
+    for (size_t i = 0; i < model.params.size(); i++)
+    {
+        Token& param = model.params[i];
+        string varname = GetCanonicVariableName(param.text);
+        if (!m_source->IsVariableRegistered(varname))
+        {
+            Error(model, "Variable not found:" + varname + ".");
+            return;
+        }
+    }
+}
+
+void Validator::ValidateOn(SourceLineModel& model)
+{
+    if (model.args.size() == 0)
+    {
+        Error(model, "Expression expected.");
+        return;
+    }
+    if (model.args.size() > 1)
+    {
+        Error(model, "Too many expressions.");
+        return;
+    }
+
+    ExpressionModel& expr1 = model.args[0];
+    if (!expr1.IsEmpty() && !CheckIntegerExpression(model, expr1))
+        return;
+
+    if (model.params.size() == 0)
+    {
+        Error(model, "Parameters expected.");
+        return;
+    }
+
+    for (size_t i = 0; i < model.params.size(); i++)
+    {
+        Token& param = model.params[i];
+        if (param.type != TokenTypeNumber || !param.IsDValueInteger())
+        {
+            Error(model, "Integer parameter expected.");
+            return;
+        }
+        int linenum = (int)param.dvalue;
+        if (!m_source->IsLineNumberExists(linenum))
+        {
+            Error(model, "Invalid line number " + std::to_string(linenum));
+            return;
+        }
+    }
+}
+
+void Validator::ValidateOut(SourceLineModel& model)
+{
+    if (model.args.size() != 3)
+    {
+        Error(model, "Three expressions expected.");
+        return;
+    }
+
+    ExpressionModel& expr1 = model.args[0];
+    if (!CheckIntegerExpression(model, expr1))
+        return;
+
+    ExpressionModel& expr2 = model.args[1];
+    if (!CheckIntegerExpression(model, expr2))
+        return;
+
+    ExpressionModel& expr3 = model.args[2];
+    if (!CheckIntegerExpression(model, expr3))
+        return;
+}
+
+void Validator::ValidatePoke(SourceLineModel& model)
+{
+    if (model.args.size() != 2)
+    {
+        Error(model, "Two expressions expected.");
+        return;
+    }
+
+    ExpressionModel& expr1 = model.args[0];
+    if (!CheckIntegerExpression(model, expr1))
+        return;
+
+    ExpressionModel& expr2 = model.args[1];
+    if (!CheckIntegerExpression(model, expr2))
+        return;
+}
+
+void Validator::ValidatePrint(SourceLineModel& model)
+{
+    //TODO
 }
 
 void Validator::ValidateRestore(SourceLineModel& model)
 {
     if (model.paramline != 0)  // optional param
-        m_source->CheckLineNumber(model, model.paramline);
+    {
+        if (!m_source->IsLineNumberExists(model.paramline))
+        {
+            Error(model, "Invalid line number " + std::to_string(model.paramline));
+            return;
+        }
+    }
 }
 
+void Validator::ValidateScreen(SourceLineModel& model)
+{
+    if (model.params.size() < 1)
+    {
+        Error(model, "Parameter expected.");
+        return;
+    }
+    Token& token = model.params[0];
+    if (token.type != TokenTypeNumber)
+    {
+        Error(model, "Numeric parameter expected.");
+        return;
+    }
+}
+
+void Validator::ValidateWidth(SourceLineModel& model)
+{
+    //TODO
+}
 
 //////////////////////////////////////////////////////////////////////

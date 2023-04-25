@@ -357,6 +357,16 @@ void ExpressionModel::CalculateVTypeForNode(int index)
 //////////////////////////////////////////////////////////////////////
 // SourceModel
 
+bool SourceModel::IsVariableRegistered(string varname)
+{
+    for (size_t i = 0; i < vars.size(); i++)
+    {
+        if (vars[i].name == varname)
+            return true;
+    }
+    return false;
+}
+
 bool SourceModel::RegisterVariable(VariableModel& var)
 {
     for (size_t i = 0; i < vars.size(); i++)
@@ -372,27 +382,14 @@ bool SourceModel::RegisterVariable(VariableModel& var)
 
 bool SourceModel::IsLineNumberExists(int linenumber)
 {
+    if (linenumber <= 0 || linenumber > MAX_LINE_NUMBER)
+        return false;
     for (size_t i = 0; i < lines.size(); i++)
     {
         if (lines[i].number == linenumber)
             return true;
     }
     return false;
-}
-
-void SourceModel::CheckLineNumber(SourceLineModel& line, int linenumber)
-{
-    if (linenumber > 0 && linenumber <= MAX_LINE_NUMBER &&
-        IsLineNumberExists(linenumber))
-        return;
-
-    if (!line.error)
-    {
-        line.error = true;
-        RegisterError();
-    }
-
-    std::cerr << "ERROR at line " << line.number << " - Invalid line number " << linenumber << "." << std::endl;
 }
 
 

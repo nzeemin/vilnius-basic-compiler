@@ -173,9 +173,9 @@ struct SourceModel
     std::vector<SourceLineModel> lines;
     std::vector<VariableModel> vars;//TODO: change to set
 public:
+    bool IsVariableRegistered(string varname);
     bool RegisterVariable(VariableModel& var);  // Add variable to the list
     bool IsLineNumberExists(int linenumber);
-    void CheckLineNumber(SourceLineModel& line, int linenumber);
 };
 
 struct IntermedModel
@@ -221,6 +221,7 @@ class Parser
     Tokenizer* m_tokenizer;
     Token	m_nexttoken;
     bool	m_havenexttoken;
+    int     m_prevlinenum;
 public:
     Parser(Tokenizer* tokenizer);
 public:
@@ -237,7 +238,7 @@ private:
     void CheckExpressionNotEmpty(SourceLineModel& model, Token& token, ExpressionModel& expr);
     void SkipTilEnd();
     void SkipComma(SourceLineModel& model);
-    void Error(SourceLineModel& model, Token& token, const char* message);
+    void Error(SourceLineModel& model, Token& token, string message);
     ExpressionModel ParseExpression(SourceLineModel& model);
     void ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model);
 private:
@@ -285,12 +286,23 @@ public:
     bool ProcessLine();
 private:
     void Error(SourceLineModel& line, string message);
+    bool CheckIntegerExpression(SourceLineModel& model, ExpressionModel& expr);
     void ValidateNothing(SourceLineModel& model);
+    void ValidateClear(SourceLineModel& model);
     void ValidateColor(SourceLineModel& model);
     void ValidateDim(SourceLineModel& model);
     void ValidateDraw(SourceLineModel& model);
+    void ValidateFor(SourceLineModel& model);
     void ValidateGotoGosub(SourceLineModel& model);
+    void ValidateLocate(SourceLineModel& model);
+    void ValidateNext(SourceLineModel& model);
+    void ValidateOn(SourceLineModel& model);
+    void ValidateOut(SourceLineModel& model);
+    void ValidatePoke(SourceLineModel& model);
+    void ValidatePrint(SourceLineModel& model);
     void ValidateRestore(SourceLineModel& model);
+    void ValidateScreen(SourceLineModel& model);
+    void ValidateWidth(SourceLineModel& model);
 };
 
 class Generator;
