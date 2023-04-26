@@ -12,6 +12,7 @@ bool g_quiet = false;   // Be quiet
 bool g_showtokens = false;  // Show tokenization and quit
 bool g_showparsing = false;  // Show parsing result and quit
 bool g_showvalidation = false;  // Show validation result and quit
+bool g_showgeneration = false;
 
 SourceModel g_source;
 IntermedModel g_intermed;
@@ -211,6 +212,27 @@ void ShowValidation()
 
 void ShowGeneration()
 {
+    std::ifstream instream;
+    instream.open(g_infilename);
+    if (!instream.is_open())
+    {
+        std::cerr << "Failed to open the Input file." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    Tokenizer tokenizer(&instream);
+
+    Parser parser(&tokenizer);
+
+    while (true)
+    {
+        SourceLineModel line = parser.ParseNextLine();
+        if (line.number == 0)
+            break;
+
+        g_source.lines.push_back(line);
+    }
+
     Generator generator(&g_source, &g_intermed);
 
     while (generator.ProcessLine())
@@ -243,6 +265,8 @@ void ParseCommandLine(int argc, char** argv)
                 g_showparsing = true;
             if (_stricmp(arg + 1, "v") == 0 || _stricmp(arg, "--showvalidation") == 0)
                 g_showvalidation = true;
+            if (_stricmp(arg + 1, "g") == 0 || _stricmp(arg, "--showgeneration") == 0)
+                g_showgeneration = true;
         }
         else
         {
@@ -284,6 +308,10 @@ int main(int argc, char* argv[])
         ShowValidation();
         return EXIT_SUCCESS;
     }
-
-    //ShowGeneration();
+    if (g_showgeneration)
+    {
+        std::cout << std::endl;
+        ShowGeneration();
+        return EXIT_SUCCESS;
+    }
 }

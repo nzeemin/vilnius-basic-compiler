@@ -10,22 +10,31 @@
 
 const GeneratorKeywordSpec Generator::m_keywordspecs[] =
 {
-    { KeywordBEEP,	    &Generator::GenerateBeep },
-    { KeywordCLS,	    &Generator::GenerateCls },
-    { KeywordEND,	    &Generator::GenerateEnd },
-    { KeywordFOR,	    &Generator::GenerateFor },
-    { KeywordGOSUB,	    &Generator::GenerateGosub },
-    { KeywordGOTO,	    &Generator::GenerateGoto },
+    { KeywordBEEP,      &Generator::GenerateBeep },
+    { KeywordCLEAR,     &Generator::GenerateClear },
+    { KeywordCLS,       &Generator::GenerateCls },
+    { KeywordCOLOR,     &Generator::GenerateColor },
+    { KeywordDATA,      &Generator::GenerateData },
+    { KeywordDIM,       &Generator::GenerateDim },
+    { KeywordDRAW,      &Generator::GenerateDraw },
+    { KeywordEND,       &Generator::GenerateEnd },
+    { KeywordFOR,       &Generator::GenerateFor },
+    { KeywordGOSUB,     &Generator::GenerateGosub },
+    { KeywordGOTO,      &Generator::GenerateGoto },
     { KeywordIF,        &Generator::GenerateIf },
-    { KeywordLET,	    &Generator::GenerateLet },
-    { KeywordNEXT,	    &Generator::GenerateNext },
+    { KeywordLET,       &Generator::GenerateLet },
+    { KeywordLOCATE,    &Generator::GenerateLocate },
+    { KeywordNEXT,      &Generator::GenerateNext },
     { KeywordON,        &Generator::GenerateOn },
-    { KeywordPRINT,	    &Generator::GeneratePrint },
+    { KeywordPRINT,     &Generator::GeneratePrint },
+    { KeywordREAD,      &Generator::GenerateRead },
     { KeywordREM,       &Generator::GenerateRem },
+    { KeywordRESTORE,   &Generator::GenerateRestore },
     { KeywordRETURN,    &Generator::GenerateReturn },
     { KeywordSTOP,      &Generator::GenerateStop },
     { KeywordTRON,      &Generator::GenerateTron },
     { KeywordTROFF,     &Generator::GenerateTroff },
+    { KeywordWIDTH,     &Generator::GenerateWidth },
 };
 
 
@@ -54,7 +63,6 @@ bool Generator::ProcessLine()
 {
     if (m_lineindex == INT_MAX)
         return false;
-
     if (m_lineindex < 0)
     {
         ProcessBegin();
@@ -62,7 +70,6 @@ bool Generator::ProcessLine()
     }
     else
         m_lineindex++;
-    
     if (m_lineindex >= (int)m_source->lines.size())
     {
         ProcessEnd();
@@ -70,10 +77,9 @@ bool Generator::ProcessLine()
         return false;
     }
 
-    //TODO: Show full text of the source line in comment
-
     SourceLineModel& line = m_source->lines[m_lineindex];
-    string linenumlabel = "L" + std::to_string(line.number) + ":";
+    m_intermed->intermeds.push_back("; " + line.text);
+    string linenumlabel = "L" + std::to_string(line.number) + ":";//TODO function GetLineNumberLabel
     m_intermed->intermeds.push_back(linenumlabel);
 
     // Find keyword generator implementation
@@ -88,28 +94,62 @@ bool Generator::ProcessLine()
         }
     }
 
-    if (methodref != nullptr)
+    if (methodref == nullptr)
     {
-        (this->*methodref)(line);
-    }
-    else
-    {
-        //TODO error
+        Error(line, "Generator for keyword " + GetKeywordString(keyword) + " not found.");
+        return true;
     }
 
+    (this->*methodref)(line);
+
     return true;
+}
+
+void Generator::Error(SourceLineModel& line, string message)
+{
+    std::cerr << "ERROR at line " << line.number << " - " << message << std::endl;
+    line.error = true;
+    RegisterError();
 }
 
 void Generator::GenerateBeep(SourceLineModel& line)
 {
     //TODO: Send code 007 to terminal
-    m_intermed->intermeds.push_back("TODO BEEP");
+    m_intermed->intermeds.push_back("\tCALL\tBEEP");
+}
+
+void Generator::GenerateClear(SourceLineModel& line)
+{
+    m_intermed->intermeds.push_back("; CLEAR statement is ignored");
 }
 
 void Generator::GenerateCls(SourceLineModel& line)
 {
     //TODO: Send code Ctrl+L to terminal
-    m_intermed->intermeds.push_back("TODO CLS");
+    m_intermed->intermeds.push_back("\tCALL\tCLS");
+}
+
+void Generator::GenerateColor(SourceLineModel& line)
+{
+    //TODO
+    m_intermed->intermeds.push_back("; TODO COLOR");
+}
+
+void Generator::GenerateData(SourceLineModel& line)
+{
+    //TODO
+    m_intermed->intermeds.push_back("; TODO DATA");
+}
+
+void Generator::GenerateDim(SourceLineModel& line)
+{
+    // Nothing to generate, DIM variables declared in ProcessBegin() / ProcessEnd()
+}
+
+void Generator::GenerateDraw(SourceLineModel& line)
+{
+    //TODO
+    m_intermed->intermeds.push_back("; TODO DRAW");
 }
 
 void Generator::GenerateEnd(SourceLineModel& line)
@@ -120,7 +160,7 @@ void Generator::GenerateEnd(SourceLineModel& line)
 void Generator::GenerateFor(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("TODO FOR");
+    m_intermed->intermeds.push_back("; TODO FOR");
 }
 
 void Generator::GenerateGosub(SourceLineModel& line)
@@ -142,36 +182,54 @@ void Generator::GenerateGoto(SourceLineModel& line)
 void Generator::GenerateIf(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("TODO IF");
+    m_intermed->intermeds.push_back("; TODO IF");
 }
 
 void Generator::GenerateLet(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("TODO LET");
+    m_intermed->intermeds.push_back("; TODO LET");
 }
 
 void Generator::GenerateOn(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("TODO ON");
+    m_intermed->intermeds.push_back("; TODO ON");
+}
+
+void Generator::GenerateLocate(SourceLineModel& line)
+{
+    //TODO
+    m_intermed->intermeds.push_back("; TODO LOCATE");
 }
 
 void Generator::GenerateNext(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("TODO NEXT");
+    m_intermed->intermeds.push_back("; TODO NEXT");
 }
 
 void Generator::GeneratePrint(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("TODO PRINT");
+    m_intermed->intermeds.push_back("; TODO PRINT");
+}
+
+void Generator::GenerateRead(SourceLineModel& line)
+{
+    //TODO
+    m_intermed->intermeds.push_back("; TODO READ");
 }
 
 void Generator::GenerateRem(SourceLineModel& line)
 {
     // Do nothing
+}
+
+void Generator::GenerateRestore(SourceLineModel& line)
+{
+    //TODO
+    m_intermed->intermeds.push_back("; TODO RESTORE");
 }
 
 void Generator::GenerateReturn(SourceLineModel& line)
@@ -181,18 +239,22 @@ void Generator::GenerateReturn(SourceLineModel& line)
 
 void Generator::GenerateStop(SourceLineModel& line)
 {
-    //TODO
-    m_intermed->intermeds.push_back("TODO STOP");
+    m_intermed->intermeds.push_back("\tHALT");
 }
 
 void Generator::GenerateTron(SourceLineModel& line)
 {
-    // Do nothing
+    m_intermed->intermeds.push_back("; TRON statement is ignored");
 }
 
 void Generator::GenerateTroff(SourceLineModel& line)
 {
-    // Do nothing
+    m_intermed->intermeds.push_back("; TROFF statement is ignored");
+}
+
+void Generator::GenerateWidth(SourceLineModel& line)
+{
+    m_intermed->intermeds.push_back("; WIDTH statement is ignored");
 }
 
 

@@ -49,6 +49,13 @@ bool IsFunctionKeyword(KeywordIndex keyword)
         keyword == KeywordFN || keyword == KeywordUSR;
 }
 
+string GetKeywordString(KeywordIndex keyword)
+{
+    if (keyword <= 0 || keyword > sizeof(Keywords) / sizeof(Keywords[0]))
+        return string();
+    return string(Keywords[keyword - 1]);
+}
+
 KeywordIndex GetKeywordIndex(string& str)
 {
     const char* cstr = str.c_str();

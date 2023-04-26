@@ -45,6 +45,7 @@ enum KeywordIndex
 };
 
 bool IsFunctionKeyword(KeywordIndex keyword);
+string GetKeywordString(KeywordIndex keyword);
 
 enum TokenType
 {
@@ -235,7 +236,6 @@ private:
     Token GetNextTokenSkipDivider();
     Token PeekNextToken();
     Token PeekNextTokenSkipDivider();
-    void CheckExpressionNotEmpty(SourceLineModel& model, Token& token, ExpressionModel& expr);
     void SkipTilEnd();
     void SkipComma(SourceLineModel& model);
     void Error(SourceLineModel& model, Token& token, string message);
@@ -331,20 +331,30 @@ public:
 private:
     static const GeneratorKeywordSpec m_keywordspecs[];
 private:
+    void Error(SourceLineModel& line, string message);
     void GenerateBeep(SourceLineModel& line);
+    void GenerateClear(SourceLineModel& line);
     void GenerateCls(SourceLineModel& line);
+    void GenerateColor(SourceLineModel& line);
+    void GenerateData(SourceLineModel& line);
+    void GenerateDim(SourceLineModel& line);
+    void GenerateDraw(SourceLineModel& line);
     void GenerateEnd(SourceLineModel& line);
     void GenerateFor(SourceLineModel& line);
     void GenerateGosub(SourceLineModel& line);
     void GenerateGoto(SourceLineModel& line);
     void GenerateIf(SourceLineModel& line);
     void GenerateLet(SourceLineModel& line);
+    void GenerateLocate(SourceLineModel& line);
     void GenerateNext(SourceLineModel& line);
     void GenerateOn(SourceLineModel& line);
     void GeneratePrint(SourceLineModel& line);
+    void GenerateRead(SourceLineModel& line);
     void GenerateRem(SourceLineModel& line);
+    void GenerateRestore(SourceLineModel& line);
     void GenerateReturn(SourceLineModel& line);
     void GenerateStop(SourceLineModel& line);
     void GenerateTron(SourceLineModel& line);
     void GenerateTroff(SourceLineModel& line);
+    void GenerateWidth(SourceLineModel& line);
 };
