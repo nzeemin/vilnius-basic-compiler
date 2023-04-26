@@ -736,6 +736,7 @@ void Parser::ParseIf(SourceLineModel& model)
     ExpressionModel expr = ParseExpression(model);
     CHECK_MODEL_ERROR;
     CHECK_EXPRESSION_NOT_EMPTY(expr);
+    model.args.push_back(expr);
 
     token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || token.keyword != KeywordTHEN)

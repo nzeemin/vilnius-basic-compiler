@@ -253,6 +253,18 @@ void Validator::ValidateGotoGosub(SourceLineModel& model)
 
 void Validator::ValidateIf(SourceLineModel& model)
 {
+    if (model.args.size() == 0)
+    {
+        Error(model, "Expression expected.");
+        return;
+    }
+    //TODO: Check for non-empty expression
+    if (model.args.size() > 1)
+    {
+        Error(model, "Too many expressions.");
+        return;
+    }
+
     if (model.params.size() == 0)
     {
         Error(model, "Parameter expected.");
@@ -291,6 +303,8 @@ void Validator::ValidateInput(SourceLineModel& model)
 
 void Validator::ValidateLet(SourceLineModel& model)
 {
+    VariableModel& var = model.variables[0];
+    m_source->RegisterVariable(var);
     //TODO
 }
 

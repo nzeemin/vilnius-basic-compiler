@@ -114,11 +114,14 @@ struct VariableModel
 {
     string name;  // Variable name in canonic form
     std::vector<int> indices;  // List of variable indices if any
+public:
+    ValueType GetValueType();
 };
 
 extern void RegisterError();
 
-extern string GetCanonicVariableName(const string& name);
+string GetCanonicVariableName(const string& name);
+string DecorateVariableName(const string& name);
 
 struct ExpressionModel;
 
@@ -177,6 +180,7 @@ public:
     bool IsVariableRegistered(string varname);
     bool RegisterVariable(VariableModel& var);  // Add variable to the list
     bool IsLineNumberExists(int linenumber);
+    int GetNextLineNumber(int linenumber);
 };
 
 struct IntermedModel
@@ -332,6 +336,7 @@ private:
     static const GeneratorKeywordSpec m_keywordspecs[];
 private:
     void Error(SourceLineModel& line, string message);
+    void GenerateExpression(ExpressionModel& expr);
     void GenerateBeep(SourceLineModel& line);
     void GenerateClear(SourceLineModel& line);
     void GenerateCls(SourceLineModel& line);
@@ -353,6 +358,7 @@ private:
     void GenerateRem(SourceLineModel& line);
     void GenerateRestore(SourceLineModel& line);
     void GenerateReturn(SourceLineModel& line);
+    void GenerateScreen(SourceLineModel& line);
     void GenerateStop(SourceLineModel& line);
     void GenerateTron(SourceLineModel& line);
     void GenerateTroff(SourceLineModel& line);

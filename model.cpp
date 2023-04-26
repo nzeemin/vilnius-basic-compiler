@@ -8,6 +8,7 @@
 
 //////////////////////////////////////////////////////////////////////
 
+
 string GetCanonicVariableName(const string& name)
 {
     const char* str = name.c_str();
@@ -39,6 +40,23 @@ string GetCanonicVariableName(const string& name)
         return result;
     }
     return name;
+}
+
+string DecorateVariableName(const string& name)
+{
+    char chtype = name[name.length() - 1];
+    switch (chtype)
+    {
+    case '$': chtype = 'S'; break;
+    case '%': chtype = 'I'; break;
+    default:
+        chtype = 'N'; break;
+    }
+    string stdname = name.substr(0, name.length() - 1);
+    if (stdname.length() < 2)
+        stdname += '.';
+
+    return "VAR" + stdname + chtype;
 }
 
 
@@ -160,6 +178,22 @@ void Token::Dump(std::ostream& out) const
             out << " d:" << std::scientific << dvalue;
     }
     out << " }";
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// VariableModel
+
+ValueType VariableModel::GetValueType()
+{
+    char ch = name[name.length() - 1];
+    switch (ch)
+    {
+    case '$': return ValueTypeString;
+    case '%': return ValueTypeInteger;
+    default:
+        return ValueTypeSingle;
+    }
 }
 
 
@@ -390,6 +424,18 @@ bool SourceModel::IsLineNumberExists(int linenumber)
             return true;
     }
     return false;
+}
+
+int SourceModel::GetNextLineNumber(int linenumber)
+{
+    if (linenumber > MAX_LINE_NUMBER)
+        return MAX_LINE_NUMBER + 1;
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        if (lines[i].number > linenumber)
+            return lines[i].number;
+    }
+    return MAX_LINE_NUMBER + 1;
 }
 
 

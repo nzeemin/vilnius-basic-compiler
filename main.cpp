@@ -233,6 +233,11 @@ void ShowGeneration()
         g_source.lines.push_back(line);
     }
 
+    Validator validator(&g_source);
+
+    while (validator.ProcessLine())
+        ;
+
     Generator generator(&g_source, &g_intermed);
 
     while (generator.ProcessLine())
