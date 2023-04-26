@@ -152,16 +152,19 @@ void Generator::GenerateExpression(ExpressionModel& expr)
         return;
     }
 
-    if (root.vtype != ValueTypeSingle || !root.node.IsDValueInteger())
+    if (root.vtype != ValueTypeInteger && (root.vtype != ValueTypeSingle || !root.node.IsDValueInteger()))
     {
         m_intermed->intermeds.push_back("; TODO calculate non-integer expression");
         return;
     }
 
-    int value = 0;
     if (root.node.type == TokenTypeNumber)
-        value = (int)root.node.dvalue;
-    m_intermed->intermeds.push_back("\tMOV\t" + std::to_string(value) + "., R0");
+        m_intermed->intermeds.push_back("\tMOV\t" + std::to_string((int)root.node.dvalue) + "., R0");
+    else if (root.node.type == TokenTypeIdentifier)
+    {
+        string deconame = DecorateVariableName(GetCanonicVariableName(root.node.text));
+        m_intermed->intermeds.push_back("\tMOV\t" + deconame + "., R0");
+    }
 }
 
 void Generator::GenerateBeep(SourceLineModel& line)
@@ -217,16 +220,12 @@ void Generator::GenerateFor(SourceLineModel& line)
 
 void Generator::GenerateGosub(SourceLineModel& line)
 {
-    //TODO: Check if we have this line number
-
     string calllinenum = "\tCALL\tL" + std::to_string(line.paramline);
     m_intermed->intermeds.push_back(calllinenum);
 }
 
 void Generator::GenerateGoto(SourceLineModel& line)
 {
-    //TODO: Check if we have this line number
-
     string jmplinenum = "\tJMP\tL" + std::to_string(line.paramline);
     m_intermed->intermeds.push_back(jmplinenum);
 }
@@ -247,11 +246,11 @@ void Generator::GenerateIf(SourceLineModel& line)
     }
     else  // IF expr THEN linenum ELSE linenum
     {
-        m_intermed->intermeds.push_back("\tBEQ\t100$");
+        m_intermed->intermeds.push_back("\tBEQ\t10$");
         int linenum1 = (int)line.params[0].dvalue;
         m_intermed->intermeds.push_back("\tJMP\tL" + std::to_string(linenum1));
         int linenum2 = (int)line.params[1].dvalue;
-        m_intermed->intermeds.push_back("100$:\tJMP\tL" + std::to_string(linenum2));
+        m_intermed->intermeds.push_back("10$:\tJMP\tL" + std::to_string(linenum2));
     }
 }
 
@@ -262,13 +261,28 @@ void Generator::GenerateLet(SourceLineModel& line)
 
     VariableModel& var = line.variables[0];
     string deconame = DecorateVariableName(GetCanonicVariableName(var.name));
-    m_intermed->intermeds.push_back("\tMOV\tR0, @#" + deconame);
+    m_intermed->intermeds.push_back("\tMOV\tR0, " + deconame);
 }
 
 void Generator::GenerateOn(SourceLineModel& line)
 {
-    //TODO
-    m_intermed->intermeds.push_back("; TODO ON");
+    ExpressionModel& expr = line.args[0];
+    GenerateExpression(expr);
+    int numofcases = line.params.size();
+    string nextline = "L" + std::to_string(m_source->GetNextLineNumber(line.number));
+    m_intermed->intermeds.push_back("\tDEC\tR0");
+    m_intermed->intermeds.push_back("\tBLO\t" + nextline);
+    m_intermed->intermeds.push_back("\tCMP\t#" + std::to_string(numofcases) + ", R0");
+    m_intermed->intermeds.push_back("\tBGE\t" + nextline);
+    m_intermed->intermeds.push_back("\tASL\tR0");
+    m_intermed->intermeds.push_back("\tJMP\t@10$(R0)");
+    int linenum = (int)line.params[0].dvalue;
+    m_intermed->intermeds.push_back("10$:\t.WORD\tL" + std::to_string(linenum));
+    for (size_t i = 1; i < line.params.size(); i++)
+    {
+        linenum = (int)line.params[i].dvalue;
+        m_intermed->intermeds.push_back("\t.WORD\tL" + std::to_string(linenum));
+    }
 }
 
 void Generator::GenerateLocate(SourceLineModel& line)
@@ -285,8 +299,27 @@ void Generator::GenerateNext(SourceLineModel& line)
 
 void Generator::GeneratePrint(SourceLineModel& line)
 {
-    //TODO
-    m_intermed->intermeds.push_back("; TODO PRINT");
+    for (size_t i = 0; i < line.args.size(); i++)
+    {
+        ExpressionModel& expr = line.args[i];
+        ExpressionNode& root = expr.nodes[expr.root];
+        if (root.vtype == ValueTypeString)
+        {
+            //TODO
+        }
+        else if (root.vtype == ValueTypeInteger)
+        {
+            GenerateExpression(expr);
+            m_intermed->intermeds.push_back("\tCALL\tWRINT");
+        }
+        else if (root.vtype == ValueTypeSingle)
+        {
+            GenerateExpression(expr);
+            m_intermed->intermeds.push_back("\tCALL\tWRSNG");
+        }
+        //TODO: AT/TAB/SPC
+    }
+ 
     // CR/LF at end of PRINT
     m_intermed->intermeds.push_back("\tMOV\t#CRLF, R0");
     m_intermed->intermeds.push_back("\tCALL\tWRSTR");

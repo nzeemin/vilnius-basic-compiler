@@ -221,9 +221,8 @@ void ShowGeneration()
     }
 
     Tokenizer tokenizer(&instream);
-
     Parser parser(&tokenizer);
-
+    g_errorcount = 0;
     while (true)
     {
         SourceLineModel line = parser.ParseNextLine();
@@ -232,21 +231,35 @@ void ShowGeneration()
 
         g_source.lines.push_back(line);
     }
+    if (g_errorcount > 0)
+    {
+        std::cerr << "Parsing ERRORS: " << g_errorcount << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     Validator validator(&g_source);
-
+    g_errorcount = 0;
     while (validator.ProcessLine())
         ;
+    if (g_errorcount > 0)
+    {
+        std::cerr << "Validation ERRORS: " << g_errorcount << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     Generator generator(&g_source, &g_intermed);
-
+    g_errorcount = 0;
     while (generator.ProcessLine())
         ;
-
     for (size_t i = 0; i < g_intermed.intermeds.size(); i++)
     {
         string& intermed = g_intermed.intermeds[i];
         std::cout << intermed << std::endl;
+    }
+    if (g_errorcount > 0)
+    {
+        std::cerr << "Generation ERRORS: " << g_errorcount << std::endl;
+        exit(EXIT_FAILURE);
     }
 }
 

@@ -292,6 +292,7 @@ public:
 private:
     void Error(SourceLineModel& line, string message);
     bool CheckIntegerExpression(SourceLineModel& model, ExpressionModel& expr);
+    void ValidateExpression(ExpressionModel& expr, int index);
     void ValidateNothing(SourceLineModel& model);
     void ValidateClear(SourceLineModel& model);
     void ValidateColor(SourceLineModel& model);

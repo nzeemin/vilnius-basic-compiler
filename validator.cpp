@@ -99,6 +99,27 @@ void Validator::Error(SourceLineModel& line, string message)
     RegisterError();
 }
 
+void Validator::ValidateExpression(ExpressionModel& expr, int index)
+{
+    if (index < 0)
+        return;
+
+    ExpressionNode& node = expr.nodes[index];
+
+    if (node.left >= 0)
+        ValidateExpression(expr, node.left);
+    if (node.right >= 0)
+        ValidateExpression(expr, node.right);
+
+    if (node.node.type == TokenTypeIdentifier)
+    {
+        VariableModel var;
+        var.name = node.node.text;
+        m_source->RegisterVariable(var);
+    }
+    //TODO
+}
+
 bool Validator::CheckIntegerExpression(SourceLineModel& model, ExpressionModel& expr)
 {
     if (expr.IsEmpty())
@@ -107,7 +128,7 @@ bool Validator::CheckIntegerExpression(SourceLineModel& model, ExpressionModel& 
         return false;
     }
     
-    //TODO: Validate the expression
+    ValidateExpression(expr, expr.root);
     
     //TODO: Check the expression result is integer
 
@@ -357,19 +378,14 @@ void Validator::ValidateNext(SourceLineModel& model)
 
 void Validator::ValidateOn(SourceLineModel& model)
 {
-    if (model.args.size() == 0)
+    if (model.args.size() != 1)
     {
-        Error(model, "Expression expected.");
-        return;
-    }
-    if (model.args.size() > 1)
-    {
-        Error(model, "Too many expressions.");
+        Error(model, "One Expression expected.");
         return;
     }
 
-    ExpressionModel& expr1 = model.args[0];
-    if (!expr1.IsEmpty() && !CheckIntegerExpression(model, expr1))
+    ExpressionModel& expr = model.args[0];
+    if (!CheckIntegerExpression(model, expr))
         return;
 
     if (model.params.size() == 0)
