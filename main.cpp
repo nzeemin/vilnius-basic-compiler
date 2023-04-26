@@ -195,8 +195,8 @@ void ShowValidation()
         if (!line.error)
             std::cout << line.text << std::endl;
 
-        if (line.error)
-            break;
+        //if (line.error)
+        //    break;
 
         g_source.lines.push_back(line);
     }

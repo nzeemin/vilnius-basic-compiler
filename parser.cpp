@@ -22,6 +22,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordGOSUB,     &Parser::ParseGotoGosub },
     { KeywordGOTO,      &Parser::ParseGotoGosub },
     { KeywordIF,        &Parser::ParseIf },
+    { KeywordINPUT,     &Parser::ParseInput },
     { KeywordLET,       &Parser::ParseLet },
     { KeywordLOCATE,    &Parser::ParseLocate },
     { KeywordNEXT,      &Parser::ParseNext },
@@ -209,14 +210,21 @@ SourceLineModel Parser::ParseNextLine()
 
     if (token.type == TokenTypeEndComment)  // REM short form
     {
+        Token tokenrem;
+        tokenrem.keyword = KeywordREM;
+        model.statement = tokenrem;
         return model;  // Empty line with end-line comment
     }
     if (token.type == TokenTypeSymbol && token.symbol == '?')  // PRINT short form
     {
-        token.type = TokenTypeKeyword;
-        token.keyword = KeywordPRINT;
+        Token tokenprint;
+        tokenprint.type = TokenTypeKeyword;
+        tokenprint.keyword = KeywordPRINT;
+        model.statement = tokenprint;
+
         ParsePrint(model);
-        model.statement = token;
+        if (model.error)
+            SkipTilEnd();
         return model;
     }
     if (token.type == TokenTypeIdentifier)  // LET without the keyword
@@ -224,10 +232,11 @@ SourceLineModel Parser::ParseNextLine()
         Token tokenlet;
         tokenlet.type = TokenTypeKeyword;
         tokenlet.keyword = KeywordLET;
-        tokenlet.text = "LET";
         model.statement = tokenlet;
 
         ParseLetShort(token, model);
+        if (model.error)
+            SkipTilEnd();
         return model;
     }
     if (token.type == TokenTypeKeyword && token.keyword == KeywordMID)
@@ -235,10 +244,11 @@ SourceLineModel Parser::ParseNextLine()
         Token tokenlet;
         tokenlet.type = TokenTypeKeyword;
         tokenlet.keyword = KeywordLET;
-        tokenlet.text = "LET";
         model.statement = tokenlet;
 
         ParseLetShort(token, model);
+        if (model.error)
+            SkipTilEnd();
         return model;
     }
 
@@ -268,6 +278,7 @@ SourceLineModel Parser::ParseNextLine()
     if (methodref == nullptr)
     {
         Error(model, token, "Parser not found for keyword " + token.text + ".");
+        SkipTilEnd();
         return model;
     }
 
@@ -702,10 +713,8 @@ void Parser::ParseFor(SourceLineModel& model)
     model.args.push_back(expr3);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-        return;
-
-    MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseGotoGosub(SourceLineModel& model)
@@ -716,12 +725,11 @@ void Parser::ParseGotoGosub(SourceLineModel& model)
     model.paramline = atoi(token.text.c_str());
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-        return;
-
-    MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
+//NOTE: For now, in form: IF expr THEN linenum [ELSE linueum]
 void Parser::ParseIf(SourceLineModel& model)
 {
     Token token = PeekNextToken();
@@ -729,13 +737,39 @@ void Parser::ParseIf(SourceLineModel& model)
     CHECK_MODEL_ERROR;
     CHECK_EXPRESSION_NOT_EMPTY(expr);
 
+    token = GetNextTokenSkipDivider();
+    if (token.type != TokenTypeKeyword || token.keyword != KeywordTHEN)
+        MODEL_ERROR("Keyword THEN expected.");
+
+    token = GetNextTokenSkipDivider();
+    if (token.type != TokenTypeNumber || !token.IsDValueInteger())
+        MODEL_ERROR("Line number expected.");
+    model.params.push_back(token);
+
+    token = GetNextTokenSkipDivider();
+    if (token.IsEolOrEof())
+        return;
+    if (token.type != TokenTypeKeyword || token.keyword != KeywordELSE)
+        MODEL_ERROR(MSG_UNEXPECTED);
+
+    token = GetNextTokenSkipDivider();
+    if (token.type != TokenTypeNumber || !token.IsDValueInteger())
+        MODEL_ERROR("Line number expected.");
+    model.params.push_back(token);
+
+    token = GetNextTokenSkipDivider();
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+}
+
+void Parser::ParseInput(SourceLineModel& model)
+{
     //TODO
 
     SkipTilEnd();//STUB
 }
 
 //TODO: LET MID$
-
 void Parser::ParseLet(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();

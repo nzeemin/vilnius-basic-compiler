@@ -22,6 +22,9 @@ const ValidatorKeywordSpec Validator::m_keywordspecs[] =
     { KeywordREM,       &Validator::ValidateNothing },
     { KeywordGOSUB,     &Validator::ValidateGotoGosub },
     { KeywordGOTO,      &Validator::ValidateGotoGosub },
+    { KeywordIF,        &Validator::ValidateIf },
+    { KeywordINPUT,     &Validator::ValidateInput },
+    { KeywordLET,       &Validator::ValidateLet },
     { KeywordLOCATE,    &Validator::ValidateLocate },
     { KeywordNEXT,      &Validator::ValidateNext },
     { KeywordON,        &Validator::ValidateOn },
@@ -134,6 +137,11 @@ void Validator::ValidateClear(SourceLineModel& model)
         if (!CheckIntegerExpression(model, expr2))
             return;
     }
+    if (model.args.size() > 2)
+    {
+        Error(model, "Too many expressions.");
+        return;
+    }
 }
 
 void Validator::ValidateColor(SourceLineModel& model)
@@ -182,7 +190,7 @@ void Validator::ValidateDim(SourceLineModel& model)
 
 void Validator::ValidateDraw(SourceLineModel& model)
 {
-    if (model.params.size() < 1)
+    if (model.params.size() == 0)
     {
         Error(model, "Parameter expected.");
         return;
@@ -241,6 +249,49 @@ void Validator::ValidateGotoGosub(SourceLineModel& model)
 {
     if (!m_source->IsLineNumberExists(model.paramline))
         Error(model, "Invalid line number " + std::to_string(model.paramline) + ".");
+}
+
+void Validator::ValidateIf(SourceLineModel& model)
+{
+    if (model.params.size() == 0)
+    {
+        Error(model, "Parameter expected.");
+        return;
+    }
+    Token& param1 = model.params[0];
+    int linenum1 = (int)param1.dvalue;
+    if (!m_source->IsLineNumberExists(linenum1))
+    {
+        Error(model, "Invalid line number " + std::to_string(linenum1) + ".");
+        return;
+    }
+
+    if (model.params.size() > 1)
+    {
+        Token& param2 = model.params[1];
+        int linenum2 = (int)param2.dvalue;
+        if (!m_source->IsLineNumberExists(linenum2))
+        {
+            Error(model, "Invalid line number " + std::to_string(linenum2) + ".");
+            return;
+        }
+    }
+    
+    if (model.params.size() > 2)
+    {
+        Error(model, "Too many parameters.");
+        return;
+    }
+}
+
+void Validator::ValidateInput(SourceLineModel& model)
+{
+    //TODO
+}
+
+void Validator::ValidateLet(SourceLineModel& model)
+{
+    //TODO
 }
 
 void Validator::ValidateLocate(SourceLineModel& model)

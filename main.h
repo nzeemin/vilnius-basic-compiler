@@ -251,6 +251,7 @@ private:
     void ParseFor(SourceLineModel& model);
     void ParseGotoGosub(SourceLineModel& model);
     void ParseIf(SourceLineModel& model);
+    void ParseInput(SourceLineModel& model);
     void ParseLet(SourceLineModel& model);
     void ParseLocate(SourceLineModel& model);
     void ParseNext(SourceLineModel& model);
@@ -294,6 +295,9 @@ private:
     void ValidateDraw(SourceLineModel& model);
     void ValidateFor(SourceLineModel& model);
     void ValidateGotoGosub(SourceLineModel& model);
+    void ValidateIf(SourceLineModel& model);
+    void ValidateInput(SourceLineModel& model);
+    void ValidateLet(SourceLineModel& model);
     void ValidateLocate(SourceLineModel& model);
     void ValidateNext(SourceLineModel& model);
     void ValidateOn(SourceLineModel& model);
