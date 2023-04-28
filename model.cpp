@@ -449,6 +449,7 @@ SourceLineModel& SourceModel::GetSourceLine(int linenumber)
     }
 
     assert(false);  // Line number not found
+    exit(EXIT_FAILURE);
 }
 
 

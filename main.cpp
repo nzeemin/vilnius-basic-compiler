@@ -8,10 +8,12 @@
 
 
 string g_infilename;    // Input file name
+string g_outfilename;   // Output file name
+
 bool g_quiet = false;   // Be quiet
-bool g_showtokens = false;  // Show tokenization and quit
-bool g_showparsing = false;  // Show parsing result and quit
-bool g_showvalidation = false;  // Show validation result and quit
+bool g_tokenizeonly = false;  // Show tokenization and quit
+bool g_parsingonly = false;  // Show parsing result and quit
+bool g_validationonly = false;  // Show validation result and quit
 bool g_showgeneration = false;
 
 SourceModel g_source;
@@ -210,13 +212,13 @@ void ShowValidation()
         ;
 }
 
-void ShowGeneration()
+void ProcessFiles()
 {
     std::ifstream instream;
     instream.open(g_infilename);
     if (!instream.is_open())
     {
-        std::cerr << "Failed to open the Input file." << std::endl;
+        std::cerr << "Failed to open the input file " + g_infilename << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -237,6 +239,8 @@ void ShowGeneration()
         exit(EXIT_FAILURE);
     }
 
+    instream.close();
+
     Validator validator(&g_source);
     g_errorcount = 0;
     while (validator.ProcessLine())
@@ -247,6 +251,16 @@ void ShowGeneration()
         exit(EXIT_FAILURE);
     }
 
+    std::ofstream outstream;
+    outstream.open(g_outfilename, std::ofstream::out | std::ofstream::trunc);
+    if (!outstream.is_open())
+    {
+        std::cerr << "Failed to open the output file " << g_outfilename << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    outstream << "; Generated with vibasc [" << __DATE__ << "] on " << g_infilename << std::endl;
+    outstream << ";" << std::endl;
+
     Generator generator(&g_source, &g_intermed);
     g_errorcount = 0;
     while (generator.ProcessLine())
@@ -254,7 +268,9 @@ void ShowGeneration()
     for (size_t i = 0; i < g_intermed.intermeds.size(); i++)
     {
         string& intermed = g_intermed.intermeds[i];
-        std::cout << intermed << std::endl;
+        outstream << intermed << std::endl;
+        if (g_showgeneration)
+            std::cout << intermed << std::endl;
     }
     if (g_errorcount > 0)
     {
@@ -277,12 +293,12 @@ void ParseCommandLine(int argc, char** argv)
         {
             if (_stricmp(arg + 1, "q") == 0 || _stricmp(arg, "--quiet") == 0)
                 g_quiet = true;
-            if (_stricmp(arg + 1, "t") == 0 || _stricmp(arg, "--showtokens") == 0)
-                g_showtokens = true;
-            if (_stricmp(arg + 1, "p") == 0 || _stricmp(arg, "--showparsing") == 0)
-                g_showparsing = true;
-            if (_stricmp(arg + 1, "v") == 0 || _stricmp(arg, "--showvalidation") == 0)
-                g_showvalidation = true;
+            if (_stricmp(arg + 1, "t") == 0 || _stricmp(arg, "--tokenizeonly") == 0)
+                g_tokenizeonly = true;
+            if (_stricmp(arg + 1, "p") == 0 || _stricmp(arg, "--parsingonly") == 0)
+                g_parsingonly = true;
+            if (_stricmp(arg + 1, "v") == 0 || _stricmp(arg, "--validationonly") == 0)
+                g_validationonly = true;
             if (_stricmp(arg + 1, "g") == 0 || _stricmp(arg, "--showgeneration") == 0)
                 g_showgeneration = true;
         }
@@ -305,31 +321,36 @@ int main(int argc, char* argv[])
 {
     ParseCommandLine(argc, argv);
 
-    if (!g_quiet)
-        std::cout << "BasicCompiler  " << __DATE__ << std::endl;
+    size_t dotpos = g_infilename.find_last_of('.');
+    if (dotpos == string::npos)
+        g_outfilename = g_infilename + ".MAC";
+    else
+        g_outfilename = g_infilename.substr(0, dotpos) + ".MAC";
 
-    if (g_showtokens)
+    if (!g_quiet)
+        std::cout << "vibasc  " << __DATE__ << std::endl;
+
+    if (g_tokenizeonly)
     {
         std::cout << std::endl;
         ShowTokenization();
         return EXIT_SUCCESS;
     }
-    if (g_showparsing)
+    if (g_parsingonly)
     {
         std::cout << std::endl;
         ShowParsing();
         return EXIT_SUCCESS;
     }
-    if (g_showvalidation)
+    if (g_validationonly)
     {
         std::cout << std::endl;
         ShowValidation();
         return EXIT_SUCCESS;
     }
-    if (g_showgeneration)
-    {
-        std::cout << std::endl;
-        ShowGeneration();
-        return EXIT_SUCCESS;
-    }
+
+    std::cout << std::endl;
+    ProcessFiles();
+
+    return EXIT_SUCCESS;
 }

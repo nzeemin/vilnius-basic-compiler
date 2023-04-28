@@ -75,7 +75,7 @@ struct Token
 {
     int		    line, pos;
     TokenType   type;
-    string	    text;
+    std::string	text;
     char	    symbol;
     KeywordIndex keyword;
     ValueType   vtype;

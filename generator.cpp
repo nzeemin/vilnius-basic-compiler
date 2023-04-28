@@ -51,7 +51,7 @@ Generator::Generator(SourceModel* source, IntermedModel* intermed)
 void Generator::ProcessBegin()
 {
     //TODO: TITLE
-    //TODO: MCALL
+    m_intermed->intermeds.push_back("\t.MCALL\t.EXIT");
     m_intermed->intermeds.push_back("START:");
 }
 
@@ -81,9 +81,9 @@ void Generator::ProcessEnd()
         }
     }
 
-    m_intermed->intermeds.push_back("; STRINGS");
-    m_intermed->intermeds.push_back("CRLF:\t.ASCIZ\t<015><012>");
-    m_intermed->intermeds.push_back("\t.EVEN");
+    //m_intermed->intermeds.push_back("; STRINGS");
+    //m_intermed->intermeds.push_back("CRLF:\t.ASCIZ\t<015><012>");
+    //m_intermed->intermeds.push_back("\t.EVEN");
 
     m_intermed->intermeds.push_back("\t.END\tSTART");
 }
@@ -209,7 +209,9 @@ void Generator::GenerateDraw(SourceLineModel& line)
 
 void Generator::GenerateEnd(SourceLineModel& line)
 {
-    m_intermed->intermeds.push_back("\t.EXIT");
+    int nextlinenum = m_source->GetNextLineNumber(line.number);
+    if (nextlinenum != MAX_LINE_NUMBER + 1)
+        m_intermed->intermeds.push_back("\tJMP\tL" + std::to_string(MAX_LINE_NUMBER + 1));
 }
 
 void Generator::GenerateFor(SourceLineModel& line)
@@ -325,7 +327,12 @@ void Generator::GenerateNext(SourceLineModel& line)
     string deconame = DecorateVariableName(GetCanonicVariableName(varname));
     int forlinenum = line.paramline;
 
-    m_intermed->intermeds.push_back("\tADD\t#1, " + deconame);
+    SourceLineModel& linefor = m_source->GetSourceLine(line.paramline);
+
+    if (linefor.args.size() < 3)
+        m_intermed->intermeds.push_back("\tINC\t" + deconame);
+    else
+        m_intermed->intermeds.push_back("\tADD\t#1, " + deconame);
 
     // JMP to continue loop
     m_intermed->intermeds.push_back("\tJMP\tN" + std::to_string(forlinenum));
@@ -357,8 +364,7 @@ void Generator::GeneratePrint(SourceLineModel& line)
     }
  
     // CR/LF at end of PRINT
-    m_intermed->intermeds.push_back("\tMOV\t#CRLF, R0");
-    m_intermed->intermeds.push_back("\tCALL\tWRSTR");
+    m_intermed->intermeds.push_back("\tCALL\tWRCRLF");
 }
 
 void Generator::GenerateRead(SourceLineModel& line)

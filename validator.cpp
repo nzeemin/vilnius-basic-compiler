@@ -385,8 +385,9 @@ void Validator::ValidateNext(SourceLineModel& model)
         // link NEXT to the corresponding FOR
         model.paramline = forspec.linenum;
 
-        //TODO: get SourceLineModel& by line number
-        //TODO: link FOR to this line number
+        // link FOR to this line number
+        SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
+        linefor.paramline = model.number;
 
         return;
     }
