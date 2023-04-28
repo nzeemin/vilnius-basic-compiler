@@ -82,8 +82,6 @@ void Generator::ProcessEnd()
     }
 
     //m_intermed->intermeds.push_back("; STRINGS");
-    //m_intermed->intermeds.push_back("CRLF:\t.ASCIZ\t<015><012>");
-    //m_intermed->intermeds.push_back("\t.EVEN");
 
     m_intermed->intermeds.push_back("\t.END\tSTART");
 }
@@ -159,7 +157,7 @@ void Generator::GenerateExpression(ExpressionModel& expr)
     }
 
     if (root.node.type == TokenTypeNumber)
-        m_intermed->intermeds.push_back("\tMOV\t" + std::to_string((int)root.node.dvalue) + "., R0");
+        m_intermed->intermeds.push_back("\tMOV\t#" + std::to_string((int)root.node.dvalue) + "., R0");
     else if (root.node.type == TokenTypeIdentifier)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(root.node.text));
@@ -244,7 +242,7 @@ void Generator::GenerateFor(SourceLineModel& line)
 
     int nextlinenum = m_source->GetNextLineNumber(line.number);
     m_intermed->intermeds.push_back("N" + std::to_string(line.number) + ":\tCMP\t#0, " + deconame);
-    m_intermed->intermeds.push_back("\tBLE\tL" + std::to_string(nextlinenum));
+    m_intermed->intermeds.push_back("\tBHIS\tL" + std::to_string(nextlinenum));
     m_intermed->intermeds.push_back("\tJMP\tX" + std::to_string(line.number));  // label after NEXT
 }
 
