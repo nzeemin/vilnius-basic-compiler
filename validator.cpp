@@ -236,7 +236,11 @@ void Validator::ValidateFor(SourceLineModel& model)
     var.name = GetCanonicVariableName(model.ident.text);
     m_source->RegisterVariable(var);
 
-    //TODO: Add FOR to FOR/NEXT stack
+    // Add FOR variable to FOR/NEXT stack
+    ValidatorForSpec forspec;
+    forspec.varname = var.name;
+    forspec.linenum = model.number;
+    m_fornextstack.push_back(forspec);
 
     if (model.args.size() < 2)
     {
@@ -362,7 +366,30 @@ void Validator::ValidateLocate(SourceLineModel& model)
 
 void Validator::ValidateNext(SourceLineModel& model)
 {
-    //TODO: Process NEXT with FOR/NEXT stack
+    if (model.params.empty())  // NEXT without parameters
+    {
+        if (m_fornextstack.empty())
+        {
+            Error(model, "NEXT without FOR.");
+            return;
+        }
+
+        ValidatorForSpec forspec = m_fornextstack.back();
+        m_fornextstack.pop_back();
+
+        Token tokenvar;
+        tokenvar.type = TokenTypeIdentifier;
+        tokenvar.text = forspec.varname;
+        model.params.push_back(tokenvar);
+
+        // link NEXT to the corresponding FOR
+        model.paramline = forspec.linenum;
+
+        //TODO: get SourceLineModel& by line number
+        //TODO: link FOR to this line number
+
+        return;
+    }
 
     for (size_t i = 0; i < model.params.size(); i++)
     {
@@ -373,6 +400,8 @@ void Validator::ValidateNext(SourceLineModel& model)
             Error(model, "Variable not found:" + varname + ".");
             return;
         }
+
+        //TODO: Process with FOR/NEXT stack
     }
 }
 

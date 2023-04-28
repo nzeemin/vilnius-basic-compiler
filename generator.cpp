@@ -214,8 +214,36 @@ void Generator::GenerateEnd(SourceLineModel& line)
 
 void Generator::GenerateFor(SourceLineModel& line)
 {
-    //TODO
-    m_intermed->intermeds.push_back("; TODO FOR");
+    // Calculate expression for "from"
+    assert(line.args.size() > 1);
+    ExpressionModel& expr1 = line.args[0];
+    GenerateExpression(expr1);
+
+    // Assign the expression to the loop variable
+    assert(line.ident.type == TokenTypeIdentifier);
+    string varname = line.ident.text;
+    string deconame = DecorateVariableName(GetCanonicVariableName(varname));
+    m_intermed->intermeds.push_back("\tMOV\tR0, " + deconame);
+
+    // Calculate expression for "to"
+    ExpressionModel& expr2 = line.args[1];
+    GenerateExpression(expr2);
+    // Save "to" value
+    m_intermed->intermeds.push_back("\tMOV\tR0, @#<N" + std::to_string(line.number) + "+2>");
+
+    if (line.args.size() > 2)  // has STEP expression
+    {
+        // Calculate expression for "step"
+        ExpressionModel& expr3 = line.args[2];
+        GenerateExpression(expr3);
+        // Save "step" value
+        m_intermed->intermeds.push_back("\tMOV\tR0, @#<L" + std::to_string(line.paramline) + "+2>");
+    }
+
+    int nextlinenum = m_source->GetNextLineNumber(line.number);
+    m_intermed->intermeds.push_back("N" + std::to_string(line.number) + ":\tCMP\t#0, " + deconame);
+    m_intermed->intermeds.push_back("\tBLE\tL" + std::to_string(nextlinenum));
+    m_intermed->intermeds.push_back("\tJMP\tX" + std::to_string(line.number));  // label after NEXT
 }
 
 void Generator::GenerateGosub(SourceLineModel& line)
@@ -293,8 +321,16 @@ void Generator::GenerateLocate(SourceLineModel& line)
 
 void Generator::GenerateNext(SourceLineModel& line)
 {
-    //TODO
-    m_intermed->intermeds.push_back("; TODO NEXT");
+    string varname = "A%";//STUB
+    string deconame = DecorateVariableName(GetCanonicVariableName(varname));
+    int forlinenum = line.paramline;
+
+    m_intermed->intermeds.push_back("\tADD\t#1, " + deconame);
+
+    // JMP to continue loop
+    m_intermed->intermeds.push_back("\tJMP\tN" + std::to_string(forlinenum));
+    // Label after NEXT
+    m_intermed->intermeds.push_back("X" + std::to_string(forlinenum) + ":");
 }
 
 void Generator::GeneratePrint(SourceLineModel& line)

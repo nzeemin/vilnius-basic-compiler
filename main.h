@@ -181,6 +181,7 @@ public:
     bool RegisterVariable(VariableModel& var);  // Add variable to the list
     bool IsLineNumberExists(int linenumber);
     int GetNextLineNumber(int linenumber);
+    SourceLineModel& GetSourceLine(int linenumber);
 };
 
 struct IntermedModel
@@ -279,10 +280,17 @@ struct ValidatorKeywordSpec
     ValidatorMethodRef methodref;
 };
 
+struct ValidatorForSpec
+{
+    int     linenum;  // FOR statement line number
+    string  varname;
+};
+
 class Validator
 {
     SourceModel*    m_source;
     int             m_lineindex;
+    std::vector<ValidatorForSpec> m_fornextstack;
 private:
     static const ValidatorKeywordSpec m_keywordspecs[];
 public:

@@ -438,5 +438,18 @@ int SourceModel::GetNextLineNumber(int linenumber)
     return MAX_LINE_NUMBER + 1;
 }
 
+SourceLineModel& SourceModel::GetSourceLine(int linenumber)
+{
+    assert(linenumber < MAX_LINE_NUMBER);
+
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        if (lines[i].number == linenumber)
+            return lines[i];
+    }
+
+    assert(false);  // Line number not found
+}
+
 
 //////////////////////////////////////////////////////////////////////
