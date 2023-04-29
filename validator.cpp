@@ -52,8 +52,14 @@ const ValidatorOperSpec Validator::m_operspecs[] =
 
 const ValidatorFuncSpec Validator::m_funcspecs[] =
 {
-    { KeywordPEEK,      &Validator::ValidateFuncPeek },
+    { KeywordSIN,       &Validator::ValidateFuncSin },
+    { KeywordCOS,       &Validator::ValidateFuncCos },
+    { KeywordTAN,       &Validator::ValidateFuncTan },
+    { KeywordATN,       &Validator::ValidateFuncAtn },
     { KeywordPI,        &Validator::ValidateFuncPi },
+    { KeywordEXP,       &Validator::ValidateFuncExp },
+    { KeywordLOG,       &Validator::ValidateFuncLog },
+    { KeywordPEEK,      &Validator::ValidateFuncPeek },
     { KeywordRND,       &Validator::ValidateFuncRnd },
 };
 
@@ -703,6 +709,130 @@ void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, c
 
 // Function validation ///////////////////////////////////////////////
 
+void Validator::ValidateFuncSin(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeSingle;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = sin(expr1.GetConstExpressionDValue());
+    }
+}
+
+void Validator::ValidateFuncCos(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeSingle;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = cos(expr1.GetConstExpressionDValue());
+    }
+}
+
+void Validator::ValidateFuncTan(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeSingle;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = tan(expr1.GetConstExpressionDValue());
+    }
+}
+
+void Validator::ValidateFuncAtn(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeSingle;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = atan(expr1.GetConstExpressionDValue());
+    }
+}
+
+void Validator::ValidateFuncPi(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 0)
+        EXPR_ERROR("No arguments expected.");
+
+    node.vtype = ValueTypeSingle;
+    node.constval = true;
+    node.node.dvalue = 3.141593;
+}
+
+void Validator::ValidateFuncExp(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeSingle;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = exp(expr1.GetConstExpressionDValue());
+    }
+}
+
+void Validator::ValidateFuncLog(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeSingle;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = log(expr1.GetConstExpressionDValue());
+    }
+}
+
 void Validator::ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
@@ -714,16 +844,6 @@ void Validator::ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node)
 
     node.vtype = ValueTypeInteger;
     node.constval = false;
-}
-
-void Validator::ValidateFuncPi(ExpressionModel& expr, ExpressionNode& node)
-{
-    if (node.args.size() != 0)
-        EXPR_ERROR("No arguments expected.");
-
-    node.vtype = ValueTypeSingle;
-    node.constval = true;
-    node.node.dvalue = 3.141593;
 }
 
 void Validator::ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node)

@@ -292,6 +292,24 @@ int ExpressionModel::GetParentIndex(int index) const
     return -1;  // Not found
 }
 
+bool ExpressionModel::IsConstExpression() const
+{
+    if (root < 0)
+        return false;
+
+    const ExpressionNode& noderoot = nodes[root];
+    return noderoot.constval;
+}
+
+double ExpressionModel::GetConstExpressionDValue() const
+{
+    if (root < 0)
+        return false;
+
+    const ExpressionNode& noderoot = nodes[root];
+    return noderoot.node.dvalue;
+}
+
 int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
 {
     int index = (int)nodes.size();

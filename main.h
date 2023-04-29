@@ -149,6 +149,8 @@ struct ExpressionModel
 public:
     bool IsEmpty() const { return nodes.size() == 0; }
     int GetParentIndex(int index) const;
+    bool IsConstExpression() const;
+    double GetConstExpressionDValue() const;
     int AddOperationNode(ExpressionNode& node, int prev);  // Add binary operation node into the tree
 };
 
@@ -347,8 +349,14 @@ private:
     void ValidateOperDivInt(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
 private:
-    void ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncSin(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncCos(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncTan(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncAtn(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncPi(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncExp(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncLog(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node);
 };
 
