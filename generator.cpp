@@ -140,29 +140,43 @@ void Generator::Error(SourceLineModel& line, string message)
     RegisterError();
 }
 
+// Generate code to calculate the expression; result will be in register R0
 void Generator::GenerateExpression(ExpressionModel& expr)
 {
     assert(!expr.IsEmpty());
     
     ExpressionNode& root = expr.nodes[expr.root];
-    if (root.left != -1 || root.right != -1)
-    {
-        m_final->AddLine("; TODO generate complex expression");
-        return;
-    }
 
-    if (root.vtype != ValueTypeInteger && (root.vtype != ValueTypeSingle || !root.node.IsDValueInteger()))
+    if (root.vtype != ValueTypeInteger && root.vtype != ValueTypeSingle)
     {
         m_final->AddLine("; TODO calculate non-integer expression");
         return;
     }
 
-    if (root.node.type == TokenTypeNumber)
-        m_final->AddLine("\tMOV\t#" + std::to_string((int)root.node.dvalue) + "., R0");
-    else if (root.node.type == TokenTypeIdentifier)
+    if (root.constval)
+    {
+        int ivalue = (int)floor(root.node.dvalue);
+        if (ivalue == 0)
+        {
+            m_final->AddLine("\tCLR\tR0");
+        }
+        else
+        {
+            string svalue = "#" + std::to_string(ivalue) + ".";
+            m_final->AddLine("\tMOV\t" + svalue + ", R0");
+        }
+    }
+
+    if (root.node.type == TokenTypeIdentifier)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(root.node.text));
         m_final->AddLine("\tMOV\t" + deconame + "., R0");
+    }
+
+    if (root.left != -1 || root.right != -1)
+    {
+        m_final->AddLine("; TODO generate complex expression");
+        return;
     }
 }
 
@@ -170,11 +184,11 @@ void Generator::GenerateExpression(ExpressionModel& expr)
 // To use in LET and FOR
 void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, ExpressionModel& expr)
 {
+    ValueType vtype = var.GetValueType();
     string deconame = var.GetVariableDecoratedName();
 
     if (expr.IsConstExpression())
     {
-        //TODO: Convert "A% = 0" assignment into CLR
         int ivalue = (int)floor(expr.GetConstExpressionDValue());
         if (ivalue == 0)
         {
@@ -193,9 +207,32 @@ void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, Ex
     }
     else
     {
-        //TODO: Convert "A% = A% + N" and "A% = A% - N" assignments into INC/DEC/ADD/SUB
-        GenerateExpression(expr);
-        m_final->AddLine("\tMOV\tR0, " + deconame);
+        ExpressionNode& root = expr.nodes[expr.root];
+
+        // Convert "A% = A% + N" and "A% = A% - N" assignments into INC/DEC/ADD/SUB
+        if (vtype == ValueTypeInteger && root.node.IsBinaryOperation() &&
+            (root.node.text == "-" || root.node.text == "+") &&
+            expr.nodes[root.left].node.type == TokenTypeIdentifier &&
+            GetCanonicVariableName(expr.nodes[root.left].node.text) == var.name &&
+            expr.nodes[root.right].constval &&
+            (expr.nodes[root.right].vtype == ValueTypeInteger || expr.nodes[root.right].vtype == ValueTypeSingle))
+        {
+            bool plusminus = (root.node.text == "+");
+            int ivalue = (int)floor(expr.nodes[root.right].node.dvalue);
+            if (plusminus && ivalue == 1)
+                m_final->AddLine("\tINC\t" + deconame);
+            else if (!plusminus && ivalue == 1)
+                m_final->AddLine("\tDEC\t" + deconame);
+            else if (plusminus && ivalue != 1)
+                m_final->AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame);
+            else //if (!plusminus && ivalue != 1)
+                m_final->AddLine("\tSUB\t#" + std::to_string(ivalue) + "., " + deconame);
+        }
+        else
+        {
+            GenerateExpression(expr);
+            m_final->AddLine("\tMOV\tR0, " + deconame);
+        }
     }
 }
 

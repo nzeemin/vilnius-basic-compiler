@@ -324,6 +324,7 @@ private:
     void Error(ExpressionModel& expr, const ExpressionNode& node, string message);
     bool CheckIntegerExpression(SourceLineModel& model, ExpressionModel& expr);
     bool CheckIntegerOrSingleExpression(ExpressionModel& expr);
+    bool CheckStringExpression(ExpressionModel& expr);
     void ValidateExpression(ExpressionModel& expr);
     void ValidateExpression(ExpressionModel& expr, int index);
 private:
@@ -369,6 +370,11 @@ private:
     void ValidateFuncCint(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncInp(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncAsc(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncChr(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncLen(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node);
 };
 
 class Generator;
