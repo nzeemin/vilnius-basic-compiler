@@ -336,29 +336,6 @@ int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
     return index;
 }
 
-//TODO: Move this logic to validator
-void ExpressionModel::CalculateVTypes()
-{
-    if (root < 0)
-        return;
-
-    CalculateVTypeForNode(root);
-}
-void ExpressionModel::CalculateVTypeForNode(int index)
-{
-    ExpressionNode& node = nodes[index];
-    if (node.vtype != ValueTypeNone)
-        return;
-
-    if (node.left >= 0)
-        CalculateVTypeForNode(node.left);
-    if (node.right >= 0)
-        CalculateVTypeForNode(node.right);
-
-    //TODO: Unary plus/minus with one operand only
-
-}
-
 
 //////////////////////////////////////////////////////////////////////
 // SourceModel

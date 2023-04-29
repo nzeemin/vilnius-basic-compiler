@@ -42,13 +42,18 @@ const ValidatorKeywordSpec Validator::m_keywordspecs[] =
 
 const ValidatorOperSpec Validator::m_operspecs[] =
 {
-    { "-",              &Validator::ValidateOperMinus },
     { "+",              &Validator::ValidateOperPlus },
+    { "-",              &Validator::ValidateOperMinus },
+    { "*",              &Validator::ValidateOperMul },
+    { "/",              &Validator::ValidateOperDiv },
+    { "\\",             &Validator::ValidateOperDivInt },
+    { "^",              &Validator::ValidateOperPower },
 };
 
 const ValidatorFuncSpec Validator::m_funcspecs[] =
 {
     { KeywordPEEK,      &Validator::ValidateFuncPeek },
+    { KeywordPI,        &Validator::ValidateFuncPi },
     { KeywordRND,       &Validator::ValidateFuncRnd },
 };
 
@@ -110,7 +115,13 @@ void Validator::Error(SourceLineModel& line, string message)
     RegisterError();
 }
 
-void Validator::Error(ExpressionModel& expr, ExpressionNode& node, string message)
+void Validator::Error(ExpressionModel& expr, string message)
+{
+    std::cerr << "ERROR in expression - " << message << std::endl;
+    RegisterError();
+}
+
+void Validator::Error(ExpressionModel& expr, const ExpressionNode& node, string message)
 {
     std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - " << message << std::endl;
     RegisterError();
@@ -185,6 +196,8 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
             }
         }
 
+        if (methodref != nullptr)
+            (this->*methodref)(expr, node);
     }
 
     //TODO
@@ -201,6 +214,26 @@ bool Validator::CheckIntegerExpression(SourceLineModel& model, ExpressionModel& 
     ValidateExpression(expr, expr.root);
     
     //TODO: Check the expression result is integer
+
+    return true;
+}
+
+bool Validator::CheckIntegerOrSingleExpression(ExpressionModel& expr)
+{
+    if (expr.IsEmpty())
+    {
+        Error(expr, "Expression should not be empty.");
+        return false;
+    }
+
+    ValidateExpression(expr, expr.root);
+
+    const ExpressionNode& root = expr.nodes[expr.root];
+    if (root.vtype != ValueTypeInteger && root.vtype != ValueTypeSingle)
+    {
+        Error(expr, "Expression type should be Integer or Single.");
+        return false;
+    }
 
     return true;
 }
@@ -534,37 +567,13 @@ void Validator::ValidateWidth(SourceLineModel& model)
 
 #define EXPR_ERROR(msg) \
     { Error(expr, node, msg); return; }
-
-void Validator::ValidateOperMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
-{
-    if (nodeleft.vtype == ValueTypeNone)
-        EXPR_ERROR("Operand vtype not defined.");
-    if (noderight.vtype == ValueTypeNone)
-        EXPR_ERROR("Operand vtype not defined.");
-
-    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
-        EXPR_ERROR("Operation \'-\' not applicable to strings.");
-    if (nodeleft.vtype == noderight.vtype)
-        node.vtype = nodeleft.vtype;
-    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
-        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
-        node.vtype = ValueTypeSingle;
-    else
-        EXPR_ERROR("Value types are incompatible.");
-
-    node.constval = (nodeleft.constval && noderight.constval);
-    if (node.constval)
-    {
-        node.node.dvalue = nodeleft.node.dvalue - noderight.node.dvalue;
-    }
-}
+#define EXPR_CHECK_OPERANDS_VTYPE_NONE \
+    { if (nodeleft.vtype == ValueTypeNone) { Error(expr, nodeleft, "Operand vtype not defined."); return; } \
+      if (noderight.vtype == ValueTypeNone) { Error(expr, noderight, "Operand vtype not defined."); return; } }
 
 void Validator::ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    if (nodeleft.vtype == ValueTypeNone)
-        EXPR_ERROR("Operand vtype not defined.");
-    if (noderight.vtype == ValueTypeNone)
-        EXPR_ERROR("Operand vtype not defined.");
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
 
     if (nodeleft.vtype == noderight.vtype)
         node.vtype = nodeleft.vtype;
@@ -584,30 +593,147 @@ void Validator::ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, co
     }
 }
 
+void Validator::ValidateOperMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'-\' not applicable to strings.");
+    if (nodeleft.vtype == noderight.vtype)
+        node.vtype = nodeleft.vtype;
+    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
+        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+        node.vtype = ValueTypeSingle;
+    else
+        EXPR_ERROR("Value types are incompatible.");
+
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        node.node.dvalue = nodeleft.node.dvalue - noderight.node.dvalue;
+    }
+}
+
+void Validator::ValidateOperMul(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'*\' not applicable to strings.");
+    if (nodeleft.vtype == noderight.vtype)
+        node.vtype = nodeleft.vtype;
+    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
+        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+        node.vtype = ValueTypeSingle;
+    else
+        EXPR_ERROR("Value types are incompatible.");
+
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        node.node.dvalue = nodeleft.node.dvalue * noderight.node.dvalue;
+    }
+}
+
+void Validator::ValidateOperDiv(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'/\' not applicable to strings.");
+    if (nodeleft.vtype == noderight.vtype)
+        node.vtype = nodeleft.vtype;
+    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
+        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+        node.vtype = ValueTypeSingle;
+    else
+        EXPR_ERROR("Value types are incompatible.");
+
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        if (noderight.node.dvalue == 0)
+            EXPR_ERROR("Division by zero.");
+
+        node.node.dvalue = nodeleft.node.dvalue / noderight.node.dvalue;
+    }
+}
+
+void Validator::ValidateOperDivInt(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'\\\' not applicable to strings.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        if (((int)noderight.node.dvalue) == 0)
+            EXPR_ERROR("Division by zero.");
+
+        node.node.dvalue = ((int)nodeleft.node.dvalue) / ((int)noderight.node.dvalue);
+    }
+}
+
+void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'\\\' not applicable to strings.");
+    if (nodeleft.vtype == noderight.vtype)
+        node.vtype = nodeleft.vtype;
+    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
+        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+        node.vtype = ValueTypeSingle;
+    else
+        EXPR_ERROR("Value types are incompatible.");
+
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        node.node.dvalue = pow(nodeleft.node.dvalue, noderight.node.dvalue);
+        if (!isfinite(node.node.dvalue))
+            EXPR_ERROR("Bad result of power operation in const expression.");
+    }
+}
+
 
 // Function validation ///////////////////////////////////////////////
 
-void Validator::ValidateFuncPeek(SourceLineModel& model, ExpressionNode& node)
+void Validator::ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node)
 {
-    if (model.args.size() != 1)
-        MODEL_ERROR("One Expression expected.");
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
 
-    ExpressionModel& expr = model.args[0];
-    if (!CheckIntegerExpression(model, expr))
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
     node.vtype = ValueTypeInteger;
     node.constval = false;
 }
 
-void Validator::ValidateFuncRnd(SourceLineModel& model, ExpressionNode& node)
+void Validator::ValidateFuncPi(ExpressionModel& expr, ExpressionNode& node)
 {
-    if (model.args.size() != 1)
-        MODEL_ERROR("One Expression expected.");
+    if (node.args.size() != 0)
+        EXPR_ERROR("No arguments expected.");
 
-    ExpressionModel& expr = model.args[0];
-    ValidateExpression(expr);
-    //TODO: Expression type should be Integer of Single
+    node.vtype = ValueTypeSingle;
+    node.constval = true;
+    node.node.dvalue = 3.141593;
+}
+
+void Validator::ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
 
     node.vtype = ValueTypeSingle;
     node.constval = false;

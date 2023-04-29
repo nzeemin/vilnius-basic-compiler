@@ -150,8 +150,6 @@ public:
     bool IsEmpty() const { return nodes.size() == 0; }
     int GetParentIndex(int index) const;
     int AddOperationNode(ExpressionNode& node, int prev);  // Add binary operation node into the tree
-    void CalculateVTypes();  // Calculate vtype/const for all nodes
-    void CalculateVTypeForNode(int index);  // Calculate vtype/const for one node
 };
 
 struct SourceLineModel
@@ -287,7 +285,7 @@ struct ValidatorOperSpec
     string text;
     ValidatorOperMethodRef methodref;
 };
-typedef void (Validator::* ValidatorFuncMethodRef)(SourceLineModel&, ExpressionNode&);
+typedef void (Validator::* ValidatorFuncMethodRef)(ExpressionModel&, ExpressionNode&);
 struct ValidatorFuncSpec
 {
     KeywordIndex keyword;
@@ -315,8 +313,10 @@ public:
     bool ProcessLine();
 private:
     void Error(SourceLineModel& line, string message);
-    void Error(ExpressionModel& expr, ExpressionNode& node, string message);
+    void Error(ExpressionModel& expr, string message);
+    void Error(ExpressionModel& expr, const ExpressionNode& node, string message);
     bool CheckIntegerExpression(SourceLineModel& model, ExpressionModel& expr);
+    bool CheckIntegerOrSingleExpression(ExpressionModel& expr);
     void ValidateExpression(ExpressionModel& expr);
     void ValidateExpression(ExpressionModel& expr, int index);
 private:
@@ -340,11 +340,16 @@ private:
     void ValidateScreen(SourceLineModel& model);
     void ValidateWidth(SourceLineModel& model);
 private:
-    void ValidateOperMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperMul(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperDiv(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperDivInt(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
 private:
-    void ValidateFuncPeek(SourceLineModel& model, ExpressionNode& node);
-    void ValidateFuncRnd(SourceLineModel& model, ExpressionNode& node);
+    void ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncPi(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node);
 };
 
 class Generator;

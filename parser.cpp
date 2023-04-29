@@ -504,9 +504,6 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
         isop = !isop;
     }
 
-    // Calculate vtype/const for all expression nodes
-    expression.CalculateVTypes();
-
     return expression;
 }
 
