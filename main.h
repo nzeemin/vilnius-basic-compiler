@@ -71,6 +71,11 @@ enum ValueType
     ValueTypeString     = 10,   // String of length 0..255
 };
 
+extern void RegisterError();
+
+string GetCanonicVariableName(const string& name);
+string DecorateVariableName(const string& name);
+
 struct Token
 {
     int		    line, pos;
@@ -116,12 +121,9 @@ struct VariableModel
     std::vector<int> indices;  // List of variable indices if any
 public:
     ValueType GetValueType();
+public:
+    string GetVariableDecoratedName() const { return DecorateVariableName(GetCanonicVariableName(name)); }
 };
-
-extern void RegisterError();
-
-string GetCanonicVariableName(const string& name);
-string DecorateVariableName(const string& name);
 
 struct ExpressionModel;
 
@@ -151,6 +153,9 @@ public:
     int GetParentIndex(int index) const;
     bool IsConstExpression() const;
     double GetConstExpressionDValue() const;
+    bool IsVariableExpression() const;
+    string GetVariableExpressionDecoratedName() const;
+    ValueType GetExpressionValueType() const;
     int AddOperationNode(ExpressionNode& node, int prev);  // Add binary operation node into the tree
 };
 
@@ -356,8 +361,14 @@ private:
     void ValidateFuncPi(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncExp(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncLog(ExpressionModel& expr, ExpressionNode& node);
-    void ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncAbs(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncFix(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncSgn(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncCint(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node);
 };
 
 class Generator;
@@ -384,6 +395,7 @@ private:
 private:
     void Error(SourceLineModel& line, string message);
     void GenerateExpression(ExpressionModel& expr);
+    void GenerateAssignment(SourceLineModel& line, VariableModel& var, ExpressionModel& expr);
     void GenerateBeep(SourceLineModel& line);
     void GenerateClear(SourceLineModel& line);
     void GenerateCls(SourceLineModel& line);

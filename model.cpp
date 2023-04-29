@@ -310,6 +310,36 @@ double ExpressionModel::GetConstExpressionDValue() const
     return noderoot.node.dvalue;
 }
 
+bool ExpressionModel::IsVariableExpression() const
+{
+    if (root < 0)
+        return false;
+
+    const ExpressionNode& noderoot = nodes[root];
+    return noderoot.node.type == TokenTypeIdentifier;
+}
+
+string ExpressionModel::GetVariableExpressionDecoratedName() const
+{
+    if (root < 0)
+        return string();
+
+    const ExpressionNode& noderoot = nodes[root];
+    if (noderoot.node.type != TokenTypeIdentifier)
+        return string();
+
+    return DecorateVariableName(GetCanonicVariableName(noderoot.node.text));
+}
+
+ValueType ExpressionModel::GetExpressionValueType() const
+{
+    if (root < 0)
+        return ValueTypeNone;
+
+    const ExpressionNode& noderoot = nodes[root];
+    return noderoot.node.vtype;
+}
+
 int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
 {
     int index = (int)nodes.size();

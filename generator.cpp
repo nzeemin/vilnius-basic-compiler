@@ -166,6 +166,39 @@ void Generator::GenerateExpression(ExpressionModel& expr)
     }
 }
 
+// Calculate expression and assign the result to variable
+// To use in LET and FOR
+void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, ExpressionModel& expr)
+{
+    string deconame = var.GetVariableDecoratedName();
+
+    if (expr.IsConstExpression())
+    {
+        //TODO: Convert "A% = 0" assignment into CLR
+        int ivalue = (int)floor(expr.GetConstExpressionDValue());
+        if (ivalue == 0)
+        {
+            m_final->AddLine("\tCLR\t" + deconame);
+        }
+        else {
+            string svalue = "#" + std::to_string(ivalue) + ".";
+            m_final->AddLine("\tMOV\t" + svalue + ", " + deconame);
+        }
+        //TODO: version for Single type
+    }
+    else if (expr.IsVariableExpression())
+    {
+        string svalue = expr.GetVariableExpressionDecoratedName();
+        m_final->AddLine("\tMOV\t" + svalue + ", " + deconame);
+    }
+    else
+    {
+        //TODO: Convert "A% = A% + N" and "A% = A% - N" assignments into INC/DEC/ADD/SUB
+        GenerateExpression(expr);
+        m_final->AddLine("\tMOV\tR0, " + deconame);
+    }
+}
+
 void Generator::GenerateBeep(SourceLineModel& line)
 {
     m_final->AddLine("\tCALL\tBEEP");
@@ -217,21 +250,32 @@ void Generator::GenerateFor(SourceLineModel& line)
     // Calculate expression for "from"
     assert(line.args.size() > 1);
     ExpressionModel& expr1 = line.args[0];
-    //TODO: Simplified version for const/var expression
-    GenerateExpression(expr1);
+
+    assert(line.ident.type == TokenTypeIdentifier);
+    VariableModel var;
+    var.name = line.ident.text;
+    string deconame = var.GetVariableDecoratedName();
 
     // Assign the expression to the loop variable
-    assert(line.ident.type == TokenTypeIdentifier);
-    string varname = line.ident.text;
-    string deconame = DecorateVariableName(GetCanonicVariableName(varname));
-    m_final->AddLine("\tMOV\tR0, " + deconame);
+    GenerateAssignment(line, var, expr1);
 
     // Calculate expression for "to"
+    string tovalue = "#0";
     ExpressionModel& expr2 = line.args[1];
-    //TODO: Simplified version for const/var expression
-    GenerateExpression(expr2);
-    // Save "to" value
-    m_final->AddLine("\tMOV\tR0, @#<N" + std::to_string(line.number) + "+2>");
+    if (expr2.IsConstExpression())
+    {
+        tovalue = "#" + std::to_string((int)floor(expr2.GetConstExpressionDValue())) + ".";
+    }
+    else if (expr2.IsVariableExpression())
+    {
+        string svalue = expr2.GetVariableExpressionDecoratedName();
+        m_final->AddLine("\tMOV\t" + svalue + ", @#<N" + std::to_string(line.number) + "+2>");
+    }
+    else
+    {
+        GenerateExpression(expr2);
+        m_final->AddLine("\tMOV\tR0, @#<N" + std::to_string(line.number) + "+2>");  //  Save "to" value
+    }
 
     if (line.args.size() > 2)  // has STEP expression
     {
@@ -243,7 +287,7 @@ void Generator::GenerateFor(SourceLineModel& line)
     }
 
     int nextlinenum = m_source->GetNextLineNumber(line.number);
-    m_final->AddLine("N" + std::to_string(line.number) + ":\tCMP\t#0, " + deconame);
+    m_final->AddLine("N" + std::to_string(line.number) + ":\tCMP\t" + tovalue + ", " + deconame);
     m_final->AddLine("\tBHIS\tL" + std::to_string(nextlinenum));
     m_final->AddLine("\tJMP\tX" + std::to_string(line.number));  // label after NEXT
 }
@@ -288,12 +332,10 @@ void Generator::GenerateLet(SourceLineModel& line)
 {
     assert(line.args.size() == 1);
     ExpressionModel& expr = line.args[0];
-    //TODO: Simplified version for const/var expression
-    GenerateExpression(expr);
 
     VariableModel& var = line.variables[0];
-    string deconame = DecorateVariableName(GetCanonicVariableName(var.name));
-    m_final->AddLine("\tMOV\tR0, " + deconame);
+
+    GenerateAssignment(line, var, expr);
 }
 
 void Generator::GenerateOn(SourceLineModel& line)

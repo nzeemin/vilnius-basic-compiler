@@ -59,8 +59,14 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordPI,        &Validator::ValidateFuncPi },
     { KeywordEXP,       &Validator::ValidateFuncExp },
     { KeywordLOG,       &Validator::ValidateFuncLog },
-    { KeywordPEEK,      &Validator::ValidateFuncPeek },
+    { KeywordABS,       &Validator::ValidateFuncAbs },
+    { KeywordFIX,       &Validator::ValidateFuncFix },
+    { KeywordINT,       &Validator::ValidateFuncInt },
+    { KeywordSGN,       &Validator::ValidateFuncSgn },
     { KeywordRND,       &Validator::ValidateFuncRnd },
+    { KeywordCINT,      &Validator::ValidateFuncCint },
+    { KeywordCSNG,      &Validator::ValidateFuncCsng },
+    { KeywordPEEK,      &Validator::ValidateFuncPeek },
 };
 
 Validator::Validator(SourceModel* source)
@@ -833,7 +839,27 @@ void Validator::ValidateFuncLog(ExpressionModel& expr, ExpressionNode& node)
     }
 }
 
-void Validator::ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node)
+void Validator::ValidateFuncAbs(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    ValueType vtype = expr1.GetExpressionValueType();
+    node.vtype = vtype;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = abs(expr1.GetConstExpressionDValue());
+    }
+}
+
+void Validator::ValidateFuncFix(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
         EXPR_ERROR("One argument expected.");
@@ -844,6 +870,54 @@ void Validator::ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node)
 
     node.vtype = ValueTypeInteger;
     node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = (int)(expr1.GetConstExpressionDValue());
+    }
+}
+
+void Validator::ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = floor(expr1.GetConstExpressionDValue());
+    }
+}
+
+void Validator::ValidateFuncSgn(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        double dvalue = expr1.GetConstExpressionDValue();
+        if (dvalue == 0)
+            node.node.dvalue = 0;
+        else
+            node.node.dvalue = dvalue > 0 ? 1 : -1;
+    }
 }
 
 void Validator::ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node)
@@ -856,6 +930,57 @@ void Validator::ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeSingle;
+    node.constval = false;
+}
+
+void Validator::ValidateFuncCint(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = (int)(expr1.GetConstExpressionDValue());
+    }
+}
+
+void Validator::ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeSingle;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+        node.node.dvalue = expr1.GetConstExpressionDValue();
+    }
+}
+
+void Validator::ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeInteger;
     node.constval = false;
 }
 
