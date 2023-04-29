@@ -74,6 +74,7 @@ string Token::GetTokenTypeStr() const
     case TokenTypeKeyword:  return "Keyword";
     case TokenTypeIdentifier: return "Ident";
     case TokenTypeSymbol:   return "Symbol";
+    case TokenTypeOperation: return "Operation";
     case TokenTypeEOL:      return "EOL";
     case TokenTypeEOT:      return "EOT";
     default:
@@ -169,7 +170,7 @@ void Token::Dump(std::ostream& out) const
         out << " text:\"" << text << "\"";  //TODO: Escape special chars
     if (type == TokenTypeSymbol || symbol != 0)
         out << " symb:\'" << symbol << "\'";  //TODO: Escape special chars
-    if (type == TokenTypeNumber)
+    //if (type == TokenTypeNumber)
     {
         std::cout.unsetf(std::ios::floatfield);
         if (IsDValueInteger())
@@ -279,11 +280,11 @@ string ExpressionNode::GetNodeVTypeStr() const
 //////////////////////////////////////////////////////////////////////
 // ExpressionModel
 
-int ExpressionModel::GetParentIndex(int index)
+int ExpressionModel::GetParentIndex(int index) const
 {
     for (int i = 0; i < (int)nodes.size(); i++)
     {
-        ExpressionNode& node = nodes[i];
+        const ExpressionNode& node = nodes[i];
         if (node.left == index || node.right == index)
             return i;
     }
@@ -335,6 +336,7 @@ int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
     return index;
 }
 
+//TODO: Move this logic to validator
 void ExpressionModel::CalculateVTypes()
 {
     if (root < 0)
@@ -342,7 +344,6 @@ void ExpressionModel::CalculateVTypes()
 
     CalculateVTypeForNode(root);
 }
-
 void ExpressionModel::CalculateVTypeForNode(int index)
 {
     ExpressionNode& node = nodes[index];
@@ -356,42 +357,13 @@ void ExpressionModel::CalculateVTypeForNode(int index)
 
     //TODO: Unary plus/minus with one operand only
 
-    if (node.left >= 0 && node.right >= 0)
-    {
-        const ExpressionNode& nodeleft = nodes[node.left];
-        const ExpressionNode& noderight = nodes[node.right];
-
-        node.constval = (nodeleft.constval && noderight.constval);
-
-        if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
-        {
-            std::cerr << "ERROR at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node.";
-            exit(EXIT_FAILURE);
-        }
-
-        //TODO: Use knowledge about the operation to make this decision
-
-        if (nodeleft.vtype == noderight.vtype)
-            node.vtype = nodeleft.vtype;
-
-        if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
-            nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
-            node.vtype = ValueTypeSingle;
-
-        if ((nodeleft.vtype == ValueTypeSingle || nodeleft.vtype == ValueTypeInteger) && noderight.vtype == ValueTypeString ||
-            nodeleft.vtype == ValueTypeString && (noderight.vtype == ValueTypeSingle || noderight.vtype == ValueTypeInteger))
-        {
-            std::cerr << "ERROR at " << node.node.line << ":" << node.node.pos << " - Value types are incompatible.";
-            exit(EXIT_FAILURE);
-        }
-    }
 }
 
 
 //////////////////////////////////////////////////////////////////////
 // SourceModel
 
-bool SourceModel::IsVariableRegistered(string varname)
+bool SourceModel::IsVariableRegistered(string varname) const
 {
     for (size_t i = 0; i < vars.size(); i++)
     {
@@ -414,7 +386,7 @@ bool SourceModel::RegisterVariable(VariableModel& var)
     return true;
 }
 
-bool SourceModel::IsLineNumberExists(int linenumber)
+bool SourceModel::IsLineNumberExists(int linenumber) const
 {
     if (linenumber <= 0 || linenumber > MAX_LINE_NUMBER)
         return false;
@@ -426,7 +398,7 @@ bool SourceModel::IsLineNumberExists(int linenumber)
     return false;
 }
 
-int SourceModel::GetNextLineNumber(int linenumber)
+int SourceModel::GetNextLineNumber(int linenumber) const
 {
     if (linenumber > MAX_LINE_NUMBER)
         return MAX_LINE_NUMBER + 1;

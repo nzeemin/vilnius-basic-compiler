@@ -147,8 +147,8 @@ struct ExpressionModel
     std::vector<ExpressionNode> nodes;
     int root;           // Index of the root node or -1 if the expression is empty
 public:
-    bool IsEmpty() { return nodes.size() == 0; }
-    int GetParentIndex(int index);
+    bool IsEmpty() const { return nodes.size() == 0; }
+    int GetParentIndex(int index) const;
     int AddOperationNode(ExpressionNode& node, int prev);  // Add binary operation node into the tree
     void CalculateVTypes();  // Calculate vtype/const for all nodes
     void CalculateVTypeForNode(int index);  // Calculate vtype/const for one node
@@ -177,16 +177,18 @@ struct SourceModel
     std::vector<SourceLineModel> lines;
     std::vector<VariableModel> vars;//TODO: change to set
 public:
-    bool IsVariableRegistered(string varname);
+    bool IsVariableRegistered(string varname) const;
     bool RegisterVariable(VariableModel& var);  // Add variable to the list
-    bool IsLineNumberExists(int linenumber);
-    int GetNextLineNumber(int linenumber);
+    bool IsLineNumberExists(int linenumber) const;
+    int GetNextLineNumber(int linenumber) const;
     SourceLineModel& GetSourceLine(int linenumber);
 };
 
-struct IntermedModel
+struct FinalModel
 {
-    std::vector<string> intermeds;
+    std::vector<string> lines;
+public:
+    void AddLine(string str) { lines.push_back(str); }
 };
 
 class Tokenizer
@@ -279,6 +281,18 @@ struct ValidatorKeywordSpec
     KeywordIndex keyword;
     ValidatorMethodRef methodref;
 };
+typedef void (Validator::* ValidatorOperMethodRef)(ExpressionModel&, ExpressionNode&, const ExpressionNode&, const ExpressionNode&);
+struct ValidatorOperSpec
+{
+    string text;
+    ValidatorOperMethodRef methodref;
+};
+typedef void (Validator::* ValidatorFuncMethodRef)(SourceLineModel&, ExpressionNode&);
+struct ValidatorFuncSpec
+{
+    KeywordIndex keyword;
+    ValidatorFuncMethodRef methodref;
+};
 
 struct ValidatorForSpec
 {
@@ -293,14 +307,19 @@ class Validator
     std::vector<ValidatorForSpec> m_fornextstack;
 private:
     static const ValidatorKeywordSpec m_keywordspecs[];
+    static const ValidatorOperSpec m_operspecs[];
+    static const ValidatorFuncSpec m_funcspecs[];
 public:
     Validator(SourceModel* source);
 public:
     bool ProcessLine();
 private:
     void Error(SourceLineModel& line, string message);
+    void Error(ExpressionModel& expr, ExpressionNode& node, string message);
     bool CheckIntegerExpression(SourceLineModel& model, ExpressionModel& expr);
+    void ValidateExpression(ExpressionModel& expr);
     void ValidateExpression(ExpressionModel& expr, int index);
+private:
     void ValidateNothing(SourceLineModel& model);
     void ValidateClear(SourceLineModel& model);
     void ValidateColor(SourceLineModel& model);
@@ -320,6 +339,12 @@ private:
     void ValidateRestore(SourceLineModel& model);
     void ValidateScreen(SourceLineModel& model);
     void ValidateWidth(SourceLineModel& model);
+private:
+    void ValidateOperMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+private:
+    void ValidateFuncPeek(SourceLineModel& model, ExpressionNode& node);
+    void ValidateFuncRnd(SourceLineModel& model, ExpressionNode& node);
 };
 
 class Generator;
@@ -333,10 +358,10 @@ struct GeneratorKeywordSpec
 class Generator
 {
     SourceModel*    m_source;
-    IntermedModel*  m_intermed;
+    FinalModel*     m_final;
     int             m_lineindex;
 public:
-    Generator(SourceModel* source, IntermedModel* intermed);
+    Generator(SourceModel* source, FinalModel* intermed);
 public:
     void ProcessBegin();
     bool ProcessLine();
@@ -362,6 +387,7 @@ private:
     void GenerateLocate(SourceLineModel& line);
     void GenerateNext(SourceLineModel& line);
     void GenerateOn(SourceLineModel& line);
+    void GeneratePoke(SourceLineModel& line);
     void GeneratePrint(SourceLineModel& line);
     void GenerateRead(SourceLineModel& line);
     void GenerateRem(SourceLineModel& line);

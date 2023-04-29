@@ -17,7 +17,7 @@ bool g_validationonly = false;  // Show validation result and quit
 bool g_showgeneration = false;
 
 SourceModel g_source;
-IntermedModel g_intermed;
+FinalModel g_intermed;
 
 static int g_errorcount = 0;
 
@@ -92,6 +92,58 @@ void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
     std::cout << " ]";
 }
 
+void PrintLineModel(SourceLineModel& line)
+{
+    std::cout << "Line " << line.number << " " << line.statement.text << line.statement.symbol;
+    if (line.paramline > 0)
+        std::cout << " " << line.paramline;
+    if (line.ident.type != TokenTypeNone)
+        std::cout << " ident:" << line.ident.text;
+    if (line.args.size() > 0)
+        std::cout << " args(" << line.args.size() << ")";
+    if (line.params.size() > 0)
+        std::cout << " params(" << line.params.size() << ")";
+    if (line.variables.size() > 0)
+        std::cout << " vars(" << line.variables.size() << ")";
+    if (line.args.size() > 0)
+    {
+        for (size_t i = 0; i < line.args.size(); i++)
+        {
+            ExpressionModel& expr = line.args[i];
+            PrintExpression(expr, i);
+        }
+    }
+    if (line.params.size() > 0)
+    {
+        for (size_t i = 0; i < line.params.size(); i++)
+        {
+            Token& token = line.params[i];
+            std::cout << std::endl << std::setw(2) << "  par" << i << ": ";
+            token.Dump(std::cout);
+        }
+    }
+    if (line.variables.size() > 0)
+    {
+        for (size_t i = 0; i < line.variables.size(); i++)
+        {
+            VariableModel& var = line.variables[i];
+            std::cout << std::endl << std::setw(2) << "  var" << i << ": ";
+            std::cout << var.name;
+            if (var.indices.size() > 0)
+            {
+                std::cout << "(";
+                for (size_t j = 0; j < var.indices.size(); j++)
+                {
+                    if (j > 0) std::cout << ",";
+                    std::cout << var.indices[j];
+                }
+                std::cout << ")";
+            }
+        }
+    }
+    std::cout << std::endl;
+}
+
 void ShowParsing()
 {
     std::ifstream instream;
@@ -114,54 +166,7 @@ void ShowParsing()
 
         if (!line.error)
             std::cout << line.text << std::endl;
-        std::cout << "Line " << line.number << " " << line.statement.text << line.statement.symbol;
-        if (line.paramline > 0)
-            std::cout << " " << line.paramline;
-        if (line.ident.type != TokenTypeNone)
-            std::cout << " ident:" << line.ident.text;
-        if (line.args.size() > 0)
-            std::cout << " args(" << line.args.size() << ")";
-        if (line.params.size() > 0)
-            std::cout << " params(" << line.params.size() << ")";
-        if (line.variables.size() > 0)
-            std::cout << " vars(" << line.variables.size() << ")";
-        if (line.args.size() > 0)
-        {
-            for (size_t i = 0; i < line.args.size(); i++)
-            {
-                ExpressionModel& expr = line.args[i];
-                PrintExpression(expr, i);
-            }
-        }
-        if (line.params.size() > 0)
-        {
-            for (size_t i = 0; i < line.params.size(); i++)
-            {
-                Token& token = line.params[i];
-                std::cout << std::endl << std::setw(2) << "  par" << i << ": ";
-                token.Dump(std::cout);
-            }
-        }
-        if (line.variables.size() > 0)
-        {
-            for (size_t i = 0; i < line.variables.size(); i++)
-            {
-                VariableModel& var = line.variables[i];
-                std::cout << std::endl << std::setw(2) << "  var" << i << ": ";
-                std::cout << var.name;
-                if (var.indices.size() > 0)
-                {
-                    std::cout << "(";
-                    for (size_t j = 0; j < var.indices.size(); j++)
-                    {
-                        if (j > 0) std::cout << ",";
-                        std::cout << var.indices[j];
-                    }
-                    std::cout << ")";
-                }
-            }
-        }
-        std::cout << std::endl;
+        PrintLineModel(line);
 
         if (line.error)
             break;
@@ -195,12 +200,6 @@ void ShowValidation()
         if (line.number == 0)
             break;
 
-        if (!line.error)
-            std::cout << line.text << std::endl;
-
-        //if (line.error)
-        //    break;
-
         g_source.lines.push_back(line);
     }
 
@@ -208,8 +207,13 @@ void ShowValidation()
 
     Validator validator(&g_source);
 
-    while (validator.ProcessLine())
-        ;
+    for (size_t i = 0; i < g_source.lines.size(); i++)
+    {
+        validator.ProcessLine();
+        SourceLineModel& line = g_source.lines[i];
+        std::cout << line.text << std::endl;
+        PrintLineModel(line);
+    }
 }
 
 void ProcessFiles()
@@ -265,9 +269,9 @@ void ProcessFiles()
     g_errorcount = 0;
     while (generator.ProcessLine())
         ;
-    for (size_t i = 0; i < g_intermed.intermeds.size(); i++)
+    for (size_t i = 0; i < g_intermed.lines.size(); i++)
     {
-        string& intermed = g_intermed.intermeds[i];
+        string& intermed = g_intermed.lines[i];
         outstream << intermed << std::endl;
         if (g_showgeneration)
             std::cout << intermed << std::endl;

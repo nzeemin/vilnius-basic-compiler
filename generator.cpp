@@ -26,6 +26,7 @@ const GeneratorKeywordSpec Generator::m_keywordspecs[] =
     { KeywordLOCATE,    &Generator::GenerateLocate },
     { KeywordNEXT,      &Generator::GenerateNext },
     { KeywordON,        &Generator::GenerateOn },
+    { KeywordPOKE,      &Generator::GeneratePoke },
     { KeywordPRINT,     &Generator::GeneratePrint },
     { KeywordREAD,      &Generator::GenerateRead },
     { KeywordREM,       &Generator::GenerateRem },
@@ -39,8 +40,8 @@ const GeneratorKeywordSpec Generator::m_keywordspecs[] =
 };
 
 
-Generator::Generator(SourceModel* source, IntermedModel* intermed)
-    : m_source(source), m_intermed(intermed)
+Generator::Generator(SourceModel* source, FinalModel* intermed)
+    : m_source(source), m_final(intermed)
 {
     assert(source != nullptr);
     assert(intermed != nullptr);
@@ -51,16 +52,16 @@ Generator::Generator(SourceModel* source, IntermedModel* intermed)
 void Generator::ProcessBegin()
 {
     //TODO: TITLE
-    m_intermed->intermeds.push_back("\t.MCALL\t.EXIT");
-    m_intermed->intermeds.push_back("START:");
+    m_final->AddLine("\t.MCALL\t.EXIT");
+    m_final->AddLine("START:");
 }
 
 void Generator::ProcessEnd()
 {
-    m_intermed->intermeds.push_back("L" + std::to_string(MAX_LINE_NUMBER + 1) + ":");
-    m_intermed->intermeds.push_back("\t.EXIT");  // In case we run after last line
+    m_final->AddLine("L" + std::to_string(MAX_LINE_NUMBER + 1) + ":");
+    m_final->AddLine("\t.EXIT");  // In case we run after last line
 
-    m_intermed->intermeds.push_back("; VARIABLES");
+    m_final->AddLine("; VARIABLES");
     for (size_t i = 0; i < m_source->vars.size(); i++)
     {
         VariableModel& var = m_source->vars[i];
@@ -70,20 +71,20 @@ void Generator::ProcessEnd()
         switch (vtype)
         {
         case ValueTypeInteger:
-            m_intermed->intermeds.push_back(deconame + ":\t.WORD\t0\t; " + var.name);
+            m_final->AddLine(deconame + ":\t.WORD\t0\t; " + var.name);
             break;
         case ValueTypeString:
-            m_intermed->intermeds.push_back(deconame + ":\t.BLKB\t256.\t; " + var.name);
+            m_final->AddLine(deconame + ":\t.BLKB\t256.\t; " + var.name);
             break;
         default:  // Single
-            m_intermed->intermeds.push_back(deconame + ":\t.WORD\t0,0\t; " + var.name);
+            m_final->AddLine(deconame + ":\t.WORD\t0,0\t; " + var.name);
             break;
         }
     }
 
     //m_intermed->intermeds.push_back("; STRINGS");
 
-    m_intermed->intermeds.push_back("\t.END\tSTART");
+    m_final->AddLine("\t.END\tSTART");
 }
 
 bool Generator::ProcessLine()
@@ -105,9 +106,9 @@ bool Generator::ProcessLine()
     }
 
     SourceLineModel& line = m_source->lines[m_lineindex];
-    m_intermed->intermeds.push_back("; " + line.text);
+    m_final->AddLine("; " + line.text);
     string linenumlabel = "L" + std::to_string(line.number) + ":";//TODO function GetLineNumberLabel
-    m_intermed->intermeds.push_back(linenumlabel);
+    m_final->AddLine(linenumlabel);
 
     // Find keyword generator implementation
     KeywordIndex keyword = line.statement.keyword;
@@ -146,70 +147,69 @@ void Generator::GenerateExpression(ExpressionModel& expr)
     ExpressionNode& root = expr.nodes[expr.root];
     if (root.left != -1 || root.right != -1)
     {
-        m_intermed->intermeds.push_back("; TODO calculate complex expression");
+        m_final->AddLine("; TODO generate complex expression");
         return;
     }
 
     if (root.vtype != ValueTypeInteger && (root.vtype != ValueTypeSingle || !root.node.IsDValueInteger()))
     {
-        m_intermed->intermeds.push_back("; TODO calculate non-integer expression");
+        m_final->AddLine("; TODO calculate non-integer expression");
         return;
     }
 
     if (root.node.type == TokenTypeNumber)
-        m_intermed->intermeds.push_back("\tMOV\t#" + std::to_string((int)root.node.dvalue) + "., R0");
+        m_final->AddLine("\tMOV\t#" + std::to_string((int)root.node.dvalue) + "., R0");
     else if (root.node.type == TokenTypeIdentifier)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(root.node.text));
-        m_intermed->intermeds.push_back("\tMOV\t" + deconame + "., R0");
+        m_final->AddLine("\tMOV\t" + deconame + "., R0");
     }
 }
 
 void Generator::GenerateBeep(SourceLineModel& line)
 {
-    //TODO: Send code 007 to terminal
-    m_intermed->intermeds.push_back("\tCALL\tBEEP");
+    m_final->AddLine("\tCALL\tBEEP");
 }
 
 void Generator::GenerateClear(SourceLineModel& line)
 {
-    m_intermed->intermeds.push_back("; CLEAR statement is ignored");
+    m_final->AddLine("; CLEAR statement is ignored");
 }
 
 void Generator::GenerateCls(SourceLineModel& line)
 {
-    //TODO: Send code Ctrl+L to terminal
-    m_intermed->intermeds.push_back("\tCALL\tCLS");
+    m_final->AddLine("\tCALL\tCLS");
 }
 
 void Generator::GenerateColor(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("; TODO COLOR");
+    m_final->AddLine("; TODO COLOR");
 }
 
 void Generator::GenerateData(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("; TODO DATA");
+    m_final->AddLine("; TODO DATA");
 }
 
 void Generator::GenerateDim(SourceLineModel& line)
 {
-    // Nothing to generate, DIM variables declared in ProcessBegin() / ProcessEnd()
+    // Nothing to generate, DIM variables declared in ProcessEnd()
 }
 
 void Generator::GenerateDraw(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("; TODO DRAW");
+    m_final->AddLine("; TODO DRAW");
 }
 
 void Generator::GenerateEnd(SourceLineModel& line)
 {
+    // END generates JMP 65536, but only if END is not on the last line
     int nextlinenum = m_source->GetNextLineNumber(line.number);
     if (nextlinenum != MAX_LINE_NUMBER + 1)
-        m_intermed->intermeds.push_back("\tJMP\tL" + std::to_string(MAX_LINE_NUMBER + 1));
+        m_final->AddLine("\tJMP\tL" + std::to_string(MAX_LINE_NUMBER + 1));
 }
 
 void Generator::GenerateFor(SourceLineModel& line)
@@ -217,19 +217,21 @@ void Generator::GenerateFor(SourceLineModel& line)
     // Calculate expression for "from"
     assert(line.args.size() > 1);
     ExpressionModel& expr1 = line.args[0];
+    //TODO: Simplified version for const/var expression
     GenerateExpression(expr1);
 
     // Assign the expression to the loop variable
     assert(line.ident.type == TokenTypeIdentifier);
     string varname = line.ident.text;
     string deconame = DecorateVariableName(GetCanonicVariableName(varname));
-    m_intermed->intermeds.push_back("\tMOV\tR0, " + deconame);
+    m_final->AddLine("\tMOV\tR0, " + deconame);
 
     // Calculate expression for "to"
     ExpressionModel& expr2 = line.args[1];
+    //TODO: Simplified version for const/var expression
     GenerateExpression(expr2);
     // Save "to" value
-    m_intermed->intermeds.push_back("\tMOV\tR0, @#<N" + std::to_string(line.number) + "+2>");
+    m_final->AddLine("\tMOV\tR0, @#<N" + std::to_string(line.number) + "+2>");
 
     if (line.args.size() > 2)  // has STEP expression
     {
@@ -237,25 +239,25 @@ void Generator::GenerateFor(SourceLineModel& line)
         ExpressionModel& expr3 = line.args[2];
         GenerateExpression(expr3);
         // Save "step" value
-        m_intermed->intermeds.push_back("\tMOV\tR0, @#<L" + std::to_string(line.paramline) + "+2>");
+        m_final->AddLine("\tMOV\tR0, @#<L" + std::to_string(line.paramline) + "+2>");
     }
 
     int nextlinenum = m_source->GetNextLineNumber(line.number);
-    m_intermed->intermeds.push_back("N" + std::to_string(line.number) + ":\tCMP\t#0, " + deconame);
-    m_intermed->intermeds.push_back("\tBHIS\tL" + std::to_string(nextlinenum));
-    m_intermed->intermeds.push_back("\tJMP\tX" + std::to_string(line.number));  // label after NEXT
+    m_final->AddLine("N" + std::to_string(line.number) + ":\tCMP\t#0, " + deconame);
+    m_final->AddLine("\tBHIS\tL" + std::to_string(nextlinenum));
+    m_final->AddLine("\tJMP\tX" + std::to_string(line.number));  // label after NEXT
 }
 
 void Generator::GenerateGosub(SourceLineModel& line)
 {
     string calllinenum = "\tCALL\tL" + std::to_string(line.paramline);
-    m_intermed->intermeds.push_back(calllinenum);
+    m_final->AddLine(calllinenum);
 }
 
 void Generator::GenerateGoto(SourceLineModel& line)
 {
     string jmplinenum = "\tJMP\tL" + std::to_string(line.paramline);
-    m_intermed->intermeds.push_back(jmplinenum);
+    m_final->AddLine(jmplinenum);
 }
 
 void Generator::GenerateIf(SourceLineModel& line)
@@ -268,28 +270,30 @@ void Generator::GenerateIf(SourceLineModel& line)
     if (line.params.size() == 1)  // IF expr THEN linenum
     {
         int linenumnext = m_source->GetNextLineNumber(line.number);
-        m_intermed->intermeds.push_back("\tBEQ\tL" + std::to_string(linenumnext));
+        m_final->AddLine("\tBEQ\tL" + std::to_string(linenumnext));
         int linenum = (int)line.params[0].dvalue;
-        m_intermed->intermeds.push_back("\tJMP\tL" + std::to_string(linenum));
+        m_final->AddLine("\tJMP\tL" + std::to_string(linenum));
     }
     else  // IF expr THEN linenum ELSE linenum
     {
-        m_intermed->intermeds.push_back("\tBEQ\t10$");
+        m_final->AddLine("\tBEQ\t10$");
         int linenum1 = (int)line.params[0].dvalue;
-        m_intermed->intermeds.push_back("\tJMP\tL" + std::to_string(linenum1));
+        m_final->AddLine("\tJMP\tL" + std::to_string(linenum1));
         int linenum2 = (int)line.params[1].dvalue;
-        m_intermed->intermeds.push_back("10$:\tJMP\tL" + std::to_string(linenum2));
+        m_final->AddLine("10$:\tJMP\tL" + std::to_string(linenum2));
     }
 }
 
 void Generator::GenerateLet(SourceLineModel& line)
 {
+    assert(line.args.size() == 1);
     ExpressionModel& expr = line.args[0];
+    //TODO: Simplified version for const/var expression
     GenerateExpression(expr);
 
     VariableModel& var = line.variables[0];
     string deconame = DecorateVariableName(GetCanonicVariableName(var.name));
-    m_intermed->intermeds.push_back("\tMOV\tR0, " + deconame);
+    m_final->AddLine("\tMOV\tR0, " + deconame);
 }
 
 void Generator::GenerateOn(SourceLineModel& line)
@@ -298,44 +302,64 @@ void Generator::GenerateOn(SourceLineModel& line)
     GenerateExpression(expr);
     int numofcases = line.params.size();
     string nextline = "L" + std::to_string(m_source->GetNextLineNumber(line.number));
-    m_intermed->intermeds.push_back("\tDEC\tR0");
-    m_intermed->intermeds.push_back("\tBLO\t" + nextline);
-    m_intermed->intermeds.push_back("\tCMP\t#" + std::to_string(numofcases) + ", R0");
-    m_intermed->intermeds.push_back("\tBGE\t" + nextline);
-    m_intermed->intermeds.push_back("\tASL\tR0");
-    m_intermed->intermeds.push_back("\tJMP\t@10$(R0)");
+    m_final->AddLine("\tDEC\tR0");
+    m_final->AddLine("\tBLO\t" + nextline);
+    m_final->AddLine("\tCMP\t#" + std::to_string(numofcases) + ", R0");
+    m_final->AddLine("\tBGE\t" + nextline);
+    m_final->AddLine("\tASL\tR0");
+    m_final->AddLine("\tJMP\t@10$(R0)");
     int linenum = (int)line.params[0].dvalue;
-    m_intermed->intermeds.push_back("10$:\t.WORD\tL" + std::to_string(linenum));
+    m_final->AddLine("10$:\t.WORD\tL" + std::to_string(linenum));
     for (size_t i = 1; i < line.params.size(); i++)
     {
         linenum = (int)line.params[i].dvalue;
-        m_intermed->intermeds.push_back("\t.WORD\tL" + std::to_string(linenum));
+        m_final->AddLine("\t.WORD\tL" + std::to_string(linenum));
     }
 }
 
 void Generator::GenerateLocate(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("; TODO LOCATE");
+    m_final->AddLine("; TODO LOCATE");
 }
 
 void Generator::GenerateNext(SourceLineModel& line)
 {
-    string varname = "A%";//STUB
+    assert(line.paramline != 0);
+    SourceLineModel& linefor = m_source->GetSourceLine(line.paramline);
+
+    string varname = linefor.ident.text;
     string deconame = DecorateVariableName(GetCanonicVariableName(varname));
     int forlinenum = line.paramline;
 
-    SourceLineModel& linefor = m_source->GetSourceLine(line.paramline);
-
     if (linefor.args.size() < 3)
-        m_intermed->intermeds.push_back("\tINC\t" + deconame);
+        m_final->AddLine("\tINC\t" + deconame);
     else
-        m_intermed->intermeds.push_back("\tADD\t#1, " + deconame);
+        m_final->AddLine("\tADD\t#1, " + deconame);
 
     // JMP to continue loop
-    m_intermed->intermeds.push_back("\tJMP\tN" + std::to_string(forlinenum));
+    m_final->AddLine("\tJMP\tN" + std::to_string(forlinenum));
     // Label after NEXT
-    m_intermed->intermeds.push_back("X" + std::to_string(forlinenum) + ":");
+    m_final->AddLine("X" + std::to_string(forlinenum) + ":");
+}
+
+void Generator::GeneratePoke(SourceLineModel& line)
+{
+    assert(line.args.size() == 2);
+
+    ExpressionModel& expr1 = line.args[0];
+    //TODO: Simplified version for const/var expression
+    GenerateExpression(expr1);
+    // Save value
+    m_final->AddLine("\tMOV\tR0, @#<10$+2>");
+
+    ExpressionModel& expr2 = line.args[1];
+    //TODO: Simplified version for const/var expression
+    GenerateExpression(expr2);
+    // Save value
+    m_final->AddLine("\tMOV\tR0, @#<10$+4>");
+
+    m_final->AddLine("10$:\tMOV\t#0, #0");
 }
 
 void Generator::GeneratePrint(SourceLineModel& line)
@@ -351,24 +375,24 @@ void Generator::GeneratePrint(SourceLineModel& line)
         else if (root.vtype == ValueTypeInteger)
         {
             GenerateExpression(expr);
-            m_intermed->intermeds.push_back("\tCALL\tWRINT");
+            m_final->AddLine("\tCALL\tWRINT");
         }
         else if (root.vtype == ValueTypeSingle)
         {
             GenerateExpression(expr);
-            m_intermed->intermeds.push_back("\tCALL\tWRSNG");
+            m_final->AddLine("\tCALL\tWRSNG");
         }
         //TODO: AT/TAB/SPC
     }
  
     // CR/LF at end of PRINT
-    m_intermed->intermeds.push_back("\tCALL\tWRCRLF");
+    m_final->AddLine("\tCALL\tWRCRLF");
 }
 
 void Generator::GenerateRead(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("; TODO READ");
+    m_final->AddLine("; TODO READ");
 }
 
 void Generator::GenerateRem(SourceLineModel& line)
@@ -379,37 +403,37 @@ void Generator::GenerateRem(SourceLineModel& line)
 void Generator::GenerateRestore(SourceLineModel& line)
 {
     //TODO
-    m_intermed->intermeds.push_back("; TODO RESTORE");
+    m_final->AddLine("; TODO RESTORE");
 }
 
 void Generator::GenerateReturn(SourceLineModel& line)
 {
-    m_intermed->intermeds.push_back("\tRETURN");
+    m_final->AddLine("\tRETURN");
 }
 
 void Generator::GenerateScreen(SourceLineModel& line)
 {
-    m_intermed->intermeds.push_back("; SCREEN statement is ignored");
+    m_final->AddLine("; SCREEN statement is ignored");
 }
 
 void Generator::GenerateStop(SourceLineModel& line)
 {
-    m_intermed->intermeds.push_back("\tHALT");
+    m_final->AddLine("\tHALT");
 }
 
 void Generator::GenerateTron(SourceLineModel& line)
 {
-    m_intermed->intermeds.push_back("; TRON statement is ignored");
+    m_final->AddLine("; TRON statement is ignored");
 }
 
 void Generator::GenerateTroff(SourceLineModel& line)
 {
-    m_intermed->intermeds.push_back("; TROFF statement is ignored");
+    m_final->AddLine("; TROFF statement is ignored");
 }
 
 void Generator::GenerateWidth(SourceLineModel& line)
 {
-    m_intermed->intermeds.push_back("; WIDTH statement is ignored");
+    m_final->AddLine("; WIDTH statement is ignored");
 }
 
 
