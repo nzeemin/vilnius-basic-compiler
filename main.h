@@ -375,6 +375,7 @@ private:
     void ValidateFuncChr(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncLen(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncString(ExpressionModel& expr, ExpressionNode& node);
 };
 
 class Generator;
@@ -383,6 +384,18 @@ struct GeneratorKeywordSpec
 {
     KeywordIndex keyword;
     GeneratorMethodRef methodref;
+};
+typedef void (Generator::* GeneratorOperMethodRef)(const ExpressionModel&, const ExpressionNode&, const ExpressionNode&, const ExpressionNode&);
+struct GeneratorOperSpec
+{
+    string text;
+    GeneratorOperMethodRef methodref;
+};
+typedef void (Generator::* GeneratorFuncMethodRef)(const ExpressionModel&, const ExpressionNode&);
+struct GeneratorFuncSpec
+{
+    KeywordIndex keyword;
+    GeneratorFuncMethodRef methodref;
 };
 
 class Generator
@@ -398,10 +411,15 @@ public:
     void ProcessEnd();
 private:
     static const GeneratorKeywordSpec m_keywordspecs[];
+    static const GeneratorOperSpec m_operspecs[];
+    static const GeneratorFuncSpec m_funcspecs[];
 private:
     void Error(SourceLineModel& line, string message);
-    void GenerateExpression(ExpressionModel& expr);
+    void GenerateExpression(const ExpressionModel& expr);
+    void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateAssignment(SourceLineModel& line, VariableModel& var, ExpressionModel& expr);
+private:
     void GenerateBeep(SourceLineModel& line);
     void GenerateClear(SourceLineModel& line);
     void GenerateCls(SourceLineModel& line);
@@ -429,4 +447,11 @@ private:
     void GenerateTron(SourceLineModel& line);
     void GenerateTroff(SourceLineModel& line);
     void GenerateWidth(SourceLineModel& line);
+private:
+    void GenerateOperPlus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperMinus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+private:
+    void GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNode& node);
 };

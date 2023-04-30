@@ -39,6 +39,23 @@ const GeneratorKeywordSpec Generator::m_keywordspecs[] =
     { KeywordWIDTH,     &Generator::GenerateWidth },
 };
 
+const GeneratorOperSpec Generator::m_operspecs[] =
+{
+    { "+",              &Generator::GenerateOperPlus },
+    { "-",              &Generator::GenerateOperMinus },
+    //{ "*",              &Generator::GenerateOperMul },
+    //{ "/",              &Generator::GenerateOperDiv },
+    //{ "\\",             &Generator::GenerateOperDivInt },
+    //{ "^",              &Generator::GenerateOperPower },
+};
+
+const GeneratorFuncSpec Generator::m_funcspecs[] =
+{
+    { KeywordABS,       &Generator::GenerateFuncAbs },
+    { KeywordRND,       &Generator::GenerateFuncRnd },
+    { KeywordPEEK,      &Generator::GenerateFuncPeek },
+};
+
 
 Generator::Generator(SourceModel* source, FinalModel* intermed)
     : m_source(source), m_final(intermed)
@@ -140,22 +157,29 @@ void Generator::Error(SourceLineModel& line, string message)
     RegisterError();
 }
 
-// Generate code to calculate the expression; result will be in register R0
-void Generator::GenerateExpression(ExpressionModel& expr)
+void Generator::GenerateExpression(const ExpressionModel& expr)
 {
     assert(!expr.IsEmpty());
-    
-    ExpressionNode& root = expr.nodes[expr.root];
 
-    if (root.vtype != ValueTypeInteger && root.vtype != ValueTypeSingle)
+    const ExpressionNode& root = expr.nodes[expr.root];
+
+    GenerateExpression(expr, root);
+}
+
+// Generate code to calculate the expression; result will be in register R0
+void Generator::GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(!expr.IsEmpty());
+
+    if (node.vtype != ValueTypeInteger && node.vtype != ValueTypeSingle)
     {
         m_final->AddLine("; TODO calculate non-integer expression");
         return;
     }
 
-    if (root.constval)
+    if (node.constval)
     {
-        int ivalue = (int)floor(root.node.dvalue);
+        int ivalue = (int)floor(node.node.dvalue);
         if (ivalue == 0)
         {
             m_final->AddLine("\tCLR\tR0");
@@ -167,23 +191,87 @@ void Generator::GenerateExpression(ExpressionModel& expr)
         }
     }
 
-    if (root.node.type == TokenTypeIdentifier)
+    if (node.node.type == TokenTypeKeyword && IsFunctionKeyword(node.node.keyword))
     {
-        string deconame = DecorateVariableName(GetCanonicVariableName(root.node.text));
-        m_final->AddLine("\tMOV\t" + deconame + "., R0");
+        GenerateExprFunction(expr, node);
+        return;
     }
 
-    if (root.left != -1 || root.right != -1)
+    if (node.node.type == TokenTypeIdentifier)
+    {
+        string deconame = DecorateVariableName(GetCanonicVariableName(node.node.text));
+        m_final->AddLine("\tMOV\t" + deconame + "., R0");
+        return;
+    }
+
+    if (node.node.type == TokenTypeOperation && node.left >= 0 && node.right >= 0)
+    {
+        const ExpressionNode& nodeleft = expr.nodes[node.left];
+        const ExpressionNode& noderight = expr.nodes[node.right];
+
+        if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
+        {
+            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        // Find operator implementation
+        string text = node.node.text;
+        GeneratorOperMethodRef methodref = nullptr;
+        for (int i = 0; i < sizeof(m_operspecs) / sizeof(GeneratorFuncSpec); i++)
+        {
+            if (text == m_operspecs[i].text)
+            {
+                methodref = m_operspecs[i].methodref;
+                break;
+            }
+        }
+
+        if (methodref != nullptr)
+            (this->*methodref)(expr, node, nodeleft, noderight);
+        else
+            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO generate operator \'" + text + "\'." << std::endl;
+
+        return;
+    }
+
+    if (node.left != -1 || node.right != -1)
     {
         m_final->AddLine("; TODO generate complex expression");
         return;
     }
 }
 
+void Generator::GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(!node.constval);
+    assert(node.node.keyword != KeywordNone);
+    assert(node.node.type == TokenTypeKeyword && IsFunctionKeyword(node.node.keyword));
+
+    KeywordIndex keyword = node.node.keyword;
+
+    GeneratorFuncMethodRef methodref = nullptr;
+    for (int i = 0; i < sizeof(m_funcspecs) / sizeof(GeneratorFuncSpec); i++)
+    {
+        if (keyword == m_funcspecs[i].keyword)
+        {
+            methodref = m_funcspecs[i].methodref;
+            break;
+        }
+    }
+
+    if (methodref != nullptr)
+        (this->*methodref)(expr, node);
+    else
+        m_final->AddLine("; TODO generate function expression for " + GetKeywordString(keyword));
+}
+
 // Calculate expression and assign the result to variable
 // To use in LET and FOR
 void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, ExpressionModel& expr)
 {
+    const string comment = "\t; assignment";
+
     ValueType vtype = var.GetValueType();
     string deconame = var.GetVariableDecoratedName();
 
@@ -192,18 +280,18 @@ void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, Ex
         int ivalue = (int)floor(expr.GetConstExpressionDValue());
         if (ivalue == 0)
         {
-            m_final->AddLine("\tCLR\t" + deconame);
+            m_final->AddLine("\tCLR\t" + deconame + comment);
         }
         else {
             string svalue = "#" + std::to_string(ivalue) + ".";
-            m_final->AddLine("\tMOV\t" + svalue + ", " + deconame);
+            m_final->AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
         }
         //TODO: version for Single type
     }
     else if (expr.IsVariableExpression())
     {
         string svalue = expr.GetVariableExpressionDecoratedName();
-        m_final->AddLine("\tMOV\t" + svalue + ", " + deconame);
+        m_final->AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
     }
     else
     {
@@ -220,18 +308,18 @@ void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, Ex
             bool plusminus = (root.node.text == "+");
             int ivalue = (int)floor(expr.nodes[root.right].node.dvalue);
             if (plusminus && ivalue == 1)
-                m_final->AddLine("\tINC\t" + deconame);
+                m_final->AddLine("\tINC\t" + deconame + comment);
             else if (!plusminus && ivalue == 1)
-                m_final->AddLine("\tDEC\t" + deconame);
+                m_final->AddLine("\tDEC\t" + deconame + comment);
             else if (plusminus && ivalue != 1)
-                m_final->AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame);
+                m_final->AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame + comment);
             else //if (!plusminus && ivalue != 1)
-                m_final->AddLine("\tSUB\t#" + std::to_string(ivalue) + "., " + deconame);
+                m_final->AddLine("\tSUB\t#" + std::to_string(ivalue) + "., " + deconame + comment);
         }
         else
         {
             GenerateExpression(expr);
-            m_final->AddLine("\tMOV\tR0, " + deconame);
+            m_final->AddLine("\tMOV\tR0, " + deconame + comment);
         }
     }
 }
@@ -513,6 +601,116 @@ void Generator::GenerateTroff(SourceLineModel& line)
 void Generator::GenerateWidth(SourceLineModel& line)
 {
     m_final->AddLine("; WIDTH statement is ignored");
+}
+
+
+// Operation generation //////////////////////////////////////////////
+
+void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    const string comment = "\t; Operation \'+\'";
+
+    // Code to calculate left sub-expression, with result in R0
+    GenerateExpression(expr, nodeleft);
+
+    // Convert "XXX + N" into INC/ADD
+    if (nodeleft.vtype == ValueTypeInteger &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        int ivalue = (int)floor(noderight.node.dvalue);
+        if (ivalue == 0)
+            ;  // Do nothing
+        else if (ivalue == 1)
+            m_final->AddLine("\tINC\tR0" + comment);
+        else  // ivalue != 1
+            m_final->AddLine("\tADD\t#" + std::to_string(ivalue) + "., R0" + comment);
+        return;
+    }
+
+    // Special case for noderight as variable
+    if (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeInteger && noderight.node.type == TokenTypeIdentifier)
+    {
+        string deconame = DecorateVariableName(GetCanonicVariableName( noderight.node.text));
+        m_final->AddLine("\tADD\t" + deconame + ", R0" + comment);
+        return;
+    }
+
+    m_final->AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
+    GenerateExpression(expr, noderight);
+    m_final->AddLine("\tADD\t(SP)+, R0" + comment);  // POP & ADD
+}
+
+void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    const string comment = "\t; Operation \'-\'";
+
+    // Code to calculate left sub-expression, with result in R0
+    GenerateExpression(expr, nodeleft);
+
+    // Convert "XXX - N" into DEC/SUB
+    if (nodeleft.vtype == ValueTypeInteger &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        int ivalue = (int)floor(noderight.node.dvalue);
+        if (ivalue == 0)
+            ;  // Do nothing
+        else if (ivalue == 1)
+            m_final->AddLine("\tDEC\tR0" + comment);
+        else  // ivalue != 1
+            m_final->AddLine("\tSUB\t#" + std::to_string(ivalue) + "., R0" + comment);
+        return;
+    }
+
+    // Special case for noderight as variable
+    if (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeInteger && noderight.node.type == TokenTypeIdentifier)
+    {
+        string deconame = DecorateVariableName(GetCanonicVariableName(noderight.node.text));
+        m_final->AddLine("\tSUB\t" + deconame + ", R0" + comment);
+        return;
+    }
+
+    m_final->AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
+    GenerateExpression(expr, noderight);
+    m_final->AddLine("\tMOV\tR0, R1");
+    m_final->AddLine("\tMOV\t(SP)+, R0");  // POP R0
+    m_final->AddLine("\tSUB\tR1, R0" + comment);
+}
+
+
+// Function generation ///////////////////////////////////////////////
+
+void Generator::GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    GenerateExpression(expr1);
+
+    m_final->AddLine("\tBPL\t1$");
+    m_final->AddLine("\tNEG\tR0");
+    m_final->AddLine("1$:");
+}
+
+void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    GenerateExpression(expr1);
+    //TODO: For Single expression, convert to Integer
+
+    m_final->AddLine("\tCALL\tRND");
+}
+
+void Generator::GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    GenerateExpression(expr1);
+    //TODO: For Single expression, convert to Integer
+
+    m_final->AddLine("\tMOV\t(R0), R0\t; PEEK");
 }
 
 

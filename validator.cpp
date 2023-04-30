@@ -72,6 +72,7 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordCHR,       &Validator::ValidateFuncChr },
     { KeywordLEN,       &Validator::ValidateFuncLen },
     { KeywordMID,       &Validator::ValidateFuncMid },
+    { KeywordSTRING,    &Validator::ValidateFuncString },
 };
 
 Validator::Validator(SourceModel* source)
@@ -179,7 +180,7 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
 
         if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
         {
-            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node.";
+            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node." << std::endl;
             exit(EXIT_FAILURE);
         }
 
@@ -197,6 +198,8 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
 
         if (methodref != nullptr)
             (this->*methodref)(expr, node, nodeleft, noderight);
+        else
+            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO validate operator \'" + text + "\'." << std::endl;
     }
 
     if (node.node.type == TokenTypeKeyword)  // Check is it function, validate function
@@ -215,6 +218,8 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
 
         if (methodref != nullptr)
             (this->*methodref)(expr, node);
+        else
+            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO validate function " + GetKeywordString(keyword) << std::endl;
     }
 
     //TODO
@@ -1110,6 +1115,23 @@ void Validator::ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node)
         node.constval = true;
         //TODO: Calculate value: node.node.dvalue = ...
     }
+}
+
+void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 2)
+        EXPR_ERROR("Two arguments expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    ExpressionModel& expr2 = node.args[1];
+    ValidateExpression(expr2);
+    //NOTE: Integer/Single OR String expression
+
+    node.vtype = ValueTypeString;
+    node.constval = false;
 }
 
 
