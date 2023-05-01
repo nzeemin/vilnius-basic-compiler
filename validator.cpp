@@ -880,7 +880,7 @@ void Validator::ValidateFuncAbs(ExpressionModel& expr, ExpressionNode& node)
     if (expr1.IsConstExpression())
     {
         node.constval = true;
-        node.node.dvalue = abs(expr1.GetConstExpressionDValue());
+        node.node.dvalue = std::abs(expr1.GetConstExpressionDValue());
     }
 }
 
