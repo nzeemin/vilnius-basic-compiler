@@ -6,6 +6,9 @@
 
 #include "main.h"
 
+#ifdef __GNUC__
+#define _stricmp    strcasecmp
+#endif
 
 string g_infilename;    // Input file name
 string g_outfilename;   // Output file name
