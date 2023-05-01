@@ -1,5 +1,5 @@
 
-CXXFLAGS = -std=c++17 -O3 -Wall -Wno-logical-op-parentheses
+CXXFLAGS = -std=c++17 -O3 -Wall
 
 SOURCES = main.cpp model.cpp tokenizer.cpp parser.cpp validator.cpp generator.cpp
 

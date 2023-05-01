@@ -104,14 +104,14 @@ public:
     bool IsEndOfExpression() const
     {
         return type == TokenTypeEOL || type == TokenTypeEndComment || type == TokenTypeEOT ||
-            type == TokenTypeSymbol && (symbol == ',' || symbol == ';' || symbol == ')') ||
-            type == TokenTypeKeyword && !IsFunctionKeyword(keyword);
+            (type == TokenTypeSymbol && (symbol == ',' || symbol == ';' || symbol == ')')) ||
+            (type == TokenTypeKeyword && !IsFunctionKeyword(keyword));
     }
     bool IsBinaryOperation() const
     {
         return
             type == TokenTypeOperation ||
-            type == TokenTypeKeyword && keyword == KeywordMOD;
+            (type == TokenTypeKeyword && keyword == KeywordMOD);
     }
     string GetTokenTypeStr() const;
     string GetTokenVTypeStr() const;

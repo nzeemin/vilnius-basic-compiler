@@ -58,7 +58,7 @@ string GetKeywordString(KeywordIndex keyword)
 KeywordIndex GetKeywordIndex(string& str)
 {
     const char* cstr = str.c_str();
-    for (int i = 0; i < sizeof(Keywords) / sizeof(Keywords[0]); i++)
+    for (size_t i = 0; i < sizeof(Keywords) / sizeof(Keywords[0]); i++)
     {
         if (_stricmp(cstr, Keywords[i]) == 0)
             return (KeywordIndex)(i + 1);
@@ -206,14 +206,14 @@ Token Tokenizer::GetNextToken()
         }
     }
 
-    if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z')  // Identifier or Keyword
+    if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))  // Identifier or Keyword
     {
         token.text = toupper(ch);
         bool firstdigit = true;
         while (true)
         {
             ch = PeekNextChar();
-            if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9')
+            if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9'))
             {
                 if (ch >= '0' && ch <= '9' && firstdigit)  // check for like "THEN70"
                 {
@@ -258,8 +258,8 @@ Token Tokenizer::GetNextToken()
     }
 
     char ch2 = PeekNextChar();
-    if (ch >= '0' && ch <= '9' || ch == '.' ||
-        ch == '-' && (ch2 >= '0' && ch2 <= '9' || ch2 == '.'))  // Number
+    if ((ch >= '0' && ch <= '9') || ch == '.' ||
+        (ch == '-' && (ch2 >= '0' && ch2 <= '9' || ch2 == '.')))  // Number
     {
         token.text = ch;
         token.vtype = ValueTypeSingle;  // by default
@@ -361,7 +361,7 @@ Token Tokenizer::GetNextToken()
             while (true)
             {
                 ch = PeekNextChar();
-                if (ch >= '0' && ch <= '9' || ch >= 'A' && ch <= 'F')
+                if ((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F'))
                     token.text.append(1, GetNextChar());
                 else
                     break;

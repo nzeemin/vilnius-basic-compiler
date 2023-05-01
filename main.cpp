@@ -74,7 +74,7 @@ void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
 
         node.Dump(std::cout);
 
-        if (j == expr.root)
+        if ((int)j == expr.root)
             std::cout << " root";
 
         if (node.args.size() > 0)
