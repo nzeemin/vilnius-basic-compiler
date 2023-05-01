@@ -418,6 +418,7 @@ private:
     void GenerateExpression(const ExpressionModel& expr);
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateAssignment(SourceLineModel& line, VariableModel& var, ExpressionModel& expr);
 private:
     void GenerateBeep(SourceLineModel& line);

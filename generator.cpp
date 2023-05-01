@@ -79,27 +79,26 @@ void Generator::ProcessEnd()
     m_final->AddLine("\t.EXIT");  // In case we run after last line
 
     m_final->AddLine("; VARIABLES");
-    for (size_t i = 0; i < m_source->vars.size(); i++)
+    for (auto it = std::begin(m_source->vars); it != std::end(m_source->vars); ++it)
     {
-        VariableModel& var = m_source->vars[i];
-        string deconame = DecorateVariableName(var.name);
+        string deconame = DecorateVariableName(it->name);
         //TODO: Calculate number of array elements multiplying all indices
-        ValueType vtype = var.GetValueType();
+        ValueType vtype = it->GetValueType();
         switch (vtype)
         {
         case ValueTypeInteger:
-            m_final->AddLine(deconame + ":\t.WORD\t0\t; " + var.name);
+            m_final->AddLine(deconame + ":\t.WORD\t0\t; " + it->name);
             break;
         case ValueTypeString:
-            m_final->AddLine(deconame + ":\t.BLKB\t256.\t; " + var.name);
+            m_final->AddLine(deconame + ":\t.BLKB\t256.\t; " + it->name);
             break;
         default:  // Single
-            m_final->AddLine(deconame + ":\t.WORD\t0,0\t; " + var.name);
+            m_final->AddLine(deconame + ":\t.WORD\t0,0\t; " + it->name);
             break;
         }
     }
 
-    //m_intermed->intermeds.push_back("; STRINGS");
+    //m_final->AddLine("; STRINGS");
 
     m_final->AddLine("\t.END\tSTART");
 }
@@ -206,32 +205,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
 
     if (node.node.type == TokenTypeOperation && node.left >= 0 && node.right >= 0)
     {
-        const ExpressionNode& nodeleft = expr.nodes[node.left];
-        const ExpressionNode& noderight = expr.nodes[node.right];
-
-        if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
-        {
-            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node." << std::endl;
-            exit(EXIT_FAILURE);
-        }
-
-        // Find operator implementation
-        string text = node.node.text;
-        GeneratorOperMethodRef methodref = nullptr;
-        for (int i = 0; i < sizeof(m_operspecs) / sizeof(GeneratorFuncSpec); i++)
-        {
-            if (text == m_operspecs[i].text)
-            {
-                methodref = m_operspecs[i].methodref;
-                break;
-            }
-        }
-
-        if (methodref != nullptr)
-            (this->*methodref)(expr, node, nodeleft, noderight);
-        else
-            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO generate operator \'" + text + "\'." << std::endl;
-
+        GenerateExprBinaryOperation(expr, node);
         return;
     }
 
@@ -240,6 +214,35 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
         m_final->AddLine("; TODO generate complex expression");
         return;
     }
+}
+
+void Generator::GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    const ExpressionNode& nodeleft = expr.nodes[node.left];
+    const ExpressionNode& noderight = expr.nodes[node.right];
+
+    if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
+    {
+        std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // Find operator implementation
+    string text = node.node.text;
+    GeneratorOperMethodRef methodref = nullptr;
+    for (auto it = std::begin(m_operspecs); it != std::end(m_operspecs); ++it)
+    {
+        if (text == it->text)
+        {
+            methodref = it->methodref;
+            break;
+        }
+    }
+
+    if (methodref != nullptr)
+        (this->*methodref)(expr, node, nodeleft, noderight);
+    else
+        std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO generate operator \'" + text + "\'." << std::endl;
 }
 
 void Generator::GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node)
@@ -251,19 +254,22 @@ void Generator::GenerateExprFunction(const ExpressionModel& expr, const Expressi
     KeywordIndex keyword = node.node.keyword;
 
     GeneratorFuncMethodRef methodref = nullptr;
-    for (int i = 0; i < sizeof(m_funcspecs) / sizeof(GeneratorFuncSpec); i++)
+    for (auto it = std::begin(m_funcspecs); it != std::end(m_funcspecs); ++it)
     {
-        if (keyword == m_funcspecs[i].keyword)
+        if (keyword == it->keyword)
         {
-            methodref = m_funcspecs[i].methodref;
+            methodref = it->methodref;
             break;
         }
     }
 
-    if (methodref != nullptr)
-        (this->*methodref)(expr, node);
-    else
+    if (methodref == nullptr)
+    {
         m_final->AddLine("; TODO generate function expression for " + GetKeywordString(keyword));
+        return;
+    }
+
+    (this->*methodref)(expr, node);
 }
 
 // Calculate expression and assign the result to variable
@@ -477,9 +483,9 @@ void Generator::GenerateOn(SourceLineModel& line)
     m_final->AddLine("\tJMP\t@10$(R0)");
     int linenum = (int)line.params[0].dvalue;
     m_final->AddLine("10$:\t.WORD\tL" + std::to_string(linenum));
-    for (size_t i = 1; i < line.params.size(); i++)
+    for (auto it = std::begin(line.params); it != std::end(line.params); ++it)
     {
-        linenum = (int)line.params[i].dvalue;
+        linenum = (int)it->dvalue;
         m_final->AddLine("\t.WORD\tL" + std::to_string(linenum));
     }
 }
@@ -531,10 +537,10 @@ void Generator::GeneratePoke(SourceLineModel& line)
 
 void Generator::GeneratePrint(SourceLineModel& line)
 {
-    for (size_t i = 0; i < line.args.size(); i++)
+    for (auto it = std::begin(line.args); it != std::end(line.args); ++it)
     {
-        ExpressionModel& expr = line.args[i];
-        ExpressionNode& root = expr.nodes[expr.root];
+        const ExpressionModel& expr = *it;
+        const ExpressionNode& root = expr.nodes[expr.root];
         if (root.vtype == ValueTypeString)
         {
             //TODO

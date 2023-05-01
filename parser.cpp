@@ -267,11 +267,11 @@ SourceLineModel Parser::ParseNextLine()
 
     // Find keyword parser implementation
     ParseMethodRef methodref = nullptr;
-    for (int i = 0; i < sizeof(m_keywordspecs) / sizeof(m_keywordspecs[0]); i++)
+    for (auto it = std::begin(m_keywordspecs); it != std::end(m_keywordspecs); ++it)
     {
-        if (token.keyword == m_keywordspecs[i].keyword)
+        if (token.keyword == it->keyword)
         {
-            methodref = m_keywordspecs[i].methodref;
+            methodref = it->methodref;
             break;
         }
     }

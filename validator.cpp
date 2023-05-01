@@ -105,23 +105,21 @@ bool Validator::ProcessLine()
     // Find validator implementation
     KeywordIndex keyword = line.statement.keyword;
     ValidatorMethodRef methodref = nullptr;
-    for (int i = 0; i < sizeof(m_keywordspecs) / sizeof(m_keywordspecs[0]); i++)
+    for (auto it = std::begin(m_keywordspecs); it != std::end(m_keywordspecs); ++it)
     {
-        if (keyword == m_keywordspecs[i].keyword)
+        if (keyword == it->keyword)
         {
-            methodref = m_keywordspecs[i].methodref;
+            methodref = it->methodref;
             break;
         }
     }
-
     if (methodref == nullptr)
     {
-        Error(line, "Validator not found for the keyword.");
+        Error(line, "Validator not found for keyword " + GetKeywordString(keyword) + ".");
+        return true;
     }
-    else
-    {
-        (this->*methodref)(line);
-    }
+
+    (this->*methodref)(line);
 
     return true;
 }
@@ -338,11 +336,10 @@ void Validator::ValidateColor(SourceLineModel& model)
 
 void Validator::ValidateDim(SourceLineModel& model)
 {
-    for (size_t i = 0; i < model.variables.size(); i++)
+    for (auto it = std::begin(model.variables); it != std::end(model.variables); ++it)
     {
-        VariableModel& var = model.variables[i];
-        if (!m_source->RegisterVariable(var))
-            MODEL_ERROR("Variable redefinition for " + var.name + ".");
+        if (!m_source->RegisterVariable(*it))
+            MODEL_ERROR("Variable redefinition for " + it->name + ".");
     }
 }
 
@@ -502,10 +499,9 @@ void Validator::ValidateNext(SourceLineModel& model)
         return;
     }
 
-    for (size_t i = 0; i < model.params.size(); i++)
+    for (auto it = std::begin(model.params); it != std::end(model.params); ++it)
     {
-        Token& param = model.params[i];
-        string varname = GetCanonicVariableName(param.text);
+        string varname = GetCanonicVariableName(it->text);
         if (!m_source->IsVariableRegistered(varname))
             MODEL_ERROR("Variable not found:" + varname + ".");
 
@@ -525,9 +521,9 @@ void Validator::ValidateOn(SourceLineModel& model)
     if (model.params.size() == 0)
         MODEL_ERROR("Parameters expected.");
 
-    for (size_t i = 0; i < model.params.size(); i++)
+    for (auto it = std::begin(model.params); it != std::end(model.params); ++it)
     {
-        Token& param = model.params[i];
+        Token& param = *it;
         if (param.type != TokenTypeNumber || !param.IsDValueInteger())
             MODEL_ERROR("Integer parameter expected.");
 
