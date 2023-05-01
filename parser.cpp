@@ -761,9 +761,35 @@ void Parser::ParseIf(SourceLineModel& model)
 
 void Parser::ParseInput(SourceLineModel& model)
 {
-    //TODO
+    Token token = PeekNextTokenSkipDivider();
+    //TODO: Possible '#'
+    if (token.type == TokenTypeString)  // prompt string
+    {
+        GetNextToken();
+        model.params.push_back(token);
+        token = GetNextTokenSkipDivider();
+        if (token.type != TokenTypeSymbol || token.symbol != ';')
+            MODEL_ERROR("Semicolon expected.");
+        token = PeekNextTokenSkipDivider();
+    }
 
-    SkipTilEnd();//STUB
+    while (true)
+    {
+        if (token.type != TokenTypeIdentifier)
+            MODEL_ERROR("Variable expected.");
+        GetNextTokenSkipDivider();  // Identifier
+
+        VariableModel var;
+        var.name = GetCanonicVariableName(token.text);
+        //TODO: possible open bracket and array indices
+        model.variables.push_back(var);
+
+        token = GetNextToken();
+        if (token.IsEolOrEof())
+            return;
+        if (!token.IsComma())
+            MODEL_ERROR("Comma expected.");
+    }
 }
 
 //TODO: LET MID$

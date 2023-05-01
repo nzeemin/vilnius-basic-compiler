@@ -186,12 +186,15 @@ struct SourceModel
 {
     std::vector<SourceLineModel> lines;
     std::vector<VariableModel> vars;//TODO: change to set
+    std::vector<string> conststrings;//TODO: change to set
 public:
+    bool RegisterVariable(const VariableModel& var);  // Add variable to the list
     bool IsVariableRegistered(string varname) const;
-    bool RegisterVariable(VariableModel& var);  // Add variable to the list
     bool IsLineNumberExists(int linenumber) const;
     int GetNextLineNumber(int linenumber) const;
     SourceLineModel& GetSourceLine(int linenumber);
+    void RegisterConstString(string str);
+    int GetConstStringIndex(string str);
 };
 
 struct FinalModel
@@ -438,6 +441,7 @@ private:
     void GenerateGosub(SourceLineModel& line);
     void GenerateGoto(SourceLineModel& line);
     void GenerateIf(SourceLineModel& line);
+    void GenerateInput(SourceLineModel& line);
     void GenerateLet(SourceLineModel& line);
     void GenerateLocate(SourceLineModel& line);
     void GenerateNext(SourceLineModel& line);

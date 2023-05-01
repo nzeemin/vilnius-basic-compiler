@@ -431,7 +431,20 @@ void Validator::ValidateIf(SourceLineModel& model)
 
 void Validator::ValidateInput(SourceLineModel& model)
 {
-    //TODO
+    if (model.params.size() > 1)
+        MODEL_ERROR("Too many parameters.");
+    Token& param = model.params[0];
+    if (param.type != TokenTypeString)
+        MODEL_ERROR("Parameter should be of type String.");
+    m_source->RegisterConstString(param.text);
+
+    if (model.variables.size() == 0)
+        MODEL_ERROR("Variable(s) expected.");
+
+    for (auto it = std::begin(model.variables); it != std::end(model.variables); ++it)
+    {
+        m_source->RegisterVariable(*it);
+    }
 }
 
 void Validator::ValidateLet(SourceLineModel& model)

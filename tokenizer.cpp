@@ -208,7 +208,7 @@ Token Tokenizer::GetNextToken()
 
     if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))  // Identifier or Keyword
     {
-        token.text = toupper(ch);
+        token.text = (char)toupper(ch);
         bool firstdigit = true;
         while (true)
         {

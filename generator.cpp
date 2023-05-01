@@ -22,6 +22,7 @@ const GeneratorKeywordSpec Generator::m_keywordspecs[] =
     { KeywordGOSUB,     &Generator::GenerateGosub },
     { KeywordGOTO,      &Generator::GenerateGoto },
     { KeywordIF,        &Generator::GenerateIf },
+    { KeywordINPUT,     &Generator::GenerateInput },
     { KeywordLET,       &Generator::GenerateLet },
     { KeywordLOCATE,    &Generator::GenerateLocate },
     { KeywordNEXT,      &Generator::GenerateNext },
@@ -98,7 +99,16 @@ void Generator::ProcessEnd()
         }
     }
 
-    //m_final->AddLine("; STRINGS");
+    if (!m_source->conststrings.empty())
+    {
+        m_final->AddLine("; STRINGS");
+        for (size_t i = 0; i < m_source->conststrings.size(); ++i)
+        {
+            string strdeco = "SZ" + std::to_string(i + 1);
+            string& str = m_source->conststrings[i];
+            m_final->AddLine(strdeco + ":\t.ASCIZ\t/" + str + "/");
+        }
+    }
 
     m_final->AddLine("\t.END\tSTART");
 }
@@ -457,6 +467,21 @@ void Generator::GenerateIf(SourceLineModel& line)
         int linenum2 = (int)line.params[1].dvalue;
         m_final->AddLine("10$:\tJMP\tL" + std::to_string(linenum2));
     }
+}
+
+void Generator::GenerateInput(SourceLineModel& line)
+{
+    if (line.params.size() > 0)  // Write the const string prompt
+    {
+        Token& param = line.params[0];
+        int strindex = m_source->GetConstStringIndex(param.text);
+        string strdeco = "SZ" + std::to_string(strindex);
+        m_final->AddLine("\tMOV\t" + strdeco + ", R0");
+        m_final->AddLine("\tCALL\tWRSZ\t; print the prompt");
+    }
+
+    //TODO: Code to enter variable values
+    m_final->AddLine("; TODO INPUT");
 }
 
 void Generator::GenerateLet(SourceLineModel& line)

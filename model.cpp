@@ -304,7 +304,7 @@ bool ExpressionModel::IsConstExpression() const
 double ExpressionModel::GetConstExpressionDValue() const
 {
     if (root < 0)
-        return false;
+        return 0;
 
     const ExpressionNode& noderoot = nodes[root];
     return noderoot.node.dvalue;
@@ -398,7 +398,7 @@ bool SourceModel::IsVariableRegistered(string varname) const
     return false;
 }
 
-bool SourceModel::RegisterVariable(VariableModel& var)
+bool SourceModel::RegisterVariable(const VariableModel& var)
 {
     for (auto it = std::begin(vars); it != std::end(vars); ++it)
     {
@@ -447,6 +447,34 @@ SourceLineModel& SourceModel::GetSourceLine(int linenumber)
 
     assert(false);  // Line number not found
     exit(EXIT_FAILURE);
+}
+
+void SourceModel::RegisterConstString(string str)
+{
+    if (str.empty())
+        return;
+
+    for (auto it = std::begin(conststrings); it != std::end(conststrings); ++it)
+    {
+        if (*it == str)
+            return;
+    }
+
+    conststrings.push_back(str);
+}
+
+int SourceModel::GetConstStringIndex(string str)
+{
+    if (str.empty())
+        return -1;
+
+    for (size_t i = 0; i < conststrings.size(); ++i)
+    {
+        if (conststrings[i] == str)
+            return i + 1;
+    }
+        
+    return 0;
 }
 
 
