@@ -185,11 +185,11 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
         // Find validator implementation
         string text = node.node.text;
         ValidatorOperMethodRef methodref = nullptr;
-        for (int i = 0; i < sizeof(m_operspecs) / sizeof(ValidatorFuncSpec); i++)
+        for (auto it = std::begin(m_operspecs); it != std::end(m_operspecs); ++it)
         {
-            if (text == m_operspecs[i].text)
+            if (text == it->text)
             {
-                methodref = m_operspecs[i].methodref;
+                methodref = it->methodref;
                 break;
             }
         }

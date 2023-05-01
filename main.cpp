@@ -16,7 +16,7 @@ bool g_validationonly = false;  // Show validation result and quit
 bool g_showgeneration = false;
 
 SourceModel g_source;
-FinalModel g_intermed;
+FinalModel g_final;
 
 static int g_errorcount = 0;
 
@@ -264,13 +264,13 @@ void ProcessFiles()
     outstream << "; Generated with vibasc [" << __DATE__ << "] on " << g_infilename << std::endl;
     outstream << ";" << std::endl;
 
-    Generator generator(&g_source, &g_intermed);
+    Generator generator(&g_source, &g_final);
     g_errorcount = 0;
     while (generator.ProcessLine())
         ;
-    for (size_t i = 0; i < g_intermed.lines.size(); i++)
+    for (size_t i = 0; i < g_final.lines.size(); i++)
     {
-        string& intermed = g_intermed.lines[i];
+        string& intermed = g_final.lines[i];
         outstream << intermed << std::endl;
         if (g_showgeneration)
             std::cout << intermed << std::endl;

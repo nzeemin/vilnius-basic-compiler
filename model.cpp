@@ -390,9 +390,9 @@ int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
 
 bool SourceModel::IsVariableRegistered(string varname) const
 {
-    for (size_t i = 0; i < vars.size(); i++)
+    for (auto it = std::begin(vars); it != std::end(vars); ++it)
     {
-        if (vars[i].name == varname)
+        if (it->name == varname)
             return true;
     }
     return false;
@@ -400,9 +400,9 @@ bool SourceModel::IsVariableRegistered(string varname) const
 
 bool SourceModel::RegisterVariable(VariableModel& var)
 {
-    for (size_t i = 0; i < vars.size(); i++)
+    for (auto it = std::begin(vars); it != std::end(vars); ++it)
     {
-        if (vars[i].name == var.name)
+        if (it->name == var.name)
             return false;  // Variable redefinition
     }
 
@@ -415,9 +415,9 @@ bool SourceModel::IsLineNumberExists(int linenumber) const
 {
     if (linenumber <= 0 || linenumber > MAX_LINE_NUMBER)
         return false;
-    for (size_t i = 0; i < lines.size(); i++)
+    for (auto it = std::begin(lines); it != std::end(lines); ++it)
     {
-        if (lines[i].number == linenumber)
+        if (it->number == linenumber)
             return true;
     }
     return false;
@@ -427,10 +427,10 @@ int SourceModel::GetNextLineNumber(int linenumber) const
 {
     if (linenumber > MAX_LINE_NUMBER)
         return MAX_LINE_NUMBER + 1;
-    for (size_t i = 0; i < lines.size(); i++)
+    for (auto it = std::begin(lines); it != std::end(lines); ++it)
     {
-        if (lines[i].number > linenumber)
-            return lines[i].number;
+        if (it->number > linenumber)
+            return it->number;
     }
     return MAX_LINE_NUMBER + 1;
 }
@@ -439,10 +439,10 @@ SourceLineModel& SourceModel::GetSourceLine(int linenumber)
 {
     assert(linenumber < MAX_LINE_NUMBER);
 
-    for (size_t i = 0; i < lines.size(); i++)
+    for (auto it = std::begin(lines); it != std::end(lines); ++it)
     {
-        if (lines[i].number == linenumber)
-            return lines[i];
+        if (it->number == linenumber)
+            return *it;
     }
 
     assert(false);  // Line number not found

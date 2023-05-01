@@ -57,11 +57,11 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
 };
 
 
-Generator::Generator(SourceModel* source, FinalModel* intermed)
-    : m_source(source), m_final(intermed)
+Generator::Generator(SourceModel* source, FinalModel* final)
+    : m_source(source), m_final(final)
 {
     assert(source != nullptr);
-    assert(intermed != nullptr);
+    assert(final != nullptr);
 
     m_lineindex = -1;
 }
