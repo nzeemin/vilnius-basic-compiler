@@ -11,3 +11,6 @@
 *.sdf
 *.opensdf
 /*.ASC
+/*.MAC
+/*.OBJ
+/x-*
