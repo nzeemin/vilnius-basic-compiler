@@ -12,6 +12,10 @@
 #define PATH_MAX    _MAX_PATH
 #endif
 
+#ifdef __GNUC__
+#define _stricmp    strcasecmp
+#endif
+
 const int MAX_LINE_NUMBER = 65535;
 
 typedef std::string string;
