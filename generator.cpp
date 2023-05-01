@@ -129,11 +129,11 @@ bool Generator::ProcessLine()
     // Find keyword generator implementation
     KeywordIndex keyword = line.statement.keyword;
     GeneratorMethodRef methodref = nullptr;
-    for (int i = 0; i < sizeof(m_keywordspecs) / sizeof(m_keywordspecs[0]); i++)
+    for (auto it = std::begin(m_keywordspecs); it != std::end(m_keywordspecs); ++it)
     {
-        if (keyword == m_keywordspecs[i].keyword)
+        if (keyword == it->keyword)
         {
-            methodref = m_keywordspecs[i].methodref;
+            methodref = it->methodref;
             break;
         }
     }

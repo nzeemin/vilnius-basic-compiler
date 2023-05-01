@@ -247,7 +247,7 @@ public:
 private:
     static const ParserKeywordSpec m_keywordspecs[];
     static const ParserFunctionSpec m_funcspecs[];
-    static const int FindFunctionSpec(KeywordIndex keyword);
+    static const ParserFunctionSpec* FindFunctionSpec(KeywordIndex keyword);
 private:
     Token GetNextToken();
     Token GetNextTokenSkipDivider();

@@ -95,15 +95,15 @@ const char* MSG_CLOSE_BRACKET_EXPECTED = "Close bracket expected.";
 const char* MSG_ARGUMENTS_EXPECTED = "Arguments expected.";
 
 
-const int Parser::FindFunctionSpec(KeywordIndex keyword)
+const ParserFunctionSpec* Parser::FindFunctionSpec(KeywordIndex keyword)
 {
-    for (int i = 0; i < sizeof(m_funcspecs) / sizeof(m_funcspecs[0]); i++)
+    for (auto it = std::begin(m_funcspecs); it != std::end(m_funcspecs); ++it)
     {
-        if (keyword == m_funcspecs[i].keyword)
-            return i;
+        if (keyword == it->keyword)
+            return it;
     }
 
-    return -1;
+    return nullptr;
 }
 
 Parser::Parser(Tokenizer* tokenizer)
@@ -402,7 +402,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                 for (size_t i = 0; i < exprin.nodes.size(); i++)
                 {
                     ExpressionNode& node = exprin.nodes[i];
-                    if (i == exprin.root)
+                    if ((int)i == exprin.root)
                         node.brackets = true;
                     if (node.left >= 0)
                         node.left += shift;
@@ -422,18 +422,17 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
             }
             else if (IsFunctionKeyword(token.keyword))  // Function with parameter list
             {
-                int funcspecindex = FindFunctionSpec(token.keyword);
-                assert(funcspecindex >= 0);
-                const ParserFunctionSpec& funcspec = m_funcspecs[funcspecindex];
+                const ParserFunctionSpec* funcspec = FindFunctionSpec(token.keyword);
+                assert(funcspec != nullptr);
 
                 ExpressionNode node;
                 node.node = token;
-                node.vtype = funcspec.resulttype;
+                node.vtype = funcspec->resulttype;
 
                 token = PeekNextTokenSkipDivider();
                 if (token.IsOpenBracket())  // Function parameter list
                 {
-                    if (funcspec.maxparams == 0)
+                    if (funcspec->maxparams == 0)
                     {
                         Error(model, token, "This function should not have any parameters.");
                         return expression;
@@ -463,12 +462,12 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                 }
 
                 // Validate number of params for this function
-                if ((int)node.args.size() < funcspec.minparams)
+                if ((int)node.args.size() < funcspec->minparams)
                 {
                     Error(model, token, "Specified too few parameters for this function.");
                     return expression;
                 }
-                if ((int)node.args.size() > funcspec.maxparams)
+                if ((int)node.args.size() > funcspec->maxparams)
                 {
                     Error(model, token, "Specified too many parameters for this function.");
                     return expression;
@@ -1128,8 +1127,8 @@ void Parser::ParsePoke(SourceLineModel& model)
 void Parser::ParsePsetPreset(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeSymbol && token.symbol == '@' ||
-        token.type == TokenTypeKeyword && token.keyword == KeywordSTEP)
+    if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
+        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
     {
         model.relative = true;
         token = GetNextTokenSkipDivider();

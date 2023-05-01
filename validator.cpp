@@ -205,19 +205,22 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
         // Find validator implementation
         KeywordIndex keyword = node.node.keyword;
         ValidatorFuncMethodRef methodref = nullptr;
-        for (int i = 0; i < sizeof(m_funcspecs) / sizeof(ValidatorFuncSpec); i++)
+        for (auto it = std::begin(m_funcspecs); it != std::end(m_funcspecs); ++it)
         {
-            if (keyword == m_funcspecs[i].keyword)
+            if (keyword == it->keyword)
             {
-                methodref = m_funcspecs[i].methodref;
+                methodref = it->methodref;
                 break;
             }
         }
 
-        if (methodref != nullptr)
-            (this->*methodref)(expr, node);
-        else
+        if (methodref == nullptr)
+        {
             std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO validate function " + GetKeywordString(keyword) << std::endl;
+            return;
+        }
+
+        (this->*methodref)(expr, node);
     }
 
     //TODO
@@ -614,8 +617,8 @@ void Validator::ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, co
 
     if (nodeleft.vtype == noderight.vtype)
         node.vtype = nodeleft.vtype;
-    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
-        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+    else if ((nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger) ||
+        (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle))
         node.vtype = ValueTypeSingle;
     else
         EXPR_ERROR(" - Value types are incompatible.");
@@ -638,8 +641,8 @@ void Validator::ValidateOperMinus(ExpressionModel& expr, ExpressionNode& node, c
         EXPR_ERROR("Operation \'-\' not applicable to strings.");
     if (nodeleft.vtype == noderight.vtype)
         node.vtype = nodeleft.vtype;
-    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
-        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+    else if ((nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger) ||
+        (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle))
         node.vtype = ValueTypeSingle;
     else
         EXPR_ERROR("Value types are incompatible.");
@@ -659,8 +662,8 @@ void Validator::ValidateOperMul(ExpressionModel& expr, ExpressionNode& node, con
         EXPR_ERROR("Operation \'*\' not applicable to strings.");
     if (nodeleft.vtype == noderight.vtype)
         node.vtype = nodeleft.vtype;
-    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
-        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+    else if ((nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger) ||
+        (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle))
         node.vtype = ValueTypeSingle;
     else
         EXPR_ERROR("Value types are incompatible.");
@@ -680,8 +683,8 @@ void Validator::ValidateOperDiv(ExpressionModel& expr, ExpressionNode& node, con
         EXPR_ERROR("Operation \'/\' not applicable to strings.");
     if (nodeleft.vtype == noderight.vtype)
         node.vtype = nodeleft.vtype;
-    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
-        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+    else if ((nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger) ||
+        (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle))
         node.vtype = ValueTypeSingle;
     else
         EXPR_ERROR("Value types are incompatible.");
@@ -722,8 +725,8 @@ void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, c
         EXPR_ERROR("Operation \'\\\' not applicable to strings.");
     if (nodeleft.vtype == noderight.vtype)
         node.vtype = nodeleft.vtype;
-    else if (nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger ||
-        nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle)
+    else if ((nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger) ||
+        (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle))
         node.vtype = ValueTypeSingle;
     else
         EXPR_ERROR("Value types are incompatible.");

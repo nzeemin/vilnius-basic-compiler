@@ -16,12 +16,12 @@ string GetCanonicVariableName(const string& name)
     if (ch == 0)
         return str;
     string result;
-    if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z')
+    if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))
     {
         result.append(1, toupper(ch));
         str++;
         ch = *str;
-        if (ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9')
+        if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9'))
             result.append(1, toupper(ch));
         char chtype = '!';
         while (true)

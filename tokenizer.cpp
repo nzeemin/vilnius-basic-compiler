@@ -259,7 +259,7 @@ Token Tokenizer::GetNextToken()
 
     char ch2 = PeekNextChar();
     if ((ch >= '0' && ch <= '9') || ch == '.' ||
-        (ch == '-' && (ch2 >= '0' && ch2 <= '9' || ch2 == '.')))  // Number
+        (ch == '-' && ((ch2 >= '0' && ch2 <= '9') || ch2 == '.')))  // Number
     {
         token.text = ch;
         token.vtype = ValueTypeSingle;  // by default
