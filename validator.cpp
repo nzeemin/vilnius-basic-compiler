@@ -732,7 +732,7 @@ void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, c
     if (node.constval)
     {
         node.node.dvalue = pow(nodeleft.node.dvalue, noderight.node.dvalue);
-        if (!isfinite(node.node.dvalue))
+        if (!std::isfinite(node.node.dvalue))
             EXPR_ERROR("Bad result of power operation in const expression.");
     }
 }
