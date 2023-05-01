@@ -918,7 +918,7 @@ void Validator::ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node)
     if (expr1.IsConstExpression())
     {
         node.constval = true;
-        node.node.dvalue = floor(expr1.GetConstExpressionDValue());
+        node.node.dvalue = std::floor(expr1.GetConstExpressionDValue());
     }
 }
 

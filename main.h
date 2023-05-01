@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <cmath>
 
 #ifndef PATH_MAX
 #define PATH_MAX    _MAX_PATH
@@ -111,7 +112,7 @@ public:
     string GetTokenTypeStr() const;
     string GetTokenVTypeStr() const;
     void ParseDValue();
-    bool IsDValueInteger() const { return floor(dvalue) == ceil(dvalue); }
+    bool IsDValueInteger() const { return std::floor(dvalue) == std::ceil(dvalue); }
     void Dump(std::ostream& out) const;
 };
 

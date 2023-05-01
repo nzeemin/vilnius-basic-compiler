@@ -1,7 +1,6 @@
 
 #include <cassert>
 #include <iomanip>
-#include <cmath>
 
 #include "main.h"
 

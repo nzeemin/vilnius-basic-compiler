@@ -178,7 +178,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
 
     if (node.constval)
     {
-        int ivalue = (int)floor(node.node.dvalue);
+        int ivalue = (int)std::floor(node.node.dvalue);
         if (ivalue == 0)
         {
             m_final->AddLine("\tCLR\tR0");
@@ -283,7 +283,7 @@ void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, Ex
 
     if (expr.IsConstExpression())
     {
-        int ivalue = (int)floor(expr.GetConstExpressionDValue());
+        int ivalue = (int)std::floor(expr.GetConstExpressionDValue());
         if (ivalue == 0)
         {
             m_final->AddLine("\tCLR\t" + deconame + comment);
@@ -312,7 +312,7 @@ void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, Ex
             (expr.nodes[root.right].vtype == ValueTypeInteger || expr.nodes[root.right].vtype == ValueTypeSingle))
         {
             bool plusminus = (root.node.text == "+");
-            int ivalue = (int)floor(expr.nodes[root.right].node.dvalue);
+            int ivalue = (int)std::floor(expr.nodes[root.right].node.dvalue);
             if (plusminus && ivalue == 1)
                 m_final->AddLine("\tINC\t" + deconame + comment);
             else if (!plusminus && ivalue == 1)
@@ -395,7 +395,7 @@ void Generator::GenerateFor(SourceLineModel& line)
     ExpressionModel& expr2 = line.args[1];
     if (expr2.IsConstExpression())
     {
-        tovalue = "#" + std::to_string((int)floor(expr2.GetConstExpressionDValue())) + ".";
+        tovalue = "#" + std::to_string((int)std::floor(expr2.GetConstExpressionDValue())) + ".";
     }
     else if (expr2.IsVariableExpression())
     {
@@ -623,7 +623,7 @@ void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNo
     if (nodeleft.vtype == ValueTypeInteger &&
         noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
-        int ivalue = (int)floor(noderight.node.dvalue);
+        int ivalue = (int)std::floor(noderight.node.dvalue);
         if (ivalue == 0)
             ;  // Do nothing
         else if (ivalue == 1)
@@ -657,7 +657,7 @@ void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionN
     if (nodeleft.vtype == ValueTypeInteger &&
         noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
-        int ivalue = (int)floor(noderight.node.dvalue);
+        int ivalue = (int)std::floor(noderight.node.dvalue);
         if (ivalue == 0)
             ;  // Do nothing
         else if (ivalue == 1)
