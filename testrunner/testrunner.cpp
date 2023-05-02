@@ -312,7 +312,27 @@ void process_test(string testfilename)
         return;
     }
 
-    //TODO: read .MAC file and check if we have TODOs there
+    // read .MAC file and check if we have TODOs there
+    bool machastodos = false;
+    std::ifstream fsmac(testdirpath + PATH_SEPARATOR + macfilename);
+    //TODO: check for error
+    while (!fsmac.eof())
+    {
+        fsmac.getline(buffer, sizeof(buffer));
+        string line(buffer);
+        if (line.find("TODO") != string::npos)
+        {
+            machastodos = true;
+            break;
+        }
+    }
+    fsmac.close();
+    if (machastodos)
+    {
+        std::cout << "  FAILED: .MAC file contains TODOs." << std::endl;
+        g_failedtests++;
+        return;
+    }
 }
 
 void parse_commandline(int argc, char* argv[])

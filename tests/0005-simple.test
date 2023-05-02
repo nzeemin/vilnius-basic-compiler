@@ -1,0 +1,11 @@
+-q
+----------------------------------------------------------------------
+10 INPUT A,B
+20 IF A<B THEN 50
+30 PRINT "A IS BIGGER"
+40 GOTO 10
+50 IF A<B THEN 80
+60 PRINT "THEY ARE THE SAME"
+70 GOTO 10
+80 PRINT "B IS BIGGER"
+90 GOTO 10

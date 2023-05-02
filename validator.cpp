@@ -433,10 +433,13 @@ void Validator::ValidateInput(SourceLineModel& model)
 {
     if (model.params.size() > 1)
         MODEL_ERROR("Too many parameters.");
-    Token& param = model.params[0];
-    if (param.type != TokenTypeString)
-        MODEL_ERROR("Parameter should be of type String.");
-    m_source->RegisterConstString(param.text);
+    if (model.params.size() > 0)
+    {
+        Token& param = model.params[0];
+        if (param.type != TokenTypeString)
+            MODEL_ERROR("Parameter should be of type String.");
+        m_source->RegisterConstString(param.text);
+    }
 
     if (model.variables.size() == 0)
         MODEL_ERROR("Variable(s) expected.");

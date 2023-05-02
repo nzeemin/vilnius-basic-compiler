@@ -777,18 +777,20 @@ void Parser::ParseInput(SourceLineModel& model)
     {
         if (token.type != TokenTypeIdentifier)
             MODEL_ERROR("Variable expected.");
-        GetNextTokenSkipDivider();  // Identifier
+        GetNextToken();  // Identifier
 
         VariableModel var;
         var.name = GetCanonicVariableName(token.text);
         //TODO: possible open bracket and array indices
         model.variables.push_back(var);
 
-        token = GetNextToken();
+        token = GetNextTokenSkipDivider();
         if (token.IsEolOrEof())
             return;
         if (!token.IsComma())
             MODEL_ERROR("Comma expected.");
+
+        token = PeekNextTokenSkipDivider();
     }
 }
 
