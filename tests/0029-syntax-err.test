@@ -1,0 +1,20 @@
+-q
+----------------------------------------------------------------------
+210 CLS 0
+220 CLS A%
+230 CLS .
+240 CLS;
+----------------------------------------------------------------------
+ERROR at 1:9 line 210 - Unexpected text at the end of the statement.
+210 CLS 0
+        ^
+ERROR at 2:9 line 220 - Unexpected text at the end of the statement.
+220 CLS A%
+        ^
+ERROR at 3:9 line 230 - Unexpected text at the end of the statement.
+230 CLS .
+        ^
+ERROR at 4:8 line 240 - Unexpected text at the end of the statement.
+240 CLS;
+       ^
+Parsing ERRORS: 4

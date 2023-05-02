@@ -1,0 +1,8 @@
+-q
+----------------------------------------------------------------------
+110 POKE 0%, "AAA"
+120 POKE "AAA", 0
+----------------------------------------------------------------------
+ERROR in line 110 - Wrong expression type
+ERROR in line 120 - Wrong expression type
+Validation ERRORS: 2
