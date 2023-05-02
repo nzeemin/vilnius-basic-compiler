@@ -1,6 +1,8 @@
 /Debug
 /Release
 /x64
+/testrunner/Debug
+/testrunner/Release
 *.ncb
 *.suo
 *.user
@@ -13,4 +15,5 @@
 /*.ASC
 /*.MAC
 /*.OBJ
+/tests/*.tmp
 /x-*

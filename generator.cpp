@@ -448,7 +448,7 @@ void Generator::GenerateGoto(SourceLineModel& line)
 void Generator::GenerateIf(SourceLineModel& line)
 {
     assert(line.args.size() > 0);
-    ExpressionModel& expr = line.args[0];
+    const ExpressionModel& expr = line.args[0];
     GenerateExpression(expr);
     //TODO: set flags: Z=0 for TRUE, Z=1 for FALSE
 
@@ -480,8 +480,20 @@ void Generator::GenerateInput(SourceLineModel& line)
         m_final->AddLine("\tCALL\tWRSZ\t; print the prompt");
     }
 
-    //TODO: Code to enter variable values
-    m_final->AddLine("; TODO INPUT");
+    for (auto it = std::begin(line.variables); it != std::end(line.variables); ++it)
+    {
+        ValueType vtype = it->GetValueType();
+        string vardeco = it->GetVariableDecoratedName();
+        if (vtype == ValueTypeInteger)
+        {
+            m_final->AddLine("\tCALL\tREADI");
+            m_final->AddLine("\tMOV\tR0, " + vardeco);
+        }
+        else
+        {
+            m_final->AddLine("; TODO INPUT " + it->name);  //TODO
+        }
+    }
 }
 
 void Generator::GenerateLet(SourceLineModel& line)
@@ -517,6 +529,21 @@ void Generator::GenerateOn(SourceLineModel& line)
 
 void Generator::GenerateLocate(SourceLineModel& line)
 {
+    assert(line.args.size() > 0);
+    const ExpressionModel& expr1 = line.args[0];  // column, could be empty
+
+    if (line.args.size() > 1)
+    {
+        const ExpressionModel& expr2 = line.args[1];  // row, could be empty
+        //TODO
+    }
+
+    if (line.args.size() > 2)
+    {
+        const ExpressionModel& expr3 = line.args[2];  // on/off, could be empty
+        //TODO
+    }
+
     //TODO
     m_final->AddLine("; TODO LOCATE");
 }

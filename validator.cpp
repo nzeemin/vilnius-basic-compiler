@@ -583,7 +583,13 @@ void Validator::ValidatePoke(SourceLineModel& model)
 
 void Validator::ValidatePrint(SourceLineModel& model)
 {
-    //TODO
+    for (auto it = std::begin(model.args); it != std::end(model.args); ++it)
+    {
+        const ExpressionModel& expr = *it;
+        if (expr.IsEmpty())
+            MODEL_ERROR("Expressions should not be empty.");
+        //TODO
+    }
 }
 
 void Validator::ValidateRestore(SourceLineModel& model)

@@ -1019,6 +1019,13 @@ void Parser::ParsePrint(SourceLineModel& model)
     while (true)
     {
         token = PeekNextTokenSkipDivider();
+        if (token.IsEolOrEof())
+        {
+            GetNextToken();
+            return;
+        }
+
+        token = PeekNextTokenSkipDivider();
         if (token.type == TokenTypeKeyword && token.keyword == KeywordAT)
         {
             ExpressionNode node0;
@@ -1119,13 +1126,6 @@ void Parser::ParsePrint(SourceLineModel& model)
             return;
         if (!token.IsComma() && !token.IsSemicolon())
             MODEL_ERROR("Comma or semicolon expected.");
-
-        token = PeekNextTokenSkipDivider();
-        if (token.IsEolOrEof())
-        {
-            GetNextToken();
-            return;
-        }
     }
 }
 
