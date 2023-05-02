@@ -297,10 +297,22 @@ void process_test(string testfilename)
     {
         std::cout << "  FAILED: Out lines are different." << std::endl;
         g_failedtests++;
+        return;
     }
 
-    //TODO: Check if we have .MAC file
-    //TODO: Check if we have TODOs in the .MAC file
+    if (!errorlines.empty())
+        return;  // have errors, no need to check anything else
+
+    // check if we have .MAC file
+    string macfilename2 = findfile_bymask(testdirpath, macfilename);
+    if (macfilename2.empty())
+    {
+        std::cout << "  FAILED: .MAC file not found." << std::endl;
+        g_failedtests++;
+        return;
+    }
+
+    //TODO: read .MAC file and check if we have TODOs there
 }
 
 void parse_commandline(int argc, char* argv[])

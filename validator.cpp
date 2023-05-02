@@ -515,13 +515,25 @@ void Validator::ValidateNext(SourceLineModel& model)
         return;
     }
 
+    //TODO: need to change the model for case of several NEXT variables
     for (auto it = std::begin(model.params); it != std::end(model.params); ++it)
     {
         string varname = GetCanonicVariableName(it->text);
         if (!m_source->IsVariableRegistered(varname))
             MODEL_ERROR("Variable not found:" + varname + ".");
 
-        //TODO: Process with FOR/NEXT stack
+        ValidatorForSpec forspec = m_fornextstack.back();
+        m_fornextstack.pop_back();
+
+        if (forspec.varname != varname)
+            MODEL_ERROR("NEXT variable expected: " + forspec.varname + ", found:" + varname + ".");
+
+        // link NEXT to the corresponding FOR
+        model.paramline = forspec.linenum;
+
+        // link FOR to the NEXT line number
+        SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
+        linefor.paramline = model.number;
     }
 }
 
