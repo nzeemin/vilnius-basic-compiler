@@ -1,8 +1,10 @@
 -q
 ----------------------------------------------------------------------
+100 GOTO 65535
 110 POKE 0%, "AAA"
 120 POKE "AAA", 0
 ----------------------------------------------------------------------
+ERROR in line 100 - Invalid line number 65535.
 ERROR in line 110 - Wrong expression type
 ERROR in line 120 - Wrong expression type
-Validation ERRORS: 2
+Validation ERRORS: 3
