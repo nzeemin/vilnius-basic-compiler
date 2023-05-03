@@ -45,7 +45,7 @@ const char* PATH_SEPARATOR = "/";
 #endif
 
 #ifdef _MSC_VER
-// Get first file by mask in the directory. Win32 specific method
+// Get all files by mask in the directory. Win32 specific method
 void findallfiles_bymask(const string& dirname, const string& mask, std::vector<string>& result)
 {
     string pattern(dirname);
@@ -61,6 +61,26 @@ void findallfiles_bymask(const string& dirname, const string& mask, std::vector<
         } while (FindNextFile(hFind, &data) != 0);
         FindClose(hFind);
     }
+}
+#else
+// Get all files by mask in the directory. POSIX method
+string findallfiles_bymask(const string& dirname, const string& mask, std::vector<string>& result)
+{
+    DIR* dirp = opendir(dirname.c_str());
+    struct dirent* dp;
+    while ((dp = readdir(dirp)) != nullptr)
+    {
+        if (dp->d_type & DT_DIR)
+            continue;
+
+        string filename(dp->d_name);
+        if (filename.size() < mask.size() ||
+            0 != filename.compare(filename.size() - mask.size(), mask.size(), mask))
+            continue;
+
+        result.push_back(filename);
+    }
+    closedir(dirp);
 }
 #endif
 

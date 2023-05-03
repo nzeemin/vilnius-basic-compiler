@@ -32,3 +32,4 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         make
+        testrunner/testrunner
