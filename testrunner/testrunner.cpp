@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
 #include <vector>
 #include <assert.h>
 
@@ -31,7 +32,7 @@ HANDLE g_hConsole;
 #define mkdir(dir) _mkdir(dir)
 #else
 #define SetTextAttribute(ta) {}
-#define mkdir(dir) _mkdir(dir, 0755)
+#define mkdir(dir) mkdir(dir, 0755)
 #endif
 
 #ifdef _MSC_VER
