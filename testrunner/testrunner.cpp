@@ -2,6 +2,7 @@
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #include <Windows.h>
+#include <direct.h>
 #else
 #include <sys/types.h>
 #include <dirent.h>
@@ -14,9 +15,6 @@
 #include <string>
 #include <vector>
 #include <assert.h>
-#include <direct.h>
-
-//#include "testrunner.h"
 
 typedef std::string string;
 
@@ -30,8 +28,10 @@ HANDLE g_hConsole;
 #define TEXTATTRIBUTES_WARNING (FOREGROUND_RED | FOREGROUND_GREEN)
 #define TEXTATTRIBUTES_DIFF (FOREGROUND_RED | FOREGROUND_GREEN)
 #define SetTextAttribute(ta) SetConsoleTextAttribute(g_hConsole, ta)
+#define mkdir(dir) _mkdir(dir)
 #else
 #define SetTextAttribute(ta) {}
+#define mkdir(dir) _mkdir(dir, 0755)
 #endif
 
 #ifdef _MSC_VER
@@ -240,7 +240,7 @@ void process_test(string testfilename)
     
     // make test directory
     string testdirpath = string(TESTS_SUB_DIR) + PATH_SEPARATOR + testname + ".tmp";
-    _mkdir(testdirpath.c_str());
+    mkdir(testdirpath.c_str());
 
     string basicfilename = testname + ".ASC";
     remove_file_if_exists(testdirpath, basicfilename);
