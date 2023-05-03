@@ -735,8 +735,8 @@ void Parser::ParseIf(SourceLineModel& model)
     model.args.push_back(expr);
 
     token = GetNextTokenSkipDivider();
-    if (token.type != TokenTypeKeyword || token.keyword != KeywordTHEN)
-        MODEL_ERROR("Keyword THEN expected.");
+    if (token.type != TokenTypeKeyword || (token.keyword != KeywordTHEN && token.keyword != KeywordGOTO))
+        MODEL_ERROR("Keyword THEN or GOTO expected.");
 
     token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeNumber || !token.IsDValueInteger())

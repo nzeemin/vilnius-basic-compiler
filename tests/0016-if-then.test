@@ -1,0 +1,11 @@
+-q
+----------------------------------------------------------------------
+10 IF 0% THEN PRINT
+20 IF 1% THEN GOTO 10
+30 IF A% THEN PRINT A% ELSE PRINT B%
+50 IF B% THEN A = 10
+60 IF A=A THEN ? A ELSE ? A
+70 IF A=B THEN GOTO 65535
+80 IF A% THEN IF B% THEN ? B% ELSE ? A%
+100 IF I% GOTO 10 ELSE PRINT A;" AND ";B
+65535 IF C THEN C = C ELSE C = C
