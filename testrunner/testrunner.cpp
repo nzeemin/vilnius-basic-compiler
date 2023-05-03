@@ -66,7 +66,7 @@ void findallfiles_bymask(const string& dirname, const string& mask, std::vector<
 }
 #else
 // Get all files by mask in the directory. POSIX method
-string findallfiles_bymask(const string& dirname, const string& mask, std::vector<string>& result)
+void findallfiles_bymask(const string& dirname, const string& mask, std::vector<string>& result)
 {
     DIR* dirp = opendir(dirname.c_str());
     struct dirent* dp;
@@ -218,7 +218,7 @@ void process_test_run(const string& workingdir, const string& modulename, const 
     getwd(bufcwd);
     chdir(workingdir.c_str());
 
-    string fullcommand = modulename + " " + commandline + ">" + outfilename;
+    string fullcommand = modulename + " " + commandline + " >" + outfilename + " 2>" + outfilename;
     //std::cout << "Running the test: " << fullcommand << std::endl;
     int result = std::system(fullcommand.c_str());
     if (result != 0)

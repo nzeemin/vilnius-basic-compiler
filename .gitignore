@@ -12,6 +12,10 @@
 /ipch
 *.sdf
 *.opensdf
+*.o
+/vibasc
+/testrunner/testrunner
+/.idea
 /*.ASC
 /*.MAC
 /*.OBJ
