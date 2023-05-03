@@ -794,12 +794,11 @@ void Parser::ParseInput(SourceLineModel& model)
     }
 }
 
-//TODO: LET MID$
 void Parser::ParseLet(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type != TokenTypeIdentifier)
-        MODEL_ERROR("Identifier expected.");
+    if (token.type != TokenTypeIdentifier && (token.type != TokenTypeKeyword || token.keyword != KeywordMID))
+        MODEL_ERROR("Identifier or MID$ expected.");
 
     ParseLetShort(token, model);
 }
@@ -845,10 +844,9 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
 
         SKIP_COMMA;
 
-        token = GetNextTokenSkipDivider();
-        if (token.type != TokenTypeNumber || !token.IsDValueInteger())
-            MODEL_ERROR("Integer argument expected.");
-        model.params.push_back(token);
+        token = PeekNextTokenSkipDivider();
+        ExpressionModel expr1 = ParseExpression(model);
+        //TODO: Save to model
 
         SKIP_COMMA;
 
