@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <direct.h>
 #else
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <unistd.h>
