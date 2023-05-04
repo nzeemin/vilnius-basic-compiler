@@ -1,0 +1,15 @@
+-q
+----------------------------------------------------------------------
+10 DATA 1,&O22,&H3F
+15 READ A%,B%,C%
+20 DATA 1.1,2.2,3.3
+25 READ A,B,C
+30 DATA 1!,2!,3!
+35 READ A,B,C
+40 DATA "A","B","C"
+45 READ A$,B$,C$
+50 DATA 1%,2.2,3.3!,"D"
+55 READ A%,B,C,D$
+60 DATA AAA,BBB,CCC
+65 READ A$,B$,C$
+100 READ A$,B$,X$(1)
