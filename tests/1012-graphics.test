@@ -1,0 +1,38 @@
+-q
+----------------------------------------------------------------------
+10 COLOR 7%,1%,1%
+20 WIDTH 80%
+30 SCREEN 2%
+40 PAINT (0,0),1
+50 FOR I%=1 TO 200
+60 PSET (RND(1)*640,RND(1)*264),RND(1)*8
+70 NEXT I%
+80 X%=315
+90 Y%=125
+100 LINE (X%,Y%)-(X%+10,Y%),7
+110 LINE (X%+5,Y%-5)-(X%+5,Y%+5),7
+120 K$=INKEY$
+130 IF K$="" THEN GOTO 120
+140 LINE (X%,Y%)-(X%+10,Y%),1
+150 LINE (X%+5,Y%-5)-(X%+5,Y%+5),1
+160 IF K$="A" THEN Y%=Y%+10
+170 IF K$="B" THEN Y%=Y%-10
+180 IF K$="C" THEN X%=X%+10
+190 IF K$="D" THEN X%=X%-10
+200 IF K$=" " THEN GOSUB 220 
+210 GOTO 100
+220 LINE (0,0)-(X%+5,Y%),8
+230 LINE (0,0)-(X%+5,Y%),3
+240 LINE (0,0)-(X%+5,Y%),1
+250 LINE (640,  0)-(X%+5,Y%),8
+260 LINE (640, 0)-(X%+5,Y%),3
+270 LINE (640,  0)-(X%+5,Y%),1
+280 FOR I%=1 TO 3%
+290 CIRCLE (X%+5,Y%),I%,8
+300 NEXT I%
+310 FOR I%=1 TO 3%
+320 CIRCLE (X%+5,Y%),4-I%,1
+330 NEXT I%
+340 GOTO 100
+350 GOTO 100
+360 RETURN
