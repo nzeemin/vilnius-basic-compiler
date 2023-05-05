@@ -48,6 +48,10 @@ const GeneratorOperSpec Generator::m_operspecs[] =
     //{ "/",              &Generator::GenerateOperDiv },
     //{ "\\",             &Generator::GenerateOperDivInt },
     //{ "^",              &Generator::GenerateOperPower },
+    { "=",              &Generator::GenerateOperEqual },
+    { "<>",             &Generator::GenerateOperNotEqual },
+    { "<",              &Generator::GenerateOperLess },
+    { ">",              &Generator::GenerateOperGreater },
 };
 
 const GeneratorFuncSpec Generator::m_funcspecs[] =
@@ -198,6 +202,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
             string svalue = "#" + std::to_string(ivalue) + ".";
             m_final->AddLine("\tMOV\t" + svalue + ", R0");
         }
+        return;
     }
 
     if (node.node.type == TokenTypeKeyword && IsFunctionKeyword(node.node.keyword))
@@ -449,6 +454,28 @@ void Generator::GenerateIf(SourceLineModel& line)
 {
     assert(line.args.size() > 0);
     const ExpressionModel& expr = line.args[0];
+    
+    if (expr.IsConstExpression())
+    {
+        int ivalue = (int)expr.GetConstExpressionDValue();
+        if (ivalue != 0)  // TRUE - generate THEN only
+        {
+            int linenum = (int)line.params[0].dvalue;
+            m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN");
+        }
+        else  // FALSE - generate ELSE only
+        {
+            if (line.params.size() == 1)
+                m_final->AddLine("\t\t\t; ELSE do nothing");
+            else
+            {
+                int linenum2 = (int)line.params[1].dvalue;
+                m_final->AddLine("\tJMP\tL" + std::to_string(linenum2) + "\t; ELSE");
+            }
+        }
+        return;
+    }
+
     GenerateExpression(expr);
     //TODO: set flags: Z=0 for TRUE, Z=1 for FALSE
 
@@ -732,6 +759,80 @@ void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionN
     m_final->AddLine("\tMOV\tR0, R1");
     m_final->AddLine("\tMOV\t(SP)+, R0");  // POP R0
     m_final->AddLine("\tSUB\tR1, R0" + comment);
+}
+
+void Generator::GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment)
+{
+    // Code to calculate left sub-expression, with result in R0
+    GenerateExpression(expr, nodeleft);
+
+    // Convert "XXX < N" into CMP #N., R0
+    if (nodeleft.vtype == ValueTypeInteger &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        int ivalue = (int)std::floor(noderight.node.dvalue);
+        m_final->AddLine("\tCMP\t#" + std::to_string(ivalue) + "., R0" + comment);
+    }
+    else if (noderight.node.type == TokenTypeIdentifier && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        string deconame = DecorateVariableName(GetCanonicVariableName(noderight.node.text));
+        m_final->AddLine("\tCMP\t" + deconame + "., R0" + comment);
+    }
+    else
+    {
+        m_final->AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
+        GenerateExpression(expr, noderight);
+        m_final->AddLine("\tMOV\t(SP)+, R0");  // POP R0
+        m_final->AddLine("\tCMP\tR1, R0" + comment);
+    }
+}
+
+void Generator::GenerateOperEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    const string comment = "\t; Operation \'=\'";
+
+    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
+
+    //m_final->AddLine("\tBEQ\t");
+
+    //TODO
+    m_final->AddLine(";TODO operation equal");
+}
+
+void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    const string comment = "\t; Operation \'<>\'";
+
+    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
+
+    //m_final->AddLine("\tBNE\t");
+
+    //TODO
+    m_final->AddLine(";TODO operation not-equal");
+}
+
+void Generator::GenerateOperLess(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    const string comment = "\t; Operation \'<\'";
+
+    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
+
+    //m_final->AddLine("\tBLO\t");
+
+    //TODO
+    m_final->AddLine(";TODO operation less");
+}
+
+void Generator::GenerateOperGreater(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    const string comment = "\t; Operation \'>\'";
+
+    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
+
+    //m_final->AddLine("\tBHI\t");
+
+    //TODO
+    m_final->AddLine(";TODO operation greater");
 }
 
 

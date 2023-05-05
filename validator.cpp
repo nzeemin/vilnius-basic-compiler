@@ -48,6 +48,10 @@ const ValidatorOperSpec Validator::m_operspecs[] =
     { "/",              &Validator::ValidateOperDiv },
     { "\\",             &Validator::ValidateOperDivInt },
     { "^",              &Validator::ValidateOperPower },
+    { "=",              &Validator::ValidateOperEqual },
+    { "<>",             &Validator::ValidateOperNotEqual },
+    { "<",              &Validator::ValidateOperLess },
+    { ">",              &Validator::ValidateOperGreater },
 };
 
 const ValidatorFuncSpec Validator::m_funcspecs[] =
@@ -403,6 +407,8 @@ void Validator::ValidateIf(SourceLineModel& model)
 {
     if (model.args.size() == 0)
         MODEL_ERROR("Expression expected.");
+    ExpressionModel& expr = model.args[0];
+    ValidateExpression(expr);
     //TODO: Check for non-empty expression
     if (model.args.size() > 1)
         MODEL_ERROR("Too many expressions.");
@@ -771,6 +777,54 @@ void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, c
         node.node.dvalue = pow(nodeleft.node.dvalue, noderight.node.dvalue);
         if (!std::isfinite(node.node.dvalue))
             EXPR_ERROR("Bad result of power operation in const expression.");
+    }
+}
+
+void Validator::ValidateOperEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        node.node.dvalue = (nodeleft.node.dvalue == noderight.node.dvalue) ? -1 : 0;
+    }
+}
+
+void Validator::ValidateOperNotEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        node.node.dvalue = (nodeleft.node.dvalue != noderight.node.dvalue) ? -1 : 0;
+    }
+}
+
+void Validator::ValidateOperLess(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        node.node.dvalue = (nodeleft.node.dvalue < noderight.node.dvalue) ? -1 : 0;
+    }
+}
+
+void Validator::ValidateOperGreater(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        node.node.dvalue = (nodeleft.node.dvalue > noderight.node.dvalue) ? -1 : 0;
     }
 }
 
