@@ -334,6 +334,7 @@ Token Tokenizer::GetNextToken()
 
         token.type = TokenTypeString;
         token.vtype = ValueTypeString;
+        token.svalue = token.text;
         return token;
     }
 

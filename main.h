@@ -85,11 +85,12 @@ struct Token
 {
     int		    line, pos;
     TokenType   type;
-    std::string	text;
+    string      text;
     char	    symbol;
     KeywordIndex keyword;
     ValueType   vtype;
     double      dvalue;
+    string      svalue;
 public:
     Token() :
         line(0), pos(0), type(TokenTypeNone), symbol(0), keyword(KeywordNone), vtype(ValueTypeNone),
@@ -158,6 +159,7 @@ public:
     int GetParentIndex(int index) const;
     bool IsConstExpression() const;
     double GetConstExpressionDValue() const;
+    string GetConstExpressionSValue() const;
     bool IsVariableExpression() const;
     string GetVariableExpressionDecoratedName() const;
     ValueType GetExpressionValueType() const;

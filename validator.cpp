@@ -277,7 +277,7 @@ bool Validator::CheckStringExpression(ExpressionModel& expr)
     ValidateExpression(expr, expr.root);
 
     const ExpressionNode& root = expr.nodes[expr.root];
-    if (root.vtype != ValueTypeInteger && root.vtype != ValueTypeSingle)
+    if (root.vtype != ValueTypeString)
     {
         Error(expr, "Expression type should be String.");
         return false;
@@ -670,7 +670,12 @@ void Validator::ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, co
         node.node.vtype = node.vtype;
         if (node.vtype == ValueTypeInteger || node.vtype == ValueTypeSingle)
             node.node.dvalue = nodeleft.node.dvalue + noderight.node.dvalue;
-        //TODO: Make sum for ValueTypeString
+        else if (node.vtype == ValueTypeString)
+        {
+            node.node.svalue = nodeleft.node.svalue + noderight.node.svalue;
+            if (node.node.svalue.length() > 255)
+                node.node.svalue.resize(255);
+        }
     }
 }
 
@@ -745,7 +750,7 @@ void Validator::ValidateOperDivInt(ExpressionModel& expr, ExpressionNode& node, 
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
 
     if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
-        EXPR_ERROR("Operation MOD not applicable to strings.");
+        EXPR_ERROR("Operation \'MOD\' not applicable to strings.");
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
@@ -1152,7 +1157,11 @@ void Validator::ValidateFuncAsc(ExpressionModel& expr, ExpressionNode& node)
     if (expr1.IsConstExpression())
     {
         node.constval = true;
-        //TODO: Calculate value: node.node.dvalue = ...
+
+        string svalue = expr1.GetConstExpressionSValue();
+        if (svalue.empty())
+            EXPR_ERROR("Function ASC parameter is empty.");
+        node.node.dvalue = (int)svalue[0];  //TODO: depends on charset
     }
 }
 
@@ -1165,13 +1174,17 @@ void Validator::ValidateFuncChr(ExpressionModel& expr, ExpressionNode& node)
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
-    node.vtype = ValueTypeInteger;
+    node.vtype = ValueTypeString;
     node.constval = false;
 
     if (expr1.IsConstExpression())
     {
         node.constval = true;
-        //TODO: Calculate value: node.node.dvalue = ...
+        int ivalue = (int)expr1.GetConstExpressionDValue();
+        if (ivalue < 0 || ivalue > 255)
+            EXPR_ERROR("Function CHR$ parameter is out of range.");
+
+        node.node.svalue = (char)ivalue;
     }
 }
 
@@ -1190,7 +1203,7 @@ void Validator::ValidateFuncLen(ExpressionModel& expr, ExpressionNode& node)
     if (expr1.IsConstExpression())
     {
         node.constval = true;
-        //TODO: Calculate value: node.node.dvalue = ...
+        node.node.dvalue = expr1.GetConstExpressionSValue().length();
     }
 }
 

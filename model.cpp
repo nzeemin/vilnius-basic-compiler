@@ -170,7 +170,7 @@ void Token::Dump(std::ostream& out) const
         out << " text:\"" << text << "\"";  //TODO: Escape special chars
     if (type == TokenTypeSymbol || symbol != 0)
         out << " symb:\'" << symbol << "\'";  //TODO: Escape special chars
-    //if (type == TokenTypeNumber)
+    if (type != TokenTypeString)
     {
         std::cout.unsetf(std::ios::floatfield);
         if (IsDValueInteger())
@@ -178,6 +178,8 @@ void Token::Dump(std::ostream& out) const
         else
             out << " d:" << std::scientific << dvalue;
     }
+    if (!svalue.empty())
+        out << " s:\"" << svalue << "\"";
     out << " }";
 }
 
@@ -308,6 +310,15 @@ double ExpressionModel::GetConstExpressionDValue() const
 
     const ExpressionNode& noderoot = nodes[root];
     return noderoot.node.dvalue;
+}
+
+string ExpressionModel::GetConstExpressionSValue() const
+{
+    if (root < 0)
+        return "";
+
+    const ExpressionNode& noderoot = nodes[root];
+    return noderoot.node.svalue;
 }
 
 bool ExpressionModel::IsVariableExpression() const
