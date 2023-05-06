@@ -47,6 +47,7 @@ const ValidatorOperSpec Validator::m_operspecs[] =
     { "*",              &Validator::ValidateOperMul },
     { "/",              &Validator::ValidateOperDiv },
     { "\\",             &Validator::ValidateOperDivInt },
+    { "MOD",            &Validator::ValidateOperMod },
     { "^",              &Validator::ValidateOperPower },
     { "=",              &Validator::ValidateOperEqual },
     { "<>",             &Validator::ValidateOperNotEqual },
@@ -744,7 +745,7 @@ void Validator::ValidateOperDivInt(ExpressionModel& expr, ExpressionNode& node, 
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
 
     if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
-        EXPR_ERROR("Operation \'\\\' not applicable to strings.");
+        EXPR_ERROR("Operation MOD not applicable to strings.");
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
@@ -754,6 +755,25 @@ void Validator::ValidateOperDivInt(ExpressionModel& expr, ExpressionNode& node, 
             EXPR_ERROR("Division by zero.");
 
         node.node.dvalue = ((int)nodeleft.node.dvalue) / ((int)noderight.node.dvalue);
+    }
+}
+
+void Validator::ValidateOperMod(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'\\\' not applicable to strings.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        int ivalueright = (int)noderight.node.dvalue;
+        if (ivalueright == 0)
+            node.node.dvalue = 0;
+
+        node.node.dvalue = ((int)nodeleft.node.dvalue) % ivalueright;
     }
 }
 

@@ -251,7 +251,10 @@ Token Tokenizer::GetNextToken()
 
         token.type = TokenTypeIdentifier;
         token.keyword = GetKeywordIndex(token.text);
-        if (token.keyword != KeywordNone)
+        
+        if (token.keyword == KeywordMOD)
+            token.type = TokenTypeOperation;
+        else if (token.keyword != KeywordNone)
             token.type = TokenTypeKeyword;
 
         return token;
@@ -311,10 +314,9 @@ Token Tokenizer::GetNextToken()
         return token;
     }
 
-    // String
-    if (ch == '\"')
+    if (ch == '\"')  // String
     {
-        token.text = ch;
+        token.text.clear();
 
         while (true)
         {
@@ -323,9 +325,10 @@ Token Tokenizer::GetNextToken()
                 break;  // Incomplete string
             else
             {
-                token.text.append(1, GetNextChar());
+                ch = GetNextChar();
                 if (ch == '\"')
                     break;  // Completed string
+                token.text.append(1, ch);
             }
         }
 
@@ -409,7 +412,7 @@ Token Tokenizer::GetNextToken()
         // else it is Symbol
     }
     else if (ch == '-' || ch == '+' || ch == '/' || ch == '*' || ch == '^' || ch == '\\' || ch == '=' ||
-        ch == '<' || ch == '>')
+        ch == '<' || ch == '>')  // Operation
     {
         token.type = TokenTypeOperation;
         token.text = ch;

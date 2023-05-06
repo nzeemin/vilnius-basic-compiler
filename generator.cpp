@@ -544,7 +544,13 @@ void Generator::GenerateOn(SourceLineModel& line)
     m_final->AddLine("\tCMP\t#" + std::to_string(numofcases) + ", R0");
     m_final->AddLine("\tBGE\t" + nextline);
     m_final->AddLine("\tASL\tR0");
-    m_final->AddLine("\tJMP\t@10$(R0)");
+    if (line.gotogosub)
+        m_final->AddLine("\tJMP\t@10$(R0)");
+    else
+    {
+        m_final->AddLine("\tCALL\t@10$(R0)");
+        m_final->AddLine("\tBR\t" + nextline);
+    }
     int linenum = (int)line.params[0].dvalue;
     m_final->AddLine("10$:\t.WORD\tL" + std::to_string(linenum));
     for (auto it = std::begin(line.params); it != std::end(line.params); ++it)
