@@ -67,7 +67,7 @@ const ParserFunctionSpec Parser::m_funcspecs[] =
     { KeywordASC,       1, 1, ValueTypeInteger },
     { KeywordCHR,       1, 1, ValueTypeString },
     { KeywordLEN,       1, 1, ValueTypeInteger },
-    { KeywordMID,       3, 3, ValueTypeString },
+    { KeywordMID,       2, 3, ValueTypeString },
     { KeywordSTRING,    2, 2, ValueTypeString },
     { KeywordVAL,       1, 1, ValueTypeSingle },
     { KeywordINKEY,     0, 0, ValueTypeString },

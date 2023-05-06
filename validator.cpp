@@ -1230,10 +1230,29 @@ void Validator::ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node)
     node.vtype = ValueTypeString;
     node.constval = false;
 
-    if (expr1.IsConstExpression())
+    if (expr1.IsConstExpression() && expr2.IsConstExpression() &&
+        (node.args.size() < 3 || node.args[2].IsConstExpression()))
     {
         node.constval = true;
-        //TODO: Calculate value: node.node.dvalue = ...
+
+        string svalue1 = expr1.GetConstExpressionSValue();
+
+        int ivalue2 = (int)expr2.GetConstExpressionDValue();
+        if (ivalue2 < 1 || ivalue2 > 255)
+            EXPR_ERROR("Function MID$ second parameter out of range 1..255.");
+
+        if (svalue1.empty() || ivalue2 - 1 >= (int)svalue1.length())
+            node.node.svalue.clear();
+        else if (node.args.size() < 3)
+            node.node.svalue = svalue1.substr(ivalue2 - 1);
+        else
+        {
+            ExpressionModel& expr3 = node.args[2];
+            int ivalue3 = (int)expr3.GetConstExpressionDValue();
+            if (ivalue3 < 0)
+                EXPR_ERROR("Function MID$ third parameter should not be negative.");
+            node.node.svalue = svalue1.substr(ivalue2 - 1, ivalue3);
+        }
     }
 }
 
@@ -1252,6 +1271,13 @@ void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
 
     node.vtype = ValueTypeString;
     node.constval = false;
+
+    if (expr1.IsConstExpression() && expr2.IsConstExpression())
+    {
+        node.constval = true;
+
+        //TODO
+    }
 }
 
 
