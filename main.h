@@ -476,4 +476,6 @@ private:
     void GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncInp(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncLen(const ExpressionModel& expr, const ExpressionNode& node);
 };

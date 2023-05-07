@@ -1185,6 +1185,8 @@ void Validator::ValidateFuncChr(ExpressionModel& expr, ExpressionNode& node)
             EXPR_ERROR("Function CHR$ parameter is out of range.");
 
         node.node.svalue = (char)ivalue;
+
+        m_source->RegisterConstString(node.node.svalue);
     }
 }
 
@@ -1253,6 +1255,8 @@ void Validator::ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node)
                 EXPR_ERROR("Function MID$ third parameter should not be negative.");
             node.node.svalue = svalue1.substr(ivalue2 - 1, ivalue3);
         }
+
+        m_source->RegisterConstString(node.node.svalue);
     }
 }
 
@@ -1276,7 +1280,30 @@ void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
     {
         node.constval = true;
 
-        //TODO
+        int ivalue1 = (int)expr1.GetConstExpressionDValue();
+        if (ivalue1 < 0 || ivalue1 > 255)
+            EXPR_ERROR("Function STRING$ first parameter is not in range 0..255.");
+
+        if (ivalue1 == 0)
+            node.node.svalue.clear();
+        if (expr2.GetExpressionValueType() == ValueTypeString)
+        {
+            string svalue2 = expr2.GetConstExpressionSValue();
+            if (svalue2.empty())
+                EXPR_ERROR("Function STRING$ second parameter is empty string.");
+            char filler = svalue2[0];
+            node.node.svalue = string(ivalue1, filler);
+        }
+        else  // Integer/Single
+        {
+            int ivalue2 = (int)expr2.GetConstExpressionDValue();
+            if (ivalue2 < 0 || ivalue2 > 255)
+                EXPR_ERROR("Function STRING$ second parameter is not in range 0..255.");
+            char filler = (char)ivalue2;  //TODO: depends on charset
+            node.node.svalue = string(ivalue1, filler);
+        }
+
+        m_source->RegisterConstString(node.node.svalue);
     }
 }
 

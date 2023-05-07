@@ -59,6 +59,8 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordABS,       &Generator::GenerateFuncAbs },
     { KeywordRND,       &Generator::GenerateFuncRnd },
     { KeywordPEEK,      &Generator::GenerateFuncPeek },
+    { KeywordINP,       &Generator::GenerateFuncInp },
+    { KeywordLEN,       &Generator::GenerateFuncLen },
 };
 
 
@@ -871,11 +873,44 @@ void Generator::GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNo
 {
     assert(node.args.size() == 1);
 
+    //TODO: Special case for const expression and variable expression
     const ExpressionModel& expr1 = node.args[0];
     GenerateExpression(expr1);
     //TODO: For Single expression, convert to Integer
 
     m_final->AddLine("\tMOV\t(R0), R0\t; PEEK");
+}
+
+void Generator::GenerateFuncInp(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() == 2);
+
+    //TODO: Special case for const expression and variable expression
+    const ExpressionModel& expr1 = node.args[0];
+    GenerateExpression(expr1);
+    //TODO: For Single expression, convert to Integer
+
+    m_final->AddLine("\tMOV\t(R0), R1\t; INP value");
+
+    const ExpressionModel& expr2 = node.args[1];
+    GenerateExpression(expr1);
+    //TODO: For Single expression, convert to Integer
+    //TODO: Invert the mask
+
+    m_final->AddLine("\tBIC\tR0, R1\t; INP mask");
+    m_final->AddLine("\tMOV\tR1, R0\t; INP");
+}
+
+void Generator::GenerateFuncLen(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() == 1);
+
+    //TODO: Special case for const expression and variable expression
+    const ExpressionModel& expr1 = node.args[0];
+    GenerateExpression(expr1);
+
+    m_final->AddLine("\tCLR\tR0\t");
+    m_final->AddLine("\tBISB\t(R0), R0\t; LEN");
 }
 
 
