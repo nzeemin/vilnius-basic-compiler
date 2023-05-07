@@ -391,6 +391,9 @@ private:
     void ValidateFuncLen(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncString(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncInkey(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncCsrlinPosLpos(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncEof(ExpressionModel& expr, ExpressionNode& node);
 };
 
 class Generator;

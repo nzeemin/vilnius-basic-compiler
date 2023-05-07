@@ -11,13 +11,13 @@
 
 const ValidatorKeywordSpec Validator::m_keywordspecs[] =
 {
-    { KeywordBEEP,	    &Validator::ValidateNothing },
-    { KeywordCLEAR,	    &Validator::ValidateClear },
-    { KeywordCLS,	    &Validator::ValidateNothing },
+    { KeywordBEEP,      &Validator::ValidateNothing },
+    { KeywordCLEAR,     &Validator::ValidateClear },
+    { KeywordCLS,       &Validator::ValidateNothing },
     { KeywordCOLOR,     &Validator::ValidateColor },
     { KeywordDIM,       &Validator::ValidateDim },
     { KeywordDRAW,      &Validator::ValidateDraw },
-    { KeywordEND,	    &Validator::ValidateNothing },
+    { KeywordEND,       &Validator::ValidateNothing },
     { KeywordFOR,       &Validator::ValidateFor },
     { KeywordREM,       &Validator::ValidateNothing },
     { KeywordGOSUB,     &Validator::ValidateGotoGosub },
@@ -78,6 +78,11 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordLEN,       &Validator::ValidateFuncLen },
     { KeywordMID,       &Validator::ValidateFuncMid },
     { KeywordSTRING,    &Validator::ValidateFuncString },
+    { KeywordINKEY,     &Validator::ValidateFuncInkey },
+    { KeywordCSRLIN,    &Validator::ValidateFuncCsrlinPosLpos },
+    { KeywordPOS,       &Validator::ValidateFuncCsrlinPosLpos },
+    { KeywordLPOS,      &Validator::ValidateFuncCsrlinPosLpos },
+    { KeywordEOF,       &Validator::ValidateFuncEof },
 };
 
 Validator::Validator(SourceModel* source)
@@ -1305,6 +1310,39 @@ void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
 
         m_source->RegisterConstString(node.node.svalue);
     }
+}
+
+void Validator::ValidateFuncInkey(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 0)
+        EXPR_ERROR("No arguments expected.");
+
+    node.vtype = ValueTypeString;
+    node.constval = false;
+}
+
+void Validator::ValidateFuncCsrlinPosLpos(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() > 1)
+        EXPR_ERROR("Zero or one arguments expected.");
+
+    if (node.args.size() > 0)
+    {
+        ExpressionModel& expr1 = node.args[0];
+        ValidateExpression(expr1);
+    }
+
+    node.vtype = ValueTypeInteger;
+    node.constval = false;
+}
+
+void Validator::ValidateFuncEof(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 0)
+        EXPR_ERROR("No arguments expected.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = false;
 }
 
 
