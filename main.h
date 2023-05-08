@@ -392,6 +392,10 @@ private:
     void ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncString(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncInkey(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncStr(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncBin(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncOct(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncHex(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCsrlinPosLpos(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncEof(ExpressionModel& expr, ExpressionNode& node);
 };

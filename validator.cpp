@@ -2,6 +2,8 @@
 #include <cassert>
 #include <iomanip>
 #include <string>
+#include <sstream>
+#include <bitset>
 
 #include "main.h"
 
@@ -79,6 +81,10 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordMID,       &Validator::ValidateFuncMid },
     { KeywordSTRING,    &Validator::ValidateFuncString },
     { KeywordINKEY,     &Validator::ValidateFuncInkey },
+    { KeywordSTR,       &Validator::ValidateFuncStr },
+    { KeywordBIN,       &Validator::ValidateFuncBin },
+    { KeywordOCT,       &Validator::ValidateFuncOct },
+    { KeywordHEX,       &Validator::ValidateFuncHex },
     { KeywordCSRLIN,    &Validator::ValidateFuncCsrlinPosLpos },
     { KeywordPOS,       &Validator::ValidateFuncCsrlinPosLpos },
     { KeywordLPOS,      &Validator::ValidateFuncCsrlinPosLpos },
@@ -1319,6 +1325,115 @@ void Validator::ValidateFuncInkey(ExpressionModel& expr, ExpressionNode& node)
 
     node.vtype = ValueTypeString;
     node.constval = false;
+}
+
+void Validator::ValidateFuncStr(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeString;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+
+        //TODO
+    }
+}
+
+void Validator::ValidateFuncBin(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+    int ivalue = (int)expr1.GetConstExpressionDValue();
+    if (ivalue < -32768 || ivalue > 32767)
+        EXPR_ERROR("Function BIN$ parameter is out of range.");
+    if (ivalue < 0)
+        ivalue = 65536 - ivalue;  // 0..65535
+
+    node.vtype = ValueTypeString;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+
+        std::stringstream ss;
+        std::bitset<16> bits(ivalue);
+        ss << bits;
+        string svalue = ss.str();
+        while (svalue.length() > 0 && svalue[0] == '0')
+            svalue.erase(0, 1);
+        node.node.svalue = svalue;
+    }
+}
+
+void Validator::ValidateFuncOct(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+    int ivalue = (int)expr1.GetConstExpressionDValue();
+    if (ivalue < -32768 || ivalue > 32767)
+        EXPR_ERROR("Function OCT$ parameter is out of range.");
+    if (ivalue < 0)
+        ivalue = 65536 - ivalue;  // 0..65535
+
+    node.vtype = ValueTypeString;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+
+        std::stringstream ss;
+        ss << std::oct << ivalue;
+        node.node.svalue = ss.str();
+    }
+}
+
+void Validator::ValidateFuncHex(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+    int ivalue = (int)expr1.GetConstExpressionDValue();
+    if (ivalue < -32768 || ivalue > 32767)
+        EXPR_ERROR("Function HEX$ parameter is out of range.");
+    if (ivalue < 0)
+        ivalue = 65536 - ivalue;  // 0..65535
+
+    node.vtype = ValueTypeString;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+
+        std::stringstream ss;
+        ss << std::hex << ivalue;
+        string svalue = ss.str();
+        std::transform(svalue.begin(), svalue.end(), svalue.begin(), ::toupper);
+        while (svalue.length() < 4)
+            svalue.insert(0, "0");
+        node.node.svalue = svalue;
+    }
 }
 
 void Validator::ValidateFuncCsrlinPosLpos(ExpressionModel& expr, ExpressionNode& node)
