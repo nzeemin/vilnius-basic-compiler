@@ -1270,11 +1270,31 @@ void Parser::ParseScreen(SourceLineModel& model)
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
+// Undocumented instruction
+// WIDTH <Integer>, [<Integer>]
 void Parser::ParseWidth(SourceLineModel& model)
 {
-    //TODO
+    Token token = PeekNextTokenSkipDivider();
+    ExpressionModel expr1 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr1);
+    model.args.push_back(expr1);
 
-    SkipTilEnd();
+    token = GetNextTokenSkipDivider();
+    if (token.IsEolOrEof())
+        return;
+    if (!token.IsComma())
+        MODEL_ERROR(MSG_UNEXPECTED);
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr2 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr2);
+    model.args.push_back(expr2);
+
+    token = GetNextTokenSkipDivider();
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 

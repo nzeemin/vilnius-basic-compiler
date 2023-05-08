@@ -382,6 +382,7 @@ private:
     void ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncSgn(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncFre(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCint(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node);
@@ -391,6 +392,7 @@ private:
     void ValidateFuncLen(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncString(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncVal(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncInkey(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncStr(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncBin(ExpressionModel& expr, ExpressionNode& node);

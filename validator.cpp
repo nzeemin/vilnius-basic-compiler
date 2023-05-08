@@ -71,6 +71,7 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordINT,       &Validator::ValidateFuncInt },
     { KeywordSGN,       &Validator::ValidateFuncSgn },
     { KeywordRND,       &Validator::ValidateFuncRnd },
+    { KeywordFRE,       &Validator::ValidateFuncFre },
     { KeywordCINT,      &Validator::ValidateFuncCint },
     { KeywordCSNG,      &Validator::ValidateFuncCsng },
     { KeywordPEEK,      &Validator::ValidateFuncPeek },
@@ -80,6 +81,7 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordLEN,       &Validator::ValidateFuncLen },
     { KeywordMID,       &Validator::ValidateFuncMid },
     { KeywordSTRING,    &Validator::ValidateFuncString },
+    { KeywordVAL,       &Validator::ValidateFuncVal },
     { KeywordINKEY,     &Validator::ValidateFuncInkey },
     { KeywordSTR,       &Validator::ValidateFuncStr },
     { KeywordBIN,       &Validator::ValidateFuncBin },
@@ -644,8 +646,13 @@ void Validator::ValidateScreen(SourceLineModel& model)
         MODEL_ERROR("Numeric parameter expected.");
 }
 
+// Undocumented instruction
+// WIDTH <Integer>, [<Integer>]
 void Validator::ValidateWidth(SourceLineModel& model)
 {
+    if (model.args.size() < 1 || model.args.size() > 2)
+        MODEL_ERROR("One or two expressions expected.");
+
     //TODO
 }
 
@@ -1085,6 +1092,19 @@ void Validator::ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node)
     node.constval = false;
 }
 
+void Validator::ValidateFuncFre(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() > 1)
+        EXPR_ERROR("Zero or one arguments expected.");
+
+    if (node.args.size() > 0)
+    {
+        ExpressionModel& expr1 = node.args[0];
+        ValidateExpression(expr1);
+        //NOTE: Could be of type Integer/Single or String
+    }
+}
+
 void Validator::ValidateFuncCint(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
@@ -1318,6 +1338,26 @@ void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
     }
 }
 
+void Validator::ValidateFuncVal(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckStringExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeString;
+    node.constval = false;
+
+    if (expr1.IsConstExpression())
+    {
+        node.constval = true;
+
+        //TODO
+    }
+}
+
 void Validator::ValidateFuncInkey(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 0)
@@ -1430,8 +1470,6 @@ void Validator::ValidateFuncHex(ExpressionModel& expr, ExpressionNode& node)
         ss << std::hex << ivalue;
         string svalue = ss.str();
         std::transform(svalue.begin(), svalue.end(), svalue.begin(), ::toupper);
-        while (svalue.length() < 4)
-            svalue.insert(0, "0");
         node.node.svalue = svalue;
     }
 }
