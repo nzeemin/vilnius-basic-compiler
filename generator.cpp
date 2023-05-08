@@ -11,7 +11,9 @@
 const GeneratorKeywordSpec Generator::m_keywordspecs[] =
 {
     { KeywordBEEP,      &Generator::GenerateBeep },
+    { KeywordCIRCLE,    &Generator::GenerateCircle },
     { KeywordCLEAR,     &Generator::GenerateClear },
+    { KeywordCLOSE,     &Generator::GenerateClose },
     { KeywordCLS,       &Generator::GenerateCls },
     { KeywordCOLOR,     &Generator::GenerateColor },
     { KeywordDATA,      &Generator::GenerateData },
@@ -24,11 +26,16 @@ const GeneratorKeywordSpec Generator::m_keywordspecs[] =
     { KeywordIF,        &Generator::GenerateIf },
     { KeywordINPUT,     &Generator::GenerateInput },
     { KeywordLET,       &Generator::GenerateLet },
+    { KeywordLINE,      &Generator::GenerateLine },
     { KeywordLOCATE,    &Generator::GenerateLocate },
     { KeywordNEXT,      &Generator::GenerateNext },
     { KeywordON,        &Generator::GenerateOn },
+    { KeywordOPEN,      &Generator::GenerateOpen },
+    { KeywordPAINT,     &Generator::GeneratePaint },
     { KeywordPOKE,      &Generator::GeneratePoke },
     { KeywordPRINT,     &Generator::GeneratePrint },
+    { KeywordPSET,      &Generator::GeneratePset },
+    { KeywordPRESET,    &Generator::GeneratePreset },
     { KeywordREAD,      &Generator::GenerateRead },
     { KeywordREM,       &Generator::GenerateRem },
     { KeywordRESTORE,   &Generator::GenerateRestore },
@@ -44,8 +51,8 @@ const GeneratorOperSpec Generator::m_operspecs[] =
 {
     { "+",              &Generator::GenerateOperPlus },
     { "-",              &Generator::GenerateOperMinus },
-    //{ "*",              &Generator::GenerateOperMul },
-    //{ "/",              &Generator::GenerateOperDiv },
+    { "*",              &Generator::GenerateOperMul },
+    { "/",              &Generator::GenerateOperDiv },
     //{ "\\",             &Generator::GenerateOperDivInt },
     //{ "^",              &Generator::GenerateOperPower },
     { "=",              &Generator::GenerateOperEqual },
@@ -525,6 +532,18 @@ void Generator::GenerateInput(SourceLineModel& line)
     }
 }
 
+void Generator::GenerateOpen(SourceLineModel& line)
+{
+    //TODO
+    m_final->AddLine("; TODO OPEN");
+}
+
+void Generator::GenerateClose(SourceLineModel& line)
+{
+    //TODO
+    m_final->AddLine("; TODO CLOSE");
+}
+
 void Generator::GenerateLet(SourceLineModel& line)
 {
     assert(line.args.size() == 1);
@@ -583,6 +602,18 @@ void Generator::GenerateLocate(SourceLineModel& line)
     m_final->AddLine("; TODO LOCATE");
 }
 
+void Generator::GeneratePset(SourceLineModel& line)
+{
+    //TODO
+    m_final->AddLine("; TODO PSET");
+}
+
+void Generator::GeneratePreset(SourceLineModel& line)
+{
+    //TODO
+    m_final->AddLine("; TODO PRESET");
+}
+
 void Generator::GenerateNext(SourceLineModel& line)
 {
     assert(line.paramline != 0);
@@ -620,6 +651,24 @@ void Generator::GeneratePoke(SourceLineModel& line)
     m_final->AddLine("\tMOV\tR0, @#<10$+4>");
 
     m_final->AddLine("10$:\tMOV\t#0, #0");
+}
+
+void Generator::GenerateLine(SourceLineModel& line)
+{
+    //TODO
+    m_final->AddLine("; TODO LINE");  //TODO
+}
+
+void Generator::GenerateCircle(SourceLineModel& line)
+{
+    //TODO
+    m_final->AddLine("; TODO CIRCLE");  //TODO
+}
+
+void Generator::GeneratePaint(SourceLineModel& line)
+{
+    //TODO
+    m_final->AddLine("; TODO PAINT");  //TODO
 }
 
 void Generator::GeneratePrint(SourceLineModel& line)
@@ -767,6 +816,18 @@ void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionN
     m_final->AddLine("\tMOV\tR0, R1");
     m_final->AddLine("\tMOV\t(SP)+, R0");  // POP R0
     m_final->AddLine("\tSUB\tR1, R0" + comment);
+}
+
+void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    //TODO
+    m_final->AddLine(";TODO operation multiply");
+}
+
+void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    //TODO
+    m_final->AddLine(";TODO operation division");
 }
 
 void Generator::GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment)

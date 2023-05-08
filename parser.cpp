@@ -12,10 +12,12 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
 {
     { KeywordBEEP,      &Parser::ParseStatementNoParams },
     { KeywordCLEAR,     &Parser::ParseClear },
+    { KeywordCLOSE,     &Parser::ParseStatementNoParams },
     { KeywordCLS,       &Parser::ParseStatementNoParams },
     { KeywordCOLOR,     &Parser::ParseColor },
     { KeywordDATA,      &Parser::ParseData },
     { KeywordDIM,       &Parser::ParseDim },
+    { KeywordKEY,       &Parser::ParseKey },
     { KeywordDRAW,      &Parser::ParseDraw },
     { KeywordEND,       &Parser::ParseStatementNoParams },
     { KeywordFOR,       &Parser::ParseFor },
@@ -27,10 +29,14 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordLOCATE,    &Parser::ParseLocate },
     { KeywordNEXT,      &Parser::ParseNext },
     { KeywordON,        &Parser::ParseOn },
+    { KeywordOPEN,      &Parser::ParseOpen },
     { KeywordOUT,       &Parser::ParseOut },
     { KeywordPOKE,      &Parser::ParsePoke },
     { KeywordPSET,      &Parser::ParsePsetPreset },
     { KeywordPRESET,    &Parser::ParsePsetPreset },
+    { KeywordLINE,      &Parser::ParseLine },
+    { KeywordCIRCLE,    &Parser::ParseCircle },
+    { KeywordPAINT,     &Parser::ParsePaint },
     { KeywordPRINT,     &Parser::ParsePrint },
     { KeywordREAD,      &Parser::ParseRead },
     { KeywordREM,       &Parser::ParseRem },
@@ -794,6 +800,53 @@ void Parser::ParseInput(SourceLineModel& model)
     }
 }
 
+void Parser::ParseOpen(SourceLineModel& model)
+{
+    Token token = PeekNextTokenSkipDivider();
+    ExpressionModel expr1 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr1);
+    model.args.push_back(expr1);
+
+    token = GetNextTokenSkipDivider();
+    if (token.type == TokenTypeKeyword && token.keyword == KeywordFOR)
+    {
+        token = GetNextTokenSkipDivider();
+        if (token.type == TokenTypeKeyword && token.keyword == KeywordINPUT)
+            ;//TODO: save to model
+        else if (token.type == TokenTypeKeyword && token.keyword == KeywordOUTPUT)
+            ;//TODO: save to model
+        else
+            MODEL_ERROR(MSG_UNEXPECTED);
+
+        token = GetNextTokenSkipDivider();
+    }
+
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+}
+
+void Parser::ParseKey(SourceLineModel& model)
+{
+    Token token = PeekNextTokenSkipDivider();
+    ExpressionModel expr1 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr1);
+    model.args.push_back(expr1);
+
+    SKIP_COMMA;
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr2 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr2);
+    model.args.push_back(expr2);
+
+    token = GetNextTokenSkipDivider();
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+}
+
 void Parser::ParseLet(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
@@ -1198,6 +1251,249 @@ void Parser::ParsePsetPreset(SourceLineModel& model)
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
+void Parser::ParseLine(SourceLineModel& model)
+{
+    Token token = GetNextTokenSkipDivider();
+    if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
+        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
+    {
+        model.relative = true;
+        token = GetNextTokenSkipDivider();
+    }
+
+    if (token.IsOpenBracket())  // we ahve ARG1, ARG2
+    {
+        token = PeekNextTokenSkipDivider();
+        ExpressionModel expr1 = ParseExpression(model);
+        CHECK_MODEL_ERROR;
+        CHECK_EXPRESSION_NOT_EMPTY(expr1);
+        model.args.push_back(expr1);
+
+        SKIP_COMMA;
+
+        token = PeekNextTokenSkipDivider();
+        ExpressionModel expr2 = ParseExpression(model);
+        CHECK_MODEL_ERROR;
+        CHECK_EXPRESSION_NOT_EMPTY(expr2);
+        model.args.push_back(expr2);
+
+        token = GetNextTokenSkipDivider();
+        if (!token.IsCloseBracket())
+            MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+
+        token = GetNextTokenSkipDivider();
+    }
+    else
+    {
+        //TODO: add two empty expressions
+    }
+
+    if (token.type != TokenTypeOperation || token.text != "-")
+        MODEL_ERROR("Minus \'-\' sign expected.");
+
+    token = GetNextTokenSkipDivider();
+    if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
+        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
+    {
+        //model.relative = true;//TODO
+        token = GetNextTokenSkipDivider();
+    }
+
+    if (token.IsOpenBracket())  // we have ARG3, ARG4
+    {
+        token = PeekNextTokenSkipDivider();
+        ExpressionModel expr3 = ParseExpression(model);
+        CHECK_MODEL_ERROR;
+        CHECK_EXPRESSION_NOT_EMPTY(expr3);
+        model.args.push_back(expr3);
+
+        SKIP_COMMA;
+
+        token = PeekNextTokenSkipDivider();
+        ExpressionModel expr4 = ParseExpression(model);
+        CHECK_MODEL_ERROR;
+        CHECK_EXPRESSION_NOT_EMPTY(expr4);
+        model.args.push_back(expr4);
+
+        token = GetNextTokenSkipDivider();
+        if (!token.IsCloseBracket())
+            MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+
+        token = GetNextTokenSkipDivider();
+    }
+    else
+    {
+        //TODO: add two empty expressions
+    }
+
+    if (token.IsEolOrEof())
+        return;
+
+    if (token.IsComma())  // we have ARG5
+    {
+        token = PeekNextTokenSkipDivider();
+        ExpressionModel expr5 = ParseExpression(model);
+        CHECK_MODEL_ERROR;
+        CHECK_EXPRESSION_NOT_EMPTY(expr5);
+        model.args.push_back(expr5);
+
+        token = GetNextTokenSkipDivider();
+
+        if (token.IsComma())  // we have "B" or "BF" here
+        {
+            token = GetNextTokenSkipDivider();
+            if (token.type != TokenTypeIdentifier || (token.text != "B" && token.text != "BF"))
+                MODEL_ERROR("\'B\' or \'BR\' expected.");
+
+            //TODO: save to model
+
+            token = GetNextTokenSkipDivider();
+        }
+    }
+
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+}
+
+void Parser::ParseCircle(SourceLineModel& model)
+{
+    Token token = GetNextTokenSkipDivider();
+    if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
+        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
+    {
+        model.relative = true;
+        token = GetNextTokenSkipDivider();
+    }
+
+    if (!token.IsOpenBracket())
+        MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr1 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr1);
+    model.args.push_back(expr1);
+
+    SKIP_COMMA;
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr2 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr2);
+    model.args.push_back(expr2);
+
+    token = GetNextTokenSkipDivider();
+    if (!token.IsCloseBracket())
+        MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+
+    SKIP_COMMA;
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr3 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr3);
+    model.args.push_back(expr3);
+
+    token = GetNextTokenSkipDivider();
+    if (token.IsEolOrEof())
+        return;
+
+    if (token.IsComma())
+    {
+        token = PeekNextTokenSkipDivider();
+        ExpressionModel expr4 = ParseExpression(model);
+        CHECK_MODEL_ERROR;
+        model.args.push_back(expr4);
+
+        token = GetNextTokenSkipDivider();
+        if (token.IsComma())
+        {
+            token = PeekNextTokenSkipDivider();
+            ExpressionModel expr5 = ParseExpression(model);
+            CHECK_MODEL_ERROR;
+            model.args.push_back(expr5);
+
+            token = GetNextTokenSkipDivider();
+            if (token.IsComma())
+            {
+                token = PeekNextTokenSkipDivider();
+                ExpressionModel expr6 = ParseExpression(model);
+                CHECK_MODEL_ERROR;
+                model.args.push_back(expr6);
+
+                token = GetNextTokenSkipDivider();
+                if (token.IsComma())
+                {
+                    token = PeekNextTokenSkipDivider();
+                    ExpressionModel expr7 = ParseExpression(model);
+                    CHECK_MODEL_ERROR;
+                    model.args.push_back(expr7);
+
+                    token = GetNextTokenSkipDivider();
+                }
+            }
+        }
+    }
+    
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+}
+
+void Parser::ParsePaint(SourceLineModel& model)
+{
+    Token token = GetNextTokenSkipDivider();
+    if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
+        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
+    {
+        model.relative = true;
+        token = GetNextTokenSkipDivider();
+    }
+
+    if (!token.IsOpenBracket())
+        MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr1 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr1);
+    model.args.push_back(expr1);
+
+    SKIP_COMMA;
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr2 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr2);
+    model.args.push_back(expr2);
+
+    token = GetNextTokenSkipDivider();
+    if (!token.IsCloseBracket())
+        MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+
+    token = GetNextTokenSkipDivider();
+    if (token.IsComma())
+    {
+        token = PeekNextTokenSkipDivider();
+        ExpressionModel expr3 = ParseExpression(model);
+        CHECK_MODEL_ERROR;
+        model.args.push_back(expr3);
+
+        token = GetNextTokenSkipDivider();
+        if (token.IsComma())
+        {
+            token = PeekNextTokenSkipDivider();
+            ExpressionModel expr4 = ParseExpression(model);
+            CHECK_MODEL_ERROR;
+            model.args.push_back(expr4);
+
+            token = GetNextTokenSkipDivider();
+        }
+    }
+
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+}
+
 void Parser::ParseRead(SourceLineModel& model)
 {
     Token token;
@@ -1274,11 +1570,10 @@ void Parser::ParseScreen(SourceLineModel& model)
 // WIDTH <Integer>, [<Integer>]
 void Parser::ParseWidth(SourceLineModel& model)
 {
-    Token token = PeekNextTokenSkipDivider();
-    ExpressionModel expr1 = ParseExpression(model);
-    CHECK_MODEL_ERROR;
-    CHECK_EXPRESSION_NOT_EMPTY(expr1);
-    model.args.push_back(expr1);
+    Token token = GetNextTokenSkipDivider();
+    if (token.type != TokenTypeNumber)
+        MODEL_ERROR("Numeric argument expected.");
+    model.params.push_back(token);
 
     token = GetNextTokenSkipDivider();
     if (token.IsEolOrEof())
@@ -1286,11 +1581,10 @@ void Parser::ParseWidth(SourceLineModel& model)
     if (!token.IsComma())
         MODEL_ERROR(MSG_UNEXPECTED);
 
-    token = PeekNextTokenSkipDivider();
-    ExpressionModel expr2 = ParseExpression(model);
-    CHECK_MODEL_ERROR;
-    CHECK_EXPRESSION_NOT_EMPTY(expr2);
-    model.args.push_back(expr2);
+    token = GetNextTokenSkipDivider();
+    if (token.type != TokenTypeNumber)
+        MODEL_ERROR("Numeric argument expected.");
+    model.params.push_back(token);
 
     token = GetNextTokenSkipDivider();
     if (!token.IsEolOrEof())

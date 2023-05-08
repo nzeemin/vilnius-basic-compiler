@@ -38,7 +38,7 @@ enum KeywordIndex
     KeywordLEN, KeywordLET, KeywordLIST, KeywordLLIST, KeywordLOAD, KeywordLOCATE, KeywordLOG, KeywordLPOS, KeywordLPRINT, KeywordLINE,
     KeywordMID, KeywordMOD, KeywordMERGE,
     KeywordNEW, KeywordNEXT, KeywordNOT,
-    KeywordON, KeywordOR, KeywordOUT, KeywordOPEN, KeywordOCT,
+    KeywordON, KeywordOR, KeywordOPEN, KeywordOCT, KeywordOUT, KeywordOUTPUT,
     KeywordPAINT, KeywordPEEK, KeywordPI, KeywordPOINT, KeywordPOKE, KeywordPOS, KeywordPRESET, KeywordPRINT, KeywordPSET,
     KeywordREM, KeywordRENUM, KeywordRETURN, KeywordRND, KeywordREAD, KeywordRESTORE,
     KeywordSAVE, KeywordSGN, KeywordSIN, KeywordSQR, KeywordSTEP, KeywordSTOP, KeywordSTR, KeywordSYSTEM, KeywordSTRING, KeywordSPC,
@@ -274,14 +274,19 @@ private:
     void ParseGotoGosub(SourceLineModel& model);
     void ParseIf(SourceLineModel& model);
     void ParseInput(SourceLineModel& model);
+    void ParseKey(SourceLineModel& model);
     void ParseLet(SourceLineModel& model);
     void ParseLocate(SourceLineModel& model);
     void ParseNext(SourceLineModel& model);
     void ParseOn(SourceLineModel& model);
+    void ParseOpen(SourceLineModel& model);
     void ParseOut(SourceLineModel& model);
     void ParsePrint(SourceLineModel& model);
     void ParsePoke(SourceLineModel& model);
     void ParsePsetPreset(SourceLineModel& model);
+    void ParseLine(SourceLineModel& model);
+    void ParseCircle(SourceLineModel& model);
+    void ParsePaint(SourceLineModel& model);
     void ParseRead(SourceLineModel& model);
     void ParseRem(SourceLineModel& model);
     void ParseRestore(SourceLineModel& model);
@@ -339,21 +344,28 @@ private:
     void ValidateExpression(ExpressionModel& expr, int index);
 private:
     void ValidateNothing(SourceLineModel& model);
+    void ValidateCircle(SourceLineModel& model);
     void ValidateClear(SourceLineModel& model);
     void ValidateColor(SourceLineModel& model);
     void ValidateDim(SourceLineModel& model);
+    void ValidateKey(SourceLineModel& model);
     void ValidateDraw(SourceLineModel& model);
     void ValidateFor(SourceLineModel& model);
     void ValidateGotoGosub(SourceLineModel& model);
     void ValidateIf(SourceLineModel& model);
     void ValidateInput(SourceLineModel& model);
     void ValidateLet(SourceLineModel& model);
+    void ValidateLine(SourceLineModel& model);
     void ValidateLocate(SourceLineModel& model);
     void ValidateNext(SourceLineModel& model);
     void ValidateOn(SourceLineModel& model);
+    void ValidateOpen(SourceLineModel& model);
     void ValidateOut(SourceLineModel& model);
+    void ValidatePaint(SourceLineModel& model);
     void ValidatePoke(SourceLineModel& model);
     void ValidatePrint(SourceLineModel& model);
+    void ValidatePreset(SourceLineModel& model);
+    void ValidatePset(SourceLineModel& model);
     void ValidateRestore(SourceLineModel& model);
     void ValidateScreen(SourceLineModel& model);
     void ValidateWidth(SourceLineModel& model);
@@ -446,7 +458,9 @@ private:
     void GenerateAssignment(SourceLineModel& line, VariableModel& var, ExpressionModel& expr);
 private:
     void GenerateBeep(SourceLineModel& line);
+    void GenerateCircle(SourceLineModel& line);
     void GenerateClear(SourceLineModel& line);
+    void GenerateClose(SourceLineModel& line);
     void GenerateCls(SourceLineModel& line);
     void GenerateColor(SourceLineModel& line);
     void GenerateData(SourceLineModel& line);
@@ -459,11 +473,16 @@ private:
     void GenerateIf(SourceLineModel& line);
     void GenerateInput(SourceLineModel& line);
     void GenerateLet(SourceLineModel& line);
+    void GenerateLine(SourceLineModel& line);
     void GenerateLocate(SourceLineModel& line);
     void GenerateNext(SourceLineModel& line);
     void GenerateOn(SourceLineModel& line);
+    void GenerateOpen(SourceLineModel& line);
+    void GeneratePaint(SourceLineModel& line);
     void GeneratePoke(SourceLineModel& line);
     void GeneratePrint(SourceLineModel& line);
+    void GeneratePreset(SourceLineModel& line);
+    void GeneratePset(SourceLineModel& line);
     void GenerateRead(SourceLineModel& line);
     void GenerateRem(SourceLineModel& line);
     void GenerateRestore(SourceLineModel& line);
@@ -476,6 +495,8 @@ private:
 private:
     void GenerateOperPlus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperMinus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperMul(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperDiv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment);
     void GenerateOperEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);

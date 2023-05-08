@@ -21,7 +21,7 @@ const char* Keywords[] = {
     "LEN", "LET", "LIST", "LLIST", "LOAD", "LOCATE", "LOG", "LPOS", "LPRINT", "LINE",
     "MID$", "MOD", "MERGE",
     "NEW", "NEXT", "NOT",
-    "ON", "OR", "OUT", "OPEN", "OCT$",
+    "ON", "OR", "OPEN", "OCT$", "OUT", "OUTPUT",
     "PAINT", "PEEK", "PI", "POINT", "POKE", "POS", "PRESET", "PRINT", "PSET",
     "REM", "RENUM", "RETURN", "RND", "READ", "RESTORE",
     "SAVE", "SGN", "SIN", "SQR", "STEP", "STOP", "STR$", "SYSTEM", "STRING$", "SPC",

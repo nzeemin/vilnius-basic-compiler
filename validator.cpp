@@ -14,10 +14,13 @@
 const ValidatorKeywordSpec Validator::m_keywordspecs[] =
 {
     { KeywordBEEP,      &Validator::ValidateNothing },
+    { KeywordCIRCLE,    &Validator::ValidateCircle },
     { KeywordCLEAR,     &Validator::ValidateClear },
+    { KeywordCLOSE,     &Validator::ValidateNothing },
     { KeywordCLS,       &Validator::ValidateNothing },
     { KeywordCOLOR,     &Validator::ValidateColor },
     { KeywordDIM,       &Validator::ValidateDim },
+    { KeywordKEY,       &Validator::ValidateKey },
     { KeywordDRAW,      &Validator::ValidateDraw },
     { KeywordEND,       &Validator::ValidateNothing },
     { KeywordFOR,       &Validator::ValidateFor },
@@ -27,12 +30,17 @@ const ValidatorKeywordSpec Validator::m_keywordspecs[] =
     { KeywordIF,        &Validator::ValidateIf },
     { KeywordINPUT,     &Validator::ValidateInput },
     { KeywordLET,       &Validator::ValidateLet },
+    { KeywordLINE,      &Validator::ValidateLine },
     { KeywordLOCATE,    &Validator::ValidateLocate },
     { KeywordNEXT,      &Validator::ValidateNext },
     { KeywordON,        &Validator::ValidateOn },
+    { KeywordOPEN,      &Validator::ValidateOpen },
     { KeywordOUT,       &Validator::ValidateOut },
+    { KeywordPAINT,     &Validator::ValidatePaint },
     { KeywordPOKE,      &Validator::ValidatePoke },
     { KeywordPRINT,     &Validator::ValidatePrint },
+    { KeywordPSET,      &Validator::ValidatePset },
+    { KeywordPRESET,    &Validator::ValidatePreset },
     { KeywordRESTORE,   &Validator::ValidateRestore },
     { KeywordRETURN,    &Validator::ValidateNothing },
     { KeywordSCREEN,    &Validator::ValidateScreen },
@@ -364,6 +372,20 @@ void Validator::ValidateDim(SourceLineModel& model)
     }
 }
 
+void Validator::ValidateKey(SourceLineModel& model)
+{
+    if (model.args.size() != 2)
+        MODEL_ERROR("Two expressions expected.");
+
+    ExpressionModel& expr1 = model.args[0];
+    if (!CheckIntegerExpression(model, expr1))
+        return;
+
+    ExpressionModel& expr2 = model.args[1];
+    if (!CheckStringExpression(expr2))
+        return;
+}
+
 void Validator::ValidateDraw(SourceLineModel& model)
 {
     if (model.params.size() == 0)
@@ -470,6 +492,26 @@ void Validator::ValidateInput(SourceLineModel& model)
     }
 }
 
+void Validator::ValidateOpen(SourceLineModel& model)
+{
+    //TODO
+}
+
+void Validator::ValidateLine(SourceLineModel& model)
+{
+    //TODO
+}
+
+void Validator::ValidateCircle(SourceLineModel& model)
+{
+    //TODO
+}
+
+void Validator::ValidatePaint(SourceLineModel& model)
+{
+    //TODO
+}
+
 void Validator::ValidateLet(SourceLineModel& model)
 {
     if (model.variables.size() != 1)
@@ -511,6 +553,16 @@ void Validator::ValidateLocate(SourceLineModel& model)
 
     if (model.args.size() > 3)
         MODEL_ERROR("Too many expressions.");
+}
+
+void Validator::ValidatePset(SourceLineModel& model)
+{
+    //TODO
+}
+
+void Validator::ValidatePreset(SourceLineModel& model)
+{
+    //TODO
 }
 
 void Validator::ValidateNext(SourceLineModel& model)
@@ -650,10 +702,10 @@ void Validator::ValidateScreen(SourceLineModel& model)
 // WIDTH <Integer>, [<Integer>]
 void Validator::ValidateWidth(SourceLineModel& model)
 {
-    if (model.args.size() < 1 || model.args.size() > 2)
-        MODEL_ERROR("One or two expressions expected.");
+    if (model.params.size() < 1 || model.params.size() > 2)
+        MODEL_ERROR("One or two parameters expected.");
 
-    //TODO
+    //NOTE: Ignored for now
 }
 
 
