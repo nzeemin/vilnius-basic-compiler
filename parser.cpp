@@ -90,6 +90,7 @@ const ParserFunctionSpec Parser::m_funcspecs[] =
     { KeywordSPC,       1, 1, ValueTypeNone },
     //NOTE: FN has special syntax
     //NOTE: USR has special syntax
+    { KeywordPOINT,     2, 2, ValueTypeInteger },
 };
 
 const char* MSG_UNEXPECTED = "Unexpected text.";
@@ -658,19 +659,15 @@ void Parser::ParseDim(SourceLineModel& model)
 
 void Parser::ParseDraw(SourceLineModel& model)
 {
-    Token token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-        MODEL_ERROR("Argument expected.");
-    //TODO: Const string, variable, or expression?
-    if (token.type != TokenTypeString)
-        MODEL_ERROR("String argument expected.");
-    model.params.push_back(token);
+    Token token = PeekNextTokenSkipDivider();
+    ExpressionModel expr1 = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr1);
+    model.args.push_back(expr1);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-        return;
-
-    MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseFor(SourceLineModel& model)

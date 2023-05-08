@@ -99,6 +99,7 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordPOS,       &Validator::ValidateFuncCsrlinPosLpos },
     { KeywordLPOS,      &Validator::ValidateFuncCsrlinPosLpos },
     { KeywordEOF,       &Validator::ValidateFuncEof },
+    { KeywordPOINT,     &Validator::ValidateFuncPoint },
 };
 
 Validator::Validator(SourceModel* source)
@@ -252,21 +253,6 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
     //TODO
 }
 
-bool Validator::CheckIntegerExpression(SourceLineModel& model, ExpressionModel& expr)
-{
-    if (expr.IsEmpty())
-    {
-        Error(model, "Expression should not be empty.");
-        return false;
-    }
-    
-    ValidateExpression(expr, expr.root);
-    
-    //TODO: Check the expression result is integer
-
-    return true;
-}
-
 bool Validator::CheckIntegerOrSingleExpression(ExpressionModel& expr)
 {
     if (expr.IsEmpty())
@@ -280,7 +266,7 @@ bool Validator::CheckIntegerOrSingleExpression(ExpressionModel& expr)
     const ExpressionNode& root = expr.nodes[expr.root];
     if (root.vtype != ValueTypeInteger && root.vtype != ValueTypeSingle)
     {
-        Error(expr, "Expression type should be Integer or Single.");
+        Error(expr, root, "Expression should be of type Integer or Single.");
         return false;
     }
 
@@ -289,6 +275,7 @@ bool Validator::CheckIntegerOrSingleExpression(ExpressionModel& expr)
 
 bool Validator::CheckStringExpression(ExpressionModel& expr)
 {
+
     if (expr.IsEmpty())
     {
         Error(expr, "Expression should not be empty.");
@@ -300,7 +287,7 @@ bool Validator::CheckStringExpression(ExpressionModel& expr)
     const ExpressionNode& root = expr.nodes[expr.root];
     if (root.vtype != ValueTypeString)
     {
-        Error(expr, "Expression type should be String.");
+        Error(expr, root, "Expression should be of type String.");
         return false;
     }
 
@@ -323,13 +310,13 @@ void Validator::ValidateClear(SourceLineModel& model)
         MODEL_ERROR("Expression expected.");
 
     ExpressionModel& expr1 = model.args[0];
-    if (!CheckIntegerExpression(model, expr1))
+    if (!CheckIntegerOrSingleExpression(expr1))
         return;
     
     if (model.args.size() > 1)
     {
         ExpressionModel& expr2 = model.args[1];
-        if (!CheckIntegerExpression(model, expr2))
+        if (!CheckIntegerOrSingleExpression(expr2))
             return;
     }
     if (model.args.size() > 2)
@@ -343,19 +330,19 @@ void Validator::ValidateColor(SourceLineModel& model)
 
     {
         ExpressionModel& expr1 = model.args[0];
-        if (!expr1.IsEmpty() && !CheckIntegerExpression(model, expr1))
+        if (!expr1.IsEmpty() && !CheckIntegerOrSingleExpression(expr1))
             return;
     }
     if (model.args.size() > 1)
     {
         ExpressionModel& expr2 = model.args[1];
-        if (!expr2.IsEmpty() && !CheckIntegerExpression(model, expr2))
+        if (!expr2.IsEmpty() && !CheckIntegerOrSingleExpression(expr2))
             return;
     }
     if (model.args.size() > 2)
     {
         ExpressionModel& expr3 = model.args[2];
-        if (!expr3.IsEmpty() && !CheckIntegerExpression(model, expr3))
+        if (!expr3.IsEmpty() && !CheckIntegerOrSingleExpression(expr3))
             return;
     }
 
@@ -378,7 +365,7 @@ void Validator::ValidateKey(SourceLineModel& model)
         MODEL_ERROR("Two expressions expected.");
 
     ExpressionModel& expr1 = model.args[0];
-    if (!CheckIntegerExpression(model, expr1))
+    if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
     ExpressionModel& expr2 = model.args[1];
@@ -388,12 +375,12 @@ void Validator::ValidateKey(SourceLineModel& model)
 
 void Validator::ValidateDraw(SourceLineModel& model)
 {
-    if (model.params.size() == 0)
-        MODEL_ERROR("Parameter expected.");
+    if (model.args.size() == 1)
+        MODEL_ERROR("One expression expected.");
 
-    Token& token = model.params[0];
-    if (token.type != TokenTypeString)
-        MODEL_ERROR("String parameter expected.");
+    ExpressionModel& expr1 = model.args[1];
+    if (!CheckStringExpression(expr1))
+        return;
 }
 
 void Validator::ValidateFor(SourceLineModel& model)
@@ -415,17 +402,17 @@ void Validator::ValidateFor(SourceLineModel& model)
         MODEL_ERROR("Two expressions expected.");
 
     ExpressionModel& expr1 = model.args[0];
-    if (!CheckIntegerExpression(model, expr1))
+    if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
     ExpressionModel& expr2 = model.args[1];
-    if (!CheckIntegerExpression(model, expr2))
+    if (!CheckIntegerOrSingleExpression(expr2))
         return;
 
     if (model.args.size() > 2)  // has STEP expression
     {
         ExpressionModel& expr3 = model.args[1];
-        if (!CheckIntegerExpression(model, expr3))
+        if (!CheckIntegerOrSingleExpression(expr3))
             return;
 
         if (model.args.size() > 3)
@@ -494,7 +481,12 @@ void Validator::ValidateInput(SourceLineModel& model)
 
 void Validator::ValidateOpen(SourceLineModel& model)
 {
-    //TODO
+    if (model.args.size() != 1)
+        MODEL_ERROR("One expression expected.");
+
+    ExpressionModel& expr1 = model.args[0];
+    if (!CheckStringExpression(expr1))
+        return;
 }
 
 void Validator::ValidateLine(SourceLineModel& model)
@@ -535,19 +527,19 @@ void Validator::ValidateLocate(SourceLineModel& model)
         MODEL_ERROR("Expression expected.");
 
     ExpressionModel& expr1 = model.args[0];
-    if (!expr1.IsEmpty() && !CheckIntegerExpression(model, expr1))
+    if (!expr1.IsEmpty() && !CheckIntegerOrSingleExpression(expr1))
         return;
 
     if (model.args.size() > 1)
     {
         ExpressionModel& expr2 = model.args[1];
-        if (!expr2.IsEmpty() && !CheckIntegerExpression(model, expr2))
+        if (!expr2.IsEmpty() && !CheckIntegerOrSingleExpression(expr2))
             return;
     }
     if (model.args.size() > 2)
     {
         ExpressionModel& expr3 = model.args[2];
-        if (!expr3.IsEmpty() && !CheckIntegerExpression(model, expr3))
+        if (!expr3.IsEmpty() && !CheckIntegerOrSingleExpression(expr3))
             return;
     }
 
@@ -618,7 +610,7 @@ void Validator::ValidateOn(SourceLineModel& model)
         MODEL_ERROR("One Expression expected.");
 
     ExpressionModel& expr = model.args[0];
-    if (!CheckIntegerExpression(model, expr))
+    if (!CheckIntegerOrSingleExpression(expr))
         return;
 
     if (model.params.size() == 0)
@@ -642,15 +634,15 @@ void Validator::ValidateOut(SourceLineModel& model)
         MODEL_ERROR("Three expressions expected.");
 
     ExpressionModel& expr1 = model.args[0];
-    if (!CheckIntegerExpression(model, expr1))
+    if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
     ExpressionModel& expr2 = model.args[1];
-    if (!CheckIntegerExpression(model, expr2))
+    if (!CheckIntegerOrSingleExpression(expr2))
         return;
 
     ExpressionModel& expr3 = model.args[2];
-    if (!CheckIntegerExpression(model, expr3))
+    if (!CheckIntegerOrSingleExpression(expr3))
         return;
 }
 
@@ -660,11 +652,11 @@ void Validator::ValidatePoke(SourceLineModel& model)
         MODEL_ERROR("Two expressions expected.");
 
     ExpressionModel& expr1 = model.args[0];
-    if (!CheckIntegerExpression(model, expr1))
+    if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
     ExpressionModel& expr2 = model.args[1];
-    if (!CheckIntegerExpression(model, expr2))
+    if (!CheckIntegerOrSingleExpression(expr2))
         return;
 }
 
@@ -1545,6 +1537,23 @@ void Validator::ValidateFuncEof(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 0)
         EXPR_ERROR("No arguments expected.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = false;
+}
+
+void Validator::ValidateFuncPoint(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 2)
+        EXPR_ERROR("Two arguments expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    ExpressionModel& expr2 = node.args[1];
+    if (!CheckIntegerOrSingleExpression(expr2))
+        return;
 
     node.vtype = ValueTypeInteger;
     node.constval = false;

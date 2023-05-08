@@ -53,8 +53,8 @@ const GeneratorOperSpec Generator::m_operspecs[] =
     { "-",              &Generator::GenerateOperMinus },
     { "*",              &Generator::GenerateOperMul },
     { "/",              &Generator::GenerateOperDiv },
-    //{ "\\",             &Generator::GenerateOperDivInt },
-    //{ "^",              &Generator::GenerateOperPower },
+    { "\\",             &Generator::GenerateOperDivInt },
+    { "^",              &Generator::GenerateOperPower },
     { "=",              &Generator::GenerateOperEqual },
     { "<>",             &Generator::GenerateOperNotEqual },
     { "<",              &Generator::GenerateOperLess },
@@ -828,6 +828,18 @@ void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNod
 {
     //TODO
     m_final->AddLine(";TODO operation division");
+}
+
+void Generator::GenerateOperDivInt(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    //TODO
+    m_final->AddLine(";TODO operation divint");
+}
+
+void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    //TODO
+    m_final->AddLine(";TODO operation power");
 }
 
 void Generator::GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment)

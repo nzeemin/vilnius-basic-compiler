@@ -45,7 +45,8 @@ bool IsFunctionKeyword(KeywordIndex keyword)
         keyword == KeywordBIN || keyword == KeywordOCT || keyword == KeywordHEX ||
         keyword == KeywordCSRLIN || keyword == KeywordPOS || keyword == KeywordLPOS || keyword == KeywordEOF ||
         keyword == KeywordAT || keyword == KeywordTAB || keyword == KeywordSPC ||
-        keyword == KeywordFN || keyword == KeywordUSR;
+        keyword == KeywordFN || keyword == KeywordUSR ||
+        keyword == KeywordPOINT;
 }
 
 string GetKeywordString(KeywordIndex keyword)

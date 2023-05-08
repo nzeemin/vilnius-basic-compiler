@@ -337,7 +337,6 @@ private:
     void Error(SourceLineModel& line, string message);
     void Error(ExpressionModel& expr, string message);
     void Error(ExpressionModel& expr, const ExpressionNode& node, string message);
-    bool CheckIntegerExpression(SourceLineModel& model, ExpressionModel& expr);
     bool CheckIntegerOrSingleExpression(ExpressionModel& expr);
     bool CheckStringExpression(ExpressionModel& expr);
     void ValidateExpression(ExpressionModel& expr);
@@ -412,6 +411,7 @@ private:
     void ValidateFuncHex(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCsrlinPosLpos(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncEof(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncPoint(ExpressionModel& expr, ExpressionNode& node);
 };
 
 class Generator;
@@ -497,6 +497,8 @@ private:
     void GenerateOperMinus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperMul(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperDiv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperDivInt(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperPower(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment);
     void GenerateOperEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
