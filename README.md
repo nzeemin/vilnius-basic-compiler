@@ -32,3 +32,29 @@ Current state of the project: **prototype**
 на целевой машине.
 
 Текущее состояние проекта: **прототип**
+
+### Пример
+
+Исходный файл на Бейсике:
+```
+10 A%=23.42
+20 PRINT A%
+```
+Результат компиляции:
+```
+	.MCALL	.EXIT
+START:
+; 10 A%=23.42
+L10:
+	MOV	#23., VARA.I	; assignment
+; 20 PRINT A%
+L20:
+	MOV	VARA.I., R0
+	CALL	WRINT
+	CALL	WRCRLF
+L65536:
+	.EXIT
+; VARIABLES
+VARA.I:	.WORD	0	; A%
+	.END	START
+```
