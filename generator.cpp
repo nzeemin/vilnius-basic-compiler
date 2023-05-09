@@ -172,7 +172,7 @@ bool Generator::ProcessLine()
     return true;
 }
 
-void Generator::Error(SourceLineModel& line, string message)
+void Generator::Error(SourceLineModel& line, const string& message)
 {
     std::cerr << "ERROR in line " << line.number << " - " << message << std::endl;
     line.error = true;

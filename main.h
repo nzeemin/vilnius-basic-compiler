@@ -210,12 +210,12 @@ struct SourceModel
     std::vector<string> conststrings;//TODO: change to set
 public:
     bool RegisterVariable(const VariableModel& var);  // Add variable to the list
-    bool IsVariableRegistered(string varname) const;
+    bool IsVariableRegistered(const string& varname) const;
     bool IsLineNumberExists(int linenumber) const;
     int GetNextLineNumber(int linenumber) const;
     SourceLineModel& GetSourceLine(int linenumber);
-    void RegisterConstString(string str);
-    int GetConstStringIndex(string str);
+    void RegisterConstString(const string& str);
+    int GetConstStringIndex(const string& str);
 };
 
 struct FinalModel
@@ -287,7 +287,7 @@ private:
     Token PeekNextTokenSkipDivider();
     void SkipTilEnd();
     void SkipComma(SourceLineModel& model);
-    void Error(SourceLineModel& model, Token& token, string message);
+    void Error(SourceLineModel& model, Token& token, const string& message);
     ExpressionModel ParseExpression(SourceLineModel& model);
     VariableModel ParseVariable(SourceLineModel& model);
     void ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model);
@@ -366,9 +366,9 @@ public:
 public:
     bool ProcessLine();
 private:
-    void Error(SourceLineModel& line, string message);
-    void Error(ExpressionModel& expr, string message);
-    void Error(ExpressionModel& expr, const ExpressionNode& node, string message);
+    void Error(SourceLineModel& line, const string& message);
+    void Error(ExpressionModel& expr, const string& message);
+    void Error(ExpressionModel& expr, const ExpressionNode& node, const string& message);
     bool CheckIntegerOrSingleExpression(ExpressionModel& expr);
     bool CheckStringExpression(ExpressionModel& expr);
     void ValidateExpression(ExpressionModel& expr);
@@ -417,6 +417,7 @@ private:
     void ValidateOperGreater(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperLessOrEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperGreaterOrEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperAnd(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
 private:
     void ValidateFuncSin(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCos(ExpressionModel& expr, ExpressionNode& node);
@@ -487,7 +488,7 @@ private:
     static const GeneratorOperSpec m_operspecs[];
     static const GeneratorFuncSpec m_funcspecs[];
 private:
-    void Error(SourceLineModel& line, string message);
+    void Error(SourceLineModel& line, const string& message);
     void GenerateExpression(const ExpressionModel& expr);
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);

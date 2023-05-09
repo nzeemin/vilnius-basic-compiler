@@ -254,7 +254,13 @@ Token Tokenizer::GetNextToken()
         token.type = TokenTypeOperation;
         token.text = ch;
 
-        if (ch == '<')
+        if (ch == '=')
+        {
+            char next = PeekNextChar();
+            if (next == '>' || next == '<')
+                token.text.append(1, GetNextChar());
+        }
+        else if (ch == '<')
         {
             char next = PeekNextChar();
             if (next == '>' || next == '=')
@@ -329,7 +335,7 @@ void Tokenizer::TokenizeIdentifierOrKeyword(char ch, Token& token)
     token.type = TokenTypeIdentifier;
     token.keyword = GetKeywordIndex(token.text);
 
-    if (token.keyword == KeywordMOD)
+    if (token.keyword == KeywordMOD || token.keyword == KeywordAND)
         token.type = TokenTypeOperation;
     else if (token.keyword != KeywordNone)
         token.type = TokenTypeKeyword;

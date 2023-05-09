@@ -68,9 +68,9 @@ const ValidatorOperSpec Validator::m_operspecs[] =
     { ">",              &Validator::ValidateOperGreater },
     { "<=",             &Validator::ValidateOperLessOrEqual },
     { ">=",             &Validator::ValidateOperGreaterOrEqual },
-    //TODO: =>
-    //TODO: =<
-    //TODO: AND
+    { "=<",             &Validator::ValidateOperLessOrEqual },
+    { "=>",             &Validator::ValidateOperGreaterOrEqual },
+    { "AND",            &Validator::ValidateOperAnd },
 };
 
 const ValidatorFuncSpec Validator::m_funcspecs[] =
@@ -161,20 +161,20 @@ bool Validator::ProcessLine()
     return true;
 }
 
-void Validator::Error(SourceLineModel& line, string message)
+void Validator::Error(SourceLineModel& line, const string& message)
 {
     std::cerr << "ERROR in line " << m_linenumber << " - " << message << std::endl;
     line.error = true;
     RegisterError();
 }
 
-void Validator::Error(ExpressionModel& expr, string message)
+void Validator::Error(ExpressionModel& expr, const string& message)
 {
     std::cerr << "ERROR in line " << m_linenumber << " in expression - " << message << std::endl;
     RegisterError();
 }
 
-void Validator::Error(ExpressionModel& expr, const ExpressionNode& node, string message)
+void Validator::Error(ExpressionModel& expr, const ExpressionNode& node, const string& message)
 {
     std::cerr << "ERROR in line " << m_linenumber << ", expression at " << node.node.line << ":" << node.node.pos << " - " << message << std::endl;
     RegisterError();
@@ -983,6 +983,18 @@ void Validator::ValidateOperGreaterOrEqual(ExpressionModel& expr, ExpressionNode
     if (node.constval)
     {
         node.node.dvalue = (nodeleft.node.dvalue >= noderight.node.dvalue) ? -1 : 0;
+    }
+}
+
+void Validator::ValidateOperAnd(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        //TODO
     }
 }
 

@@ -399,7 +399,7 @@ int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
 //////////////////////////////////////////////////////////////////////
 // SourceModel
 
-bool SourceModel::IsVariableRegistered(string varname) const
+bool SourceModel::IsVariableRegistered(const string& varname) const
 {
     for (auto it = std::begin(vars); it != std::end(vars); ++it)
     {
@@ -460,7 +460,7 @@ SourceLineModel& SourceModel::GetSourceLine(int linenumber)
     exit(EXIT_FAILURE);
 }
 
-void SourceModel::RegisterConstString(string str)
+void SourceModel::RegisterConstString(const string& str)
 {
     if (str.empty())
         return;
@@ -474,7 +474,7 @@ void SourceModel::RegisterConstString(string str)
     conststrings.push_back(str);
 }
 
-int SourceModel::GetConstStringIndex(string str)
+int SourceModel::GetConstStringIndex(const string& str)
 {
     if (str.empty())
         return -1;

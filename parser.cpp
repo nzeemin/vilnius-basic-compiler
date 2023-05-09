@@ -302,7 +302,7 @@ SourceLineModel Parser::ParseNextLine()
     return model;
 }
 
-void Parser::Error(SourceLineModel& model, Token& token, string message)
+void Parser::Error(SourceLineModel& model, Token& token, const string& message)
 {
     std::cerr << "ERROR at " << token.line << ":" << token.pos << " line " << model.number << " - " << message << std::endl;
     const string& linetext = model.text;

@@ -389,7 +389,6 @@ int main(int argc, char* argv[])
     parse_commandline(argc, argv);
 
     // Collect list of test cases
-    string testpathwithmask = string(TESTS_SUB_DIR);
     std::vector<string> testfilenames;
     findallfiles_bymask(TESTS_SUB_DIR, ".test", testfilenames);
     // Run all the test cases
