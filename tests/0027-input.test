@@ -13,3 +13,4 @@
 61 INPUT # A%
 62 INPUT # A$
 70 INPUT # A,B,C,D(10)
+72 INPUT # E(1,2,3)
