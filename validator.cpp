@@ -19,11 +19,13 @@ const ValidatorKeywordSpec Validator::m_keywordspecs[] =
     { KeywordCLOSE,     &Validator::ValidateNothing },
     { KeywordCLS,       &Validator::ValidateNothing },
     { KeywordCOLOR,     &Validator::ValidateColor },
+    { KeywordDATA,      &Validator::ValidateData },
     { KeywordDIM,       &Validator::ValidateDim },
     { KeywordKEY,       &Validator::ValidateKey },
     { KeywordDRAW,      &Validator::ValidateDraw },
     { KeywordEND,       &Validator::ValidateNothing },
     { KeywordFOR,       &Validator::ValidateFor },
+    { KeywordREAD,      &Validator::ValidateRead },
     { KeywordREM,       &Validator::ValidateNothing },
     { KeywordGOSUB,     &Validator::ValidateGotoGosub },
     { KeywordGOTO,      &Validator::ValidateGotoGosub },
@@ -47,6 +49,7 @@ const ValidatorKeywordSpec Validator::m_keywordspecs[] =
     { KeywordSTOP,      &Validator::ValidateNothing },
     { KeywordTROFF,     &Validator::ValidateNothing },
     { KeywordTRON,      &Validator::ValidateNothing },
+    { KeywordDEF,       &Validator::ValidateDef },
     { KeywordWIDTH,     &Validator::ValidateWidth },
 };
 
@@ -63,6 +66,11 @@ const ValidatorOperSpec Validator::m_operspecs[] =
     { "<>",             &Validator::ValidateOperNotEqual },
     { "<",              &Validator::ValidateOperLess },
     { ">",              &Validator::ValidateOperGreater },
+    { "<=",             &Validator::ValidateOperLessOrEqual },
+    { ">=",             &Validator::ValidateOperGreaterOrEqual },
+    //TODO: =>
+    //TODO: =<
+    //TODO: AND
 };
 
 const ValidatorFuncSpec Validator::m_funcspecs[] =
@@ -108,6 +116,7 @@ Validator::Validator(SourceModel* source)
     m_source = source;
 
     m_lineindex = -1;
+    m_linenumber = -1;
 }
 
 bool Validator::ProcessLine()
@@ -128,6 +137,7 @@ bool Validator::ProcessLine()
     }
 
     SourceLineModel& line = m_source->lines[m_lineindex];
+    m_linenumber = line.number;
 
     // Find validator implementation
     KeywordIndex keyword = line.statement.keyword;
@@ -153,20 +163,20 @@ bool Validator::ProcessLine()
 
 void Validator::Error(SourceLineModel& line, string message)
 {
-    std::cerr << "ERROR in line " << line.number << " - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_linenumber << " - " << message << std::endl;
     line.error = true;
     RegisterError();
 }
 
 void Validator::Error(ExpressionModel& expr, string message)
 {
-    std::cerr << "ERROR in expression - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_linenumber << " in expression - " << message << std::endl;
     RegisterError();
 }
 
 void Validator::Error(ExpressionModel& expr, const ExpressionNode& node, string message)
 {
-    std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_linenumber << ", expression at " << node.node.line << ":" << node.node.pos << " - " << message << std::endl;
     RegisterError();
 }
 
@@ -323,6 +333,16 @@ void Validator::ValidateClear(SourceLineModel& model)
         MODEL_ERROR("Too many expressions.");
 }
 
+void Validator::ValidateData(SourceLineModel& model)
+{
+    //TODO
+}
+
+void Validator::ValidateRead(SourceLineModel& model)
+{
+    //TODO
+}
+
 void Validator::ValidateColor(SourceLineModel& model)
 {
     if (model.args.size() == 0)
@@ -375,10 +395,10 @@ void Validator::ValidateKey(SourceLineModel& model)
 
 void Validator::ValidateDraw(SourceLineModel& model)
 {
-    if (model.args.size() == 1)
+    if (model.args.size() != 1)
         MODEL_ERROR("One expression expected.");
 
-    ExpressionModel& expr1 = model.args[1];
+    ExpressionModel& expr1 = model.args[0];
     if (!CheckStringExpression(expr1))
         return;
 }
@@ -680,6 +700,33 @@ void Validator::ValidateRestore(SourceLineModel& model)
     }
 }
 
+void Validator::ValidateDef(SourceLineModel& model)
+{
+    if (model.deffnorusr)  // DEF FN
+    {
+        //TODO
+
+        if (model.args.size() != 1)
+            MODEL_ERROR("One expression expected.");
+
+        ExpressionModel& expr1 = model.args[0];
+        ValidateExpression(expr1);
+        //TODO
+    }
+    else  // DEF USR
+    {
+        if (model.paramline < 0 || model.paramline > 9)
+            MODEL_ERROR("DEF USR number is out of range 0..9.");
+
+        if (model.args.size() != 1)
+            MODEL_ERROR("One expression expected.");
+
+        ExpressionModel& expr1 = model.args[0];
+        if (!CheckIntegerOrSingleExpression(expr1))
+            return;
+    }
+}
+
 void Validator::ValidateScreen(SourceLineModel& model)
 {
     if (model.params.size() < 1)
@@ -903,6 +950,18 @@ void Validator::ValidateOperLess(ExpressionModel& expr, ExpressionNode& node, co
     }
 }
 
+void Validator::ValidateOperLessOrEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        node.node.dvalue = (nodeleft.node.dvalue <= noderight.node.dvalue) ? -1 : 0;
+    }
+}
+
 void Validator::ValidateOperGreater(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
@@ -912,6 +971,18 @@ void Validator::ValidateOperGreater(ExpressionModel& expr, ExpressionNode& node,
     if (node.constval)
     {
         node.node.dvalue = (nodeleft.node.dvalue > noderight.node.dvalue) ? -1 : 0;
+    }
+}
+
+void Validator::ValidateOperGreaterOrEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        node.node.dvalue = (nodeleft.node.dvalue >= noderight.node.dvalue) ? -1 : 0;
     }
 }
 

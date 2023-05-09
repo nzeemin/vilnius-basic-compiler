@@ -16,6 +16,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordCLS,       &Parser::ParseStatementNoParams },
     { KeywordCOLOR,     &Parser::ParseColor },
     { KeywordDATA,      &Parser::ParseData },
+    { KeywordDEF,       &Parser::ParseDef },
     { KeywordDIM,       &Parser::ParseDim },
     { KeywordKEY,       &Parser::ParseKey },
     { KeywordDRAW,      &Parser::ParseDraw },
@@ -513,6 +514,59 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
     return expression;
 }
 
+VariableModel Parser::ParseVariable(SourceLineModel& model)
+{
+    VariableModel var;
+    Token token = PeekNextTokenSkipDivider();
+    if (token.type != TokenTypeIdentifier)
+    {
+        Error(model, token, "Identifier expected.");
+        return var;
+    }
+    token = GetNextToken();  // Identifier
+    var.name = GetCanonicVariableName(token.text);
+
+    token = PeekNextTokenSkipDivider();
+    if (token.IsComma() || token.IsEolOrEof())  // end of definition
+        return var;
+
+    if (!token.IsOpenBracket())
+    {
+        Error(model, token, MSG_UNEXPECTED);
+        return var;
+    }
+
+    // Parse array indices
+    GetNextToken();  // Open bracket
+    while (true)
+    {
+        token = GetNextTokenSkipDivider();
+        if (token.type != TokenTypeNumber)
+        {
+            Error(model, token, "Array index expected.");
+            return var;
+        }
+        if (!token.IsDValueInteger())
+        {
+            Error(model, token, "Array index should be an integer.");
+            return var;
+        }
+        //TODO: Check for limits
+        var.indices.push_back((int)token.dvalue);
+
+        token = GetNextTokenSkipDivider();
+        if (token.IsCloseBracket())
+            break;
+        if (!token.IsComma())
+        {
+            Error(model, token, MSG_COMMA_EXPECTED);
+            return var;
+        }
+    }
+
+    return var;
+}
+
 #define MODEL_ERROR(msg) \
     { Error(model, token, msg); return; }
 #define CHECK_MODEL_ERROR \
@@ -610,45 +664,11 @@ void Parser::ParseDim(SourceLineModel& model)
     Token token;
     while (true)
     {
+        VariableModel var = ParseVariable(model);
+        CHECK_MODEL_ERROR;
+        model.variables.push_back(var);
+
         token = GetNextTokenSkipDivider();
-        if (token.type != TokenTypeIdentifier)
-            MODEL_ERROR("Identifier expected.");
-
-        VariableModel var;
-        var.name = GetCanonicVariableName(token.text);
-            
-        token = GetNextTokenSkipDivider();
-        if (token.IsComma() || token.IsEolOrEof())  // end of definition
-        {
-            model.variables.push_back(var);
-        }
-        else if (token.IsOpenBracket())  // Array indices
-        {
-            while (true)
-            {
-                token = GetNextTokenSkipDivider();
-                if (token.type != TokenTypeNumber)
-                    MODEL_ERROR("Array size expected.");
-                if (!token.IsDValueInteger())
-                    MODEL_ERROR("Array size should be an integer.");
-                //TODO: Check for limits
-                var.indices.push_back((int)token.dvalue);
-
-                token = GetNextTokenSkipDivider();
-                if (token.IsCloseBracket())  // end of definition
-                {
-                    model.variables.push_back(var);
-                }
-
-                if (token.IsCloseBracket())
-                    break;
-                if (!token.IsComma())
-                    MODEL_ERROR(MSG_COMMA_EXPECTED);
-            }
-
-            token = GetNextTokenSkipDivider();
-        }
-
         if (token.IsEolOrEof())
             return;  // End of the list
 
@@ -810,9 +830,9 @@ void Parser::ParseOpen(SourceLineModel& model)
     {
         token = GetNextTokenSkipDivider();
         if (token.type == TokenTypeKeyword && token.keyword == KeywordINPUT)
-            ;//TODO: save to model
+            model.filemode = FileModeInput;
         else if (token.type == TokenTypeKeyword && token.keyword == KeywordOUTPUT)
-            ;//TODO: save to model
+            model.filemode = FileModeOutput;
         else
             MODEL_ERROR(MSG_UNEXPECTED);
 
@@ -1496,28 +1516,11 @@ void Parser::ParseRead(SourceLineModel& model)
     Token token;
     while (true)
     {
-        token = GetNextTokenSkipDivider();
-        if (token.type != TokenTypeIdentifier)
-            MODEL_ERROR("Identifier expected.");
-        token = GetNextTokenSkipDivider();
-        if (token.IsOpenBracket())
-        {
-            while (true)
-            {
-                ExpressionModel expr = ParseExpression(model);
-                CHECK_MODEL_ERROR;
-                CHECK_EXPRESSION_NOT_EMPTY(expr);
-                //TODO: save to model
+        VariableModel var = ParseVariable(model);
+        CHECK_MODEL_ERROR;
+        model.variables.push_back(var);
 
-                token = GetNextTokenSkipDivider();
-                if (token.IsCloseBracket())
-                    break;
-                if (!token.IsComma())
-                    MODEL_ERROR(MSG_COMMA_EXPECTED);
-            }
-
-            token = GetNextTokenSkipDivider();
-        }
+        token = GetNextTokenSkipDivider();
         if (token.IsEolOrEof())
             return;  // End of the list
 
@@ -1544,6 +1547,90 @@ void Parser::ParseRestore(SourceLineModel& model)
         MODEL_ERROR("Numeric argument expected.");
     //TODO: Check for valid range
     model.paramline = (int)token.dvalue;
+
+    token = GetNextTokenSkipDivider();
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+}
+
+void Parser::ParseDef(SourceLineModel& model)
+{
+    Token token = GetNextTokenSkipDivider();
+    if (token.type == TokenTypeKeyword && token.keyword == KeywordFN)  // DEF FN
+        ParseDefFn(model);
+    else if (token.type == TokenTypeKeyword && token.keyword == KeywordUSR)  // DEF USR
+        ParseDefUsr(model);
+    else
+        MODEL_ERROR("\'FN\' or \'USR\' expected.");
+}
+
+void Parser::ParseDefFn(SourceLineModel& model)
+{
+    model.deffnorusr = true;
+
+    Token token = GetNextTokenSkipDivider();
+    if (token.type != TokenTypeIdentifier)
+        MODEL_ERROR("Identifier expected.");
+    model.ident = token;
+
+    token = GetNextTokenSkipDivider();
+    if (token.IsOpenBracket())  // Parse optional parameters
+    {
+        while (true)
+        {
+            token = GetNextTokenSkipDivider();
+            if (token.type != TokenTypeIdentifier)
+                MODEL_ERROR("Identifier expected.");
+            model.params.push_back(token);
+
+            token = GetNextTokenSkipDivider();
+            if (!token.IsComma())
+                break;
+        }
+
+        if (!token.IsCloseBracket())
+            MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+
+        token = GetNextTokenSkipDivider();
+    }
+
+    if (!token.IsEqualSign())
+        MODEL_ERROR("Equal sign expected.");
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr);
+    model.args.push_back(expr);
+
+    token = GetNextTokenSkipDivider();
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+}
+
+void Parser::ParseDefUsr(SourceLineModel& model)
+{
+    model.deffnorusr = false;
+
+    int usrnumber = 0;
+    Token token = GetNextToken();
+    if (token.type == TokenTypeNumber)
+    {
+        usrnumber = atoi(token.text.c_str());
+    }
+    else if (token.type != TokenTypeDivider)
+        MODEL_ERROR(MSG_UNEXPECTED);
+    model.paramline = usrnumber;
+
+    token = GetNextTokenSkipDivider();
+    if (!token.IsEqualSign())
+        MODEL_ERROR("Equal sign expected.");
+
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr = ParseExpression(model);
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr);
+    model.args.push_back(expr);
 
     token = GetNextTokenSkipDivider();
     if (!token.IsEolOrEof())

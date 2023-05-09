@@ -76,6 +76,13 @@ enum ValueType
     ValueTypeString     = 10,   // String of length 0..255
 };
 
+enum FileMode
+{
+    FileModeAny         = 0,
+    FileModeInput       = 1,
+    FileModeOutput      = 2,
+};
+
 extern void RegisterError();
 
 string GetCanonicVariableName(const string& name);
@@ -177,11 +184,14 @@ struct SourceLineModel
     Token	ident;	    // LET identifier at left, FOR variable
     bool    relative;   // PSET, PRESET, LINE, CIRCLE, PAINT with '@' sign
     bool    gotogosub;  // true for ON GOTO, false for ON GOSUB
+    bool    deffnorusr; // true for DEF FN, false for DEF USR
+    FileMode filemode;  // File mode for OPEN
     std::vector<ExpressionModel> args;  // Statement arguments
     std::vector<Token> params;  // Statement params like list of variables
     std::vector<VariableModel> variables;
 public:
-    SourceLineModel() : number(0), error(false), paramline(0), relative(false), gotogosub(false) {}
+    SourceLineModel()
+        : number(0), error(false), paramline(0), relative(false), gotogosub(false), deffnorusr(false), filemode(FileModeAny) {}
 };
 
 struct SourceModel
@@ -262,12 +272,16 @@ private:
     void SkipComma(SourceLineModel& model);
     void Error(SourceLineModel& model, Token& token, string message);
     ExpressionModel ParseExpression(SourceLineModel& model);
+    VariableModel ParseVariable(SourceLineModel& model);
     void ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model);
 private:
     void ParseStatementNoParams(SourceLineModel& model);
     void ParseClear(SourceLineModel& model);
     void ParseColor(SourceLineModel& model);
     void ParseData(SourceLineModel& model);
+    void ParseDef(SourceLineModel& model);
+    void ParseDefFn(SourceLineModel& model);
+    void ParseDefUsr(SourceLineModel& model);
     void ParseDim(SourceLineModel& model);
     void ParseDraw(SourceLineModel& model);
     void ParseFor(SourceLineModel& model);
@@ -324,6 +338,7 @@ class Validator
 {
     SourceModel*    m_source;
     int             m_lineindex;
+    int             m_linenumber;  // Line number for the line under analysis, for error reporting
     std::vector<ValidatorForSpec> m_fornextstack;
 private:
     static const ValidatorKeywordSpec m_keywordspecs[];
@@ -346,6 +361,8 @@ private:
     void ValidateCircle(SourceLineModel& model);
     void ValidateClear(SourceLineModel& model);
     void ValidateColor(SourceLineModel& model);
+    void ValidateData(SourceLineModel& model);
+    void ValidateDef(SourceLineModel& model);
     void ValidateDim(SourceLineModel& model);
     void ValidateKey(SourceLineModel& model);
     void ValidateDraw(SourceLineModel& model);
@@ -365,6 +382,7 @@ private:
     void ValidatePrint(SourceLineModel& model);
     void ValidatePreset(SourceLineModel& model);
     void ValidatePset(SourceLineModel& model);
+    void ValidateRead(SourceLineModel& model);
     void ValidateRestore(SourceLineModel& model);
     void ValidateScreen(SourceLineModel& model);
     void ValidateWidth(SourceLineModel& model);
@@ -380,6 +398,8 @@ private:
     void ValidateOperNotEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperLess(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperGreater(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperLessOrEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperGreaterOrEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
 private:
     void ValidateFuncSin(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCos(ExpressionModel& expr, ExpressionNode& node);
