@@ -1,0 +1,15 @@
+-q
+----------------------------------------------------------------------
+10 INPUT A
+11 INPUT A%
+12 INPUT A$
+20 INPUT "PROMPT";A
+21 INPUT "PROMPT";A%
+22 INPUT "PROMPT";A$
+30 INPUT "PROMPT";A,B
+40 INPUT "PROMPT";D(10)
+50 INPUT "PROMPT";A,B,C,D(10)
+60 INPUT #A
+61 INPUT # A%
+62 INPUT # A$
+70 INPUT # A,B,C,D(10)

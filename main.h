@@ -183,6 +183,7 @@ struct SourceLineModel
     int		paramline;	// Line number parameter for GOTO, GOSUB, RESTORE
     Token	ident;	    // LET identifier at left, FOR variable
     bool    relative;   // PSET, PRESET, LINE, CIRCLE, PAINT with '@' sign
+    bool    fileoper;   // File operation, for INPUT
     bool    gotogosub;  // true for ON GOTO, false for ON GOSUB
     bool    deffnorusr; // true for DEF FN, false for DEF USR
     FileMode filemode;  // File mode for OPEN
@@ -190,8 +191,9 @@ struct SourceLineModel
     std::vector<Token> params;  // Statement params like list of variables
     std::vector<VariableModel> variables;
 public:
-    SourceLineModel()
-        : number(0), error(false), paramline(0), relative(false), gotogosub(false), deffnorusr(false), filemode(FileModeAny) {}
+    SourceLineModel() :
+        number(0), error(false), paramline(0), relative(false), gotogosub(false), deffnorusr(false),
+        filemode(FileModeAny), fileoper(false) {}
 };
 
 struct SourceModel

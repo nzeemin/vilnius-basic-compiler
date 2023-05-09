@@ -214,10 +214,11 @@ SourceLineModel Parser::ParseNextLine()
     }
     m_prevlinenum = model.number;
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
 
     if (token.type == TokenTypeEndComment)  // REM short form
     {
+        GetNextToken();  // get after peek
         Token tokenrem;
         tokenrem.keyword = KeywordREM;
         model.statement = tokenrem;
@@ -225,6 +226,7 @@ SourceLineModel Parser::ParseNextLine()
     }
     if (token.type == TokenTypeSymbol && token.symbol == '?')  // PRINT short form
     {
+        GetNextToken();  // get after peek
         Token tokenprint;
         tokenprint.type = TokenTypeKeyword;
         tokenprint.keyword = KeywordPRINT;
@@ -259,6 +261,8 @@ SourceLineModel Parser::ParseNextLine()
             SkipTilEnd();
         return model;
     }
+
+    GetNextToken();  // get after peek
 
     if (token.type != TokenTypeKeyword)
     {
@@ -514,6 +518,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
     return expression;
 }
 
+// Parse variable like "A", or variable with indices like "A(1,2)"
 VariableModel Parser::ParseVariable(SourceLineModel& model)
 {
     VariableModel var;
@@ -527,14 +532,8 @@ VariableModel Parser::ParseVariable(SourceLineModel& model)
     var.name = GetCanonicVariableName(token.text);
 
     token = PeekNextTokenSkipDivider();
-    if (token.IsComma() || token.IsEolOrEof())  // end of definition
+    if (!token.IsOpenBracket())  // end of definition
         return var;
-
-    if (!token.IsOpenBracket())
-    {
-        Error(model, token, MSG_UNEXPECTED);
-        return var;
-    }
 
     // Parse array indices
     GetNextToken();  // Open bracket
@@ -785,36 +784,33 @@ void Parser::ParseIf(SourceLineModel& model)
 void Parser::ParseInput(SourceLineModel& model)
 {
     Token token = PeekNextTokenSkipDivider();
-    //TODO: Possible '#'
-    if (token.type == TokenTypeString)  // prompt string
+    if (token.type == TokenTypeSymbol && token.symbol == '#')  // File operation
+    {
+        GetNextToken();
+        model.fileoper = true;
+    }
+    else if (token.type == TokenTypeString)  // prompt string
     {
         GetNextToken();
         model.params.push_back(token);
         token = GetNextTokenSkipDivider();
         if (token.type != TokenTypeSymbol || token.symbol != ';')
             MODEL_ERROR("Semicolon expected.");
-        token = PeekNextTokenSkipDivider();
     }
 
     while (true)
     {
-        if (token.type != TokenTypeIdentifier)
-            MODEL_ERROR("Variable expected.");
-        GetNextToken();  // Identifier
-
-        VariableModel var;
-        var.name = GetCanonicVariableName(token.text);
-        //TODO: possible open bracket and array indices
+        VariableModel var = ParseVariable(model);
+        CHECK_MODEL_ERROR;
         model.variables.push_back(var);
 
         token = GetNextTokenSkipDivider();
-        if (token.IsEolOrEof())
-            return;
         if (!token.IsComma())
-            MODEL_ERROR("Comma expected.");
-
-        token = PeekNextTokenSkipDivider();
+            break;
     }
+
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseOpen(SourceLineModel& model)
@@ -866,13 +862,14 @@ void Parser::ParseKey(SourceLineModel& model)
 
 void Parser::ParseLet(SourceLineModel& model)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeIdentifier && (token.type != TokenTypeKeyword || token.keyword != KeywordMID))
         MODEL_ERROR("Identifier or MID$ expected.");
 
     ParseLetShort(token, model);
 }
 
+//NOTE: We did only peek on tokenIdentOrMid, NOT get
 void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
 {
     model.ident = tokenIdentOrMid;
@@ -880,36 +877,20 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
     Token token;
     if (tokenIdentOrMid.type == TokenTypeIdentifier)
     {
-        VariableModel var;
-        var.name = GetCanonicVariableName(tokenIdentOrMid.text);
-        //TODO: Check for open bracket, parse variable indices
+        VariableModel var = ParseVariable(model);
+        CHECK_MODEL_ERROR;
         model.variables.push_back(var);
-
-        token = GetNextTokenSkipDivider();
-        if (token.IsOpenBracket())  // Open bracket - read array indices
-        {
-            token = GetNextTokenSkipDivider();
-            //TODO
-
-            //TODO: Close bracket
-            token = GetNextTokenSkipDivider();
-
-            token = GetNextTokenSkipDivider();  // get token after the close bracket
-        }
     }
     else if (tokenIdentOrMid.type == TokenTypeKeyword && tokenIdentOrMid.keyword == KeywordMID)
     {
+        GetNextToken();  // MID$
+
         token = GetNextTokenSkipDivider();
         if (!token.IsOpenBracket())
             MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
 
-        token = GetNextTokenSkipDivider();
-        if (token.type != TokenTypeIdentifier)
-            MODEL_ERROR("Identifier expected.");
-
-        VariableModel var;
-        var.name = GetCanonicVariableName(token.text);
-        //TODO: Check for open bracket, parse variable indices
+        VariableModel var = ParseVariable(model);
+        CHECK_MODEL_ERROR;
         model.variables.push_back(var);
 
         SKIP_COMMA;
@@ -928,10 +909,9 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
         token = GetNextTokenSkipDivider();
         if (!token.IsCloseBracket())
             MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
-
-        token = GetNextTokenSkipDivider();
     }
 
+    token = GetNextTokenSkipDivider();
     if (!token.IsEqualSign())
         MODEL_ERROR("Equal sign (\'=\') expected.");
 
