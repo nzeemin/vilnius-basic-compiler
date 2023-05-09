@@ -335,7 +335,8 @@ void Tokenizer::TokenizeIdentifierOrKeyword(char ch, Token& token)
     token.type = TokenTypeIdentifier;
     token.keyword = GetKeywordIndex(token.text);
 
-    if (token.keyword == KeywordMOD || token.keyword == KeywordAND)
+    if (token.keyword == KeywordMOD ||
+        token.keyword == KeywordAND || token.keyword == KeywordOR || token.keyword == KeywordXOR || token.keyword == KeywordIMP)
         token.type = TokenTypeOperation;
     else if (token.keyword != KeywordNone)
         token.type = TokenTypeKeyword;

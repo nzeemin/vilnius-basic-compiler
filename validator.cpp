@@ -71,6 +71,10 @@ const ValidatorOperSpec Validator::m_operspecs[] =
     { "=<",             &Validator::ValidateOperLessOrEqual },
     { "=>",             &Validator::ValidateOperGreaterOrEqual },
     { "AND",            &Validator::ValidateOperAnd },
+    { "OR",             &Validator::ValidateOperOr },
+    //TODO: XOR
+    //TODO: EQV
+    //TODO: IMP
 };
 
 const ValidatorFuncSpec Validator::m_funcspecs[] =
@@ -886,8 +890,8 @@ void Validator::ValidateOperMod(ExpressionModel& expr, ExpressionNode& node, con
         int ivalueright = (int)noderight.node.dvalue;
         if (ivalueright == 0)
             node.node.dvalue = 0;
-
-        node.node.dvalue = ((int)nodeleft.node.dvalue) % ivalueright;
+        else
+            node.node.dvalue = ((int)nodeleft.node.dvalue) % ivalueright;
     }
 }
 
@@ -990,11 +994,33 @@ void Validator::ValidateOperAnd(ExpressionModel& expr, ExpressionNode& node, con
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
 
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'AND\' not applicable to strings.");
+
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        //TODO
+        int ivalueleft = (int)nodeleft.node.dvalue;
+        int ivalueright = (int)noderight.node.dvalue;
+        node.node.dvalue = ivalueleft & ivalueright;
+    }
+}
+
+void Validator::ValidateOperOr(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'AND\' not applicable to strings.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        int ivalueleft = (int)nodeleft.node.dvalue;
+        int ivalueright = (int)noderight.node.dvalue;
+        node.node.dvalue = ivalueleft | ivalueright;
     }
 }
 

@@ -208,25 +208,29 @@ int ExpressionNode::GetOperationPriority() const
     if (brackets)
         return 1;
 
-    if (node.type == TokenTypeSymbol)
+    if (node.type == TokenTypeOperation)
     {
-        switch (node.symbol)
-        {
-        case '^':
+        if (node.text == "^")
             return 2;
-        case '*': case '/':
+        if (node.text == "*" || node.text == "/")
             return 3;
-        case '\\':
+        if (node.text == "\\")
             return 4;
-        case '+': case '-':
+        if (node.text == "+" || node.text == "-")
             return 6;
-        default:
-            return 0;
-        }
+        if (node.text == "=" || node.text == "<>" || node.text == "><" ||
+            node.text == "=>" || node.text == "<=" || node.text == "=>" || node.text == "=<")
+            return 7;
+        return 0;
     }
 
     if (node.type == TokenTypeKeyword && node.keyword == KeywordMOD)
         return 5;
+
+    if (node.type == TokenTypeOperation &&
+        (node.text == "AND" || node.text == "OR" || node.text == "XOR" ||
+            node.text == "EQV" || node.text == "IMP"))
+        return 8;
 
     return 0;
 }
