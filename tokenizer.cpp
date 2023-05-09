@@ -79,12 +79,15 @@ Tokenizer::Tokenizer(std::istream * pInput)
     m_line = m_pos = 0;
     m_eof = false;
     m_atend = false;
+    m_mode = TokenizerModeUsual;
 
     PrepareLine();
 }
 
 void Tokenizer::PrepareLine()
 {
+    m_mode = TokenizerModeUsual;
+
     if (m_eof)
         return;
     if (m_pInput->eof())
@@ -160,19 +163,18 @@ Token Tokenizer::GetNextToken()
     token.line = m_line;
     token.pos = m_pos;
 
-    if (ch == 0)
+    if (ch == 0)  // end of text
     {
         token.type = TokenTypeEOT;
         return token;
     }
 
-    if (ch == '\n')
+    if (ch == '\n')  // end of line
     {
         token.type = TokenTypeEOL;
         return token;
     }
-
-    if (ch == '\r')
+    if (ch == '\r')  // end of line
     {
         char next = PeekNextChar();
         if (next == '\n')
@@ -186,160 +188,7 @@ Token Tokenizer::GetNextToken()
         token.type = TokenTypeSymbol;
         return token;
     }
-
-    if (ch == '\'')  // Comment from here till end of line
-    {
-        token.type = TokenTypeEndComment;
-        token.text = ch;
-        while (true)
-        {
-            ch = GetNextChar();
-            if (ch == '\n')
-                return token;
-            if (ch == '\r')
-            {
-                char next = PeekNextChar();
-                if (next == '\n')
-                    GetNextChar();
-                return token;
-            }
-            token.text.append(1, ch);
-        }
-    }
-
-    if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))  // Identifier or Keyword
-    {
-        token.text = (char)toupper(ch);
-        bool firstdigit = true;
-        while (true)
-        {
-            ch = PeekNextChar();
-            if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9'))
-            {
-                if (ch >= '0' && ch <= '9' && firstdigit)  // check for like "THEN70"
-                {
-                    KeywordIndex kw = GetKeywordIndex(token.text);
-                    if (kw != KeywordNone)
-                    {
-                        token.keyword = kw;
-                        token.type = TokenTypeKeyword;
-                        return token;
-                    }
-
-                    firstdigit = false;
-                }
-
-                ch = GetNextChar();
-                token.text.append(1, toupper(ch));
-            }
-            else if (ch == '$' || ch == '%' || ch == '!')
-            {
-                token.text.append(1, GetNextChar());
-                if (ch == '$')
-                    token.vtype = ValueTypeString;
-                else if (ch == '%')
-                    token.vtype = ValueTypeInteger;
-                else
-                    token.vtype = ValueTypeSingle;
-                break;
-            }
-            else
-            {
-                token.vtype = ValueTypeSingle;
-                break;
-            }
-        }
-
-        token.type = TokenTypeIdentifier;
-        token.keyword = GetKeywordIndex(token.text);
-        
-        if (token.keyword == KeywordMOD)
-            token.type = TokenTypeOperation;
-        else if (token.keyword != KeywordNone)
-            token.type = TokenTypeKeyword;
-
-        return token;
-    }
-
-    char ch2 = PeekNextChar();
-    if ((ch >= '0' && ch <= '9') || ch == '.' ||
-        (ch == '-' && ((ch2 >= '0' && ch2 <= '9') || ch2 == '.')))  // Number
-    {
-        token.text = ch;
-        token.vtype = ValueTypeSingle;  // by default
-        bool hasdot = (ch == '.');
-        bool hasDorE = false;
-        while (true)
-        {
-            ch = PeekNextChar();
-            if (ch >= '0' && ch <= '9')
-                token.text.append(1, GetNextChar());
-            else if (ch == '.')
-            {
-                if (hasdot)
-                    break;
-                token.text.append(1, GetNextChar());
-                hasdot = true;
-            }
-            else if (/*ch == 'D' ||*/ ch == 'E')
-            {
-                if (hasDorE)
-                    break;
-                token.text.append(1, GetNextChar());
-                hasDorE = true;
-                //if (ch == 'E')
-                token.vtype = ValueTypeSingle;
-                //else if (ch == 'D')
-                //    token.vtype = ValueTypeDouble;
-                ch = PeekNextChar();
-                if (ch == '-')
-                    token.text.append(1, GetNextChar());
-            }
-            else if (ch == '%' || ch == '!' || ch == '#')
-            {
-                token.text.append(1, GetNextChar());
-                if (ch == '%')
-                    token.vtype = ValueTypeInteger;
-                else if (ch == '!')
-                    token.vtype = ValueTypeSingle;
-                //else if (ch == '#')
-                //    token.vtype = ValueTypeDouble;
-                break;
-            }
-            else
-                break;
-        }
-
-        token.type = TokenTypeNumber;
-        token.ParseDValue();
-        return token;
-    }
-
-    if (ch == '\"')  // String
-    {
-        token.text.clear();
-
-        while (true)
-        {
-            ch = PeekNextChar();
-            if (ch == '\r' || ch == '\n' || ch == 0)
-                break;  // Incomplete string
-            else
-            {
-                ch = GetNextChar();
-                if (ch == '\"')
-                    break;  // Completed string
-                token.text.append(1, ch);
-            }
-        }
-
-        token.type = TokenTypeString;
-        token.vtype = ValueTypeString;
-        token.svalue = token.text;
-        return token;
-    }
-
-    if (ch == ' ' || ch == '\t')
+    if (ch == ' ' || ch == '\t')  // Divider
     {
         token.text = ch;
 
@@ -356,64 +205,50 @@ Token Tokenizer::GetNextToken()
         return token;
     }
 
+    if (ch == '\"')  // String
+    {
+        TokenizeString(ch, token);
+        return token;
+    }
+
+    // Comment from here till end of line (except for DATA mode)
+    if (m_mode != TokenizerModeData &&
+        ch == '\'')
+    {
+        TokenizeEndComment(ch, token);
+        return token;
+    }
+
+    // Identifier or Keyword (except for DATA mode)
+    if (m_mode != TokenizerModeData &&
+        ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')))
+    {
+        TokenizeIdentifierOrKeyword(ch, token);
+        return token;
+    }
+
+    if (ch == ',' || ch == ';')
+    {
+        token.symbol = ch;
+        token.type = TokenTypeSymbol;
+        return token;
+    }
+
+    char next = PeekNextChar();
+    if ((ch >= '0' && ch <= '9') || ch == '.' ||
+        (ch == '-' && ((next >= '0' && next <= '9') || next == '.')))  // Number
+    {
+        TokenizeNumber(ch, next, token);
+        return token;
+    }
     if (ch == '&')	// Hex, Octal, Binary
     {
-        char next = PeekNextChar();
-        if (next == 'H')  // Hex
-        {
-            token.text = "&H";
-            GetNextChar();
-            while (true)
-            {
-                ch = PeekNextChar();
-                if ((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F'))
-                    token.text.append(1, GetNextChar());
-                else
-                    break;
-            }
-            token.type = TokenTypeNumber;
-            token.vtype = ValueTypeInteger;
-            token.ParseDValue();
-            return token;
-        }
-        else if (next == 'O')  // Octal
-        {
-            token.text = "&O";
-            GetNextChar();
-            while (true)
-            {
-                ch = PeekNextChar();
-                if (ch >= '0' && ch <= '7')
-                    token.text.append(1, GetNextChar());
-                else
-                    break;
-            }
-            token.type = TokenTypeNumber;
-            token.vtype = ValueTypeInteger;
-            token.ParseDValue();
-            return token;
-        }
-        else if (next == 'B')  // Binary
-        {
-            token.text = "&B";
-            GetNextChar();
-            while (true)
-            {
-                ch = PeekNextChar();
-                if (ch >= '0' && ch <= '1')
-                    token.text.append(1, GetNextChar());
-                else
-                    break;
-            }
-            token.type = TokenTypeNumber;
-            token.vtype = ValueTypeInteger;
-            token.ParseDValue();
-            return token;
-        }
-
-        // else it is Symbol
+        if (next == 'H' || next == 'O' || next == 'B')
+            TokenizeHexOctalBinary(ch, next, token);
+        // else it is symbol
     }
-    else if (ch == '-' || ch == '+' || ch == '/' || ch == '*' || ch == '^' || ch == '\\' || ch == '=' ||
+
+    if (ch == '-' || ch == '+' || ch == '/' || ch == '*' || ch == '^' || ch == '\\' || ch == '=' ||
         ch == '<' || ch == '>')  // Operation
     {
         token.type = TokenTypeOperation;
@@ -435,9 +270,243 @@ Token Tokenizer::GetNextToken()
         return token;
     }
 
+    // Everything else falls here
+
+    if (m_mode == TokenizerModeData)
+    {
+        TokenizeDataString(ch, token);
+        return token;
+    }
+
     token.symbol = ch;
     token.type = TokenTypeSymbol;
     return token;
+}
+
+void Tokenizer::TokenizeIdentifierOrKeyword(char ch, Token& token)
+{
+    token.text = (char)toupper(ch);
+    bool firstdigit = true;
+    while (true)
+    {
+        ch = PeekNextChar();
+        if ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9'))
+        {
+            if (ch >= '0' && ch <= '9' && firstdigit)  // check for like "THEN70"
+            {
+                KeywordIndex kw = GetKeywordIndex(token.text);
+                if (kw != KeywordNone)
+                {
+                    token.keyword = kw;
+                    token.type = TokenTypeKeyword;
+                    return;
+                }
+
+                firstdigit = false;
+            }
+
+            ch = GetNextChar();
+            token.text.append(1, toupper(ch));
+        }
+        else if (ch == '$' || ch == '%' || ch == '!')
+        {
+            token.text.append(1, GetNextChar());
+            if (ch == '$')
+                token.vtype = ValueTypeString;
+            else if (ch == '%')
+                token.vtype = ValueTypeInteger;
+            else
+                token.vtype = ValueTypeSingle;
+            break;
+        }
+        else
+        {
+            token.vtype = ValueTypeSingle;
+            break;
+        }
+    }
+
+    token.type = TokenTypeIdentifier;
+    token.keyword = GetKeywordIndex(token.text);
+
+    if (token.keyword == KeywordMOD)
+        token.type = TokenTypeOperation;
+    else if (token.keyword != KeywordNone)
+        token.type = TokenTypeKeyword;
+}
+
+void Tokenizer::TokenizeNumber(char ch, char ch2, Token& token)
+{
+    token.text = ch;
+    token.vtype = ValueTypeSingle;  // by default
+    bool hasdot = (ch == '.');
+    bool hasDorE = false;
+    while (true)
+    {
+        ch = PeekNextChar();
+        if (ch >= '0' && ch <= '9')
+            token.text.append(1, GetNextChar());
+        else if (ch == '.')
+        {
+            if (hasdot)
+                break;
+            token.text.append(1, GetNextChar());
+            hasdot = true;
+        }
+        else if (/*ch == 'D' ||*/ ch == 'E')
+        {
+            if (hasDorE)
+                break;
+            token.text.append(1, GetNextChar());
+            hasDorE = true;
+            //if (ch == 'E')
+            token.vtype = ValueTypeSingle;
+            //else if (ch == 'D')
+            //    token.vtype = ValueTypeDouble;
+            ch = PeekNextChar();
+            if (ch == '-')
+                token.text.append(1, GetNextChar());
+        }
+        else if (ch == '%' || ch == '!' || ch == '#')
+        {
+            token.text.append(1, GetNextChar());
+            if (ch == '%')
+                token.vtype = ValueTypeInteger;
+            else if (ch == '!')
+                token.vtype = ValueTypeSingle;
+            //else if (ch == '#')
+            //    token.vtype = ValueTypeDouble;
+            break;
+        }
+        else
+            break;
+    }
+
+    token.type = TokenTypeNumber;
+    token.ParseDValue();
+}
+
+void Tokenizer::TokenizeString(char ch, Token& token)
+{
+    assert(ch == '\"');
+
+    token.text.clear();
+
+    while (true)
+    {
+        ch = PeekNextChar();
+        if (ch == '\r' || ch == '\n' || ch == 0)
+            break;  // Incomplete string
+        else
+        {
+            ch = GetNextChar();
+            if (ch == '\"')
+                break;  // Completed string
+            token.text.append(1, ch);
+        }
+    }
+
+    token.type = TokenTypeString;
+    token.vtype = ValueTypeString;
+    token.svalue = token.text;
+}
+
+// Very special case, string in DATA statement
+// Not starts/finishes with quotes
+// No end-comment starting with apostrophe
+void Tokenizer::TokenizeDataString(char ch, Token& token)
+{
+    token.text = ch;
+
+    while (true)
+    {
+        ch = PeekNextChar();
+        if (ch == '\r' || ch == '\n' || ch == 0)
+            break;
+        else if (ch == ',')  // end of the string
+            break;
+        ch = GetNextChar();
+        token.text.append(1, ch);
+    }
+
+    token.type = TokenTypeString;
+    token.vtype = ValueTypeString;
+    token.svalue = token.text;
+}
+
+void Tokenizer::TokenizeHexOctalBinary(char ch, char next, Token& token)
+{
+    if (next == 'H')  // Hex
+    {
+        token.text = "&H";
+        GetNextChar();
+        while (true)
+        {
+            ch = PeekNextChar();
+            if ((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F'))
+                token.text.append(1, GetNextChar());
+            else
+                break;
+        }
+        token.type = TokenTypeNumber;
+        token.vtype = ValueTypeInteger;
+        token.ParseDValue();
+        return;
+    }
+    else if (next == 'O')  // Octal
+    {
+        token.text = "&O";
+        GetNextChar();
+        while (true)
+        {
+            ch = PeekNextChar();
+            if (ch >= '0' && ch <= '7')
+                token.text.append(1, GetNextChar());
+            else
+                break;
+        }
+        token.type = TokenTypeNumber;
+        token.vtype = ValueTypeInteger;
+        token.ParseDValue();
+        return;
+    }
+    else if (next == 'B')  // Binary
+    {
+        token.text = "&B";
+        GetNextChar();
+        while (true)
+        {
+            ch = PeekNextChar();
+            if (ch >= '0' && ch <= '1')
+                token.text.append(1, GetNextChar());
+            else
+                break;
+        }
+        token.type = TokenTypeNumber;
+        token.vtype = ValueTypeInteger;
+        token.ParseDValue();
+        return;
+    }
+}
+
+void Tokenizer::TokenizeEndComment(char ch, Token& token)
+{
+    token.type = TokenTypeEndComment;
+    token.text = ch;
+    while (true)
+    {
+        ch = GetNextChar();
+        if (ch == '\n')
+            return;
+        if (ch == '\r')
+        {
+            char next = PeekNextChar();
+            if (next == '\n')
+                GetNextChar();
+            return;
+        }
+        token.text.append(1, ch);
+    }
 }
 
 

@@ -52,6 +52,13 @@ enum KeywordIndex
 bool IsFunctionKeyword(KeywordIndex keyword);
 string GetKeywordString(KeywordIndex keyword);
 
+enum TokenizerMode
+{
+    TokenizerModeUsual  = 0,
+    TokenizerModeData   = 1,
+    TokenizerModePrint  = 2,
+};
+
 enum TokenType
 {
     TokenTypeNone       = 0,
@@ -225,15 +232,23 @@ class Tokenizer
     int m_line, m_pos;  // Line number (1-based) and position (1-based)
     bool m_eof;
     bool m_atend;       // Flag indicating that we should clear m_text on next char
+    TokenizerMode m_mode;
 public:
     Tokenizer(std::istream* pInput);
 public:
     Token GetNextToken();
     string GetLineText() { return m_text; }
+    void SetMode(TokenizerMode mode) { m_mode = mode; }
 private:
     void PrepareLine();
     char GetNextChar();
     char PeekNextChar();
+    void TokenizeEndComment(char ch, Token& token);
+    void TokenizeIdentifierOrKeyword(char ch, Token& token);
+    void TokenizeNumber(char ch, char ch2, Token& token);
+    void TokenizeString(char ch, Token& token);
+    void TokenizeDataString(char ch, Token& token);
+    void TokenizeHexOctalBinary(char ch, char next, Token& token);
 };
 
 class Parser;

@@ -653,9 +653,22 @@ void Parser::ParseColor(SourceLineModel& model)
 
 void Parser::ParseData(SourceLineModel& model)
 {
-    //TODO
+    m_tokenizer->SetMode(TokenizerModeData);
 
-    SkipTilEnd();//STUB
+    Token token;
+    while (true)
+    {
+        ExpressionModel expr = ParseExpression(model);
+        CHECK_MODEL_ERROR;
+        model.args.push_back(expr);
+
+        token = GetNextTokenSkipDivider();
+        if (!token.IsComma())
+            break;
+    }
+
+    if (!token.IsEolOrEof())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseDim(SourceLineModel& model)
@@ -1056,6 +1069,8 @@ void Parser::ParseOut(SourceLineModel& model)
 //TODO: LPRINT
 void Parser::ParsePrint(SourceLineModel& model)
 {
+    m_tokenizer->SetMode(TokenizerModePrint);
+
     Token token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
     {
