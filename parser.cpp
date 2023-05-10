@@ -370,10 +370,11 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                 break;  // It's okay to end here
 
             if (!token.IsBinaryOperation())
-            {
-                Error(model, token, "Binary operation expected in expression.");
-                return expression;
-            }
+                break;
+            //{
+            //    Error(model, token, "Binary operation expected in expression.");
+            //    return expression;
+            //}
 
             token = GetNextToken();  // get the token we peeked
 
@@ -658,9 +659,10 @@ void Parser::ParseData(SourceLineModel& model)
     Token token;
     while (true)
     {
-        ExpressionModel expr = ParseExpression(model);
-        CHECK_MODEL_ERROR;
-        model.args.push_back(expr);
+        token = GetNextTokenSkipDivider();
+        if (token.type != TokenTypeNumber && token.type != TokenTypeString)
+            MODEL_ERROR("Number or string expected.");
+        model.params.push_back(token);
 
         token = GetNextTokenSkipDivider();
         if (!token.IsComma())
@@ -1186,12 +1188,27 @@ void Parser::ParsePrint(SourceLineModel& model)
         CHECK_MODEL_ERROR;
         model.args.push_back(expr);
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (token.IsEolOrEof())
-            return;
-        if (!token.IsComma() && !token.IsSemicolon())
-            MODEL_ERROR("Comma or semicolon expected.");
+            break;
+
+        if (token.IsSemicolon())
+            GetNextToken();
+        else if (token.IsComma())
+        {
+            GetNextToken();
+
+            // Add special expression with Comma as root
+            ExpressionNode node0;
+            node0.node = token;  // Comma
+            ExpressionModel expr0;
+            expr0.nodes.push_back(node0);
+            expr0.root = 0;
+            model.args.push_back(expr0);
+        }
     }
+
+    GetNextToken();  // EOL/EOT
 }
 
 void Parser::ParsePoke(SourceLineModel& model)

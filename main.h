@@ -225,6 +225,10 @@ public:
     void AddLine(string str) { lines.push_back(str); }
 };
 
+
+//////////////////////////////////////////////////////////////////////
+
+
 class Tokenizer
 {
     std::istream* m_pInput;

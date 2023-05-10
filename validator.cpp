@@ -339,7 +339,17 @@ void Validator::ValidateClear(SourceLineModel& model)
 
 void Validator::ValidateData(SourceLineModel& model)
 {
-    //TODO
+    if (model.params.size() == 0)
+        MODEL_ERROR("Parameter(s) expected.");
+
+    for (auto it = std::begin(model.params); it != std::end(model.params); ++it)
+    {
+        Token& token = *it;
+        if (token.type != TokenTypeNumber && token.type != TokenTypeString)
+            MODEL_ERROR("Parameter should be of type Number or String.");
+
+        //TODO: put the const value into DATA structures
+    }
 }
 
 void Validator::ValidateRead(SourceLineModel& model)
