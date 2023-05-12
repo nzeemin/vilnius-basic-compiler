@@ -93,41 +93,41 @@ void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
 
 void PrintLineModel(SourceLineModel& line)
 {
-    std::cout << "Line " << line.number << " " << line.statement.text << line.statement.symbol;
-    if (line.paramline > 0)
-        std::cout << " " << line.paramline;
-    if (line.ident.type != TokenTypeNone)
-        std::cout << " ident:" << line.ident.text;
-    if (line.args.size() > 0)
-        std::cout << " args(" << line.args.size() << ")";
-    if (line.params.size() > 0)
-        std::cout << " params(" << line.params.size() << ")";
-    if (line.variables.size() > 0)
-        std::cout << " vars(" << line.variables.size() << ")";
-    if (line.varexprs.size() > 0)
-        std::cout << " varexs(" << line.varexprs.size() << ")";
-    if (line.args.size() > 0)
+    std::cout << "Line " << line.number << " " << line.statement.token.text << line.statement.token.symbol;
+    if (line.statement.paramline > 0)
+        std::cout << " " << line.statement.paramline;
+    if (line.statement.ident.type != TokenTypeNone)
+        std::cout << " ident:" << line.statement.ident.text;
+    if (line.statement.args.size() > 0)
+        std::cout << " args(" << line.statement.args.size() << ")";
+    if (line.statement.params.size() > 0)
+        std::cout << " params(" << line.statement.params.size() << ")";
+    if (line.statement.variables.size() > 0)
+        std::cout << " vars(" << line.statement.variables.size() << ")";
+    if (line.statement.varexprs.size() > 0)
+        std::cout << " varexs(" << line.statement.varexprs.size() << ")";
+    if (line.statement.args.size() > 0)
     {
-        for (size_t i = 0; i < line.args.size(); i++)
+        for (size_t i = 0; i < line.statement.args.size(); i++)
         {
-            ExpressionModel& expr = line.args[i];
+            ExpressionModel& expr = line.statement.args[i];
             PrintExpression(expr, i);
         }
     }
-    if (line.params.size() > 0)
+    if (line.statement.params.size() > 0)
     {
-        for (size_t i = 0; i < line.params.size(); i++)
+        for (size_t i = 0; i < line.statement.params.size(); i++)
         {
-            Token& token = line.params[i];
+            Token& token = line.statement.params[i];
             std::cout << std::endl << std::setw(2) << "  par" << i << ": ";
             token.Dump(std::cout);
         }
     }
-    if (line.variables.size() > 0)
+    if (line.statement.variables.size() > 0)
     {
-        for (size_t i = 0; i < line.variables.size(); i++)
+        for (size_t i = 0; i < line.statement.variables.size(); i++)
         {
-            VariableModel& var = line.variables[i];
+            VariableModel& var = line.statement.variables[i];
             std::cout << std::endl << std::setw(2) << "  var" << i << ": ";
             std::cout << var.name;
             if (var.indices.size() > 0)
@@ -142,16 +142,16 @@ void PrintLineModel(SourceLineModel& line)
             }
         }
     }
-    if (line.varexprs.size() > 0)
+    if (line.statement.varexprs.size() > 0)
     {
-        for (size_t i = 0; i < line.varexprs.size(); i++)
+        for (size_t i = 0; i < line.statement.varexprs.size(); i++)
         {
-            VariableExpressionModel& var = line.varexprs[i];
+            VariableExpressionModel& var = line.statement.varexprs[i];
             std::cout << std::endl << std::setw(2) << "  varex" << i << ": ";
             std::cout << var.name;
             if (!var.args.empty())
             {
-                for (size_t j = 0; j < line.args.size(); j++)
+                for (size_t j = 0; j < line.statement.args.size(); j++)
                 {
                     ExpressionModel& expr = var.args[j];
                     PrintExpression(expr, j, 2);

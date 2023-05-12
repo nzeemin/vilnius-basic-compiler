@@ -188,15 +188,11 @@ struct VariableExpressionModel : VariableBaseModel
     std::vector<ExpressionModel> args;  // List of variable indices as expressions
 };
 
-struct SourceLineModel
+struct StatementModel
 {
-    int		number;		// Line number
-    string  text;       // Full line text
-    bool    error;      // Flag indicating that this line has an error
-    //TODO: StatementModel
-    Token	statement;
-    int		paramline;	// Line number parameter for GOTO, GOSUB, RESTORE
+    Token	token;
     Token	ident;	    // LET identifier at left, FOR variable
+    int		paramline;	// Line number parameter for GOTO, GOSUB, RESTORE
     bool    relative;   // PSET, PRESET, LINE, CIRCLE, PAINT with '@' sign
     bool    fileoper;   // File operation, for INPUT
     bool    gotogosub;  // true for ON GOTO, false for ON GOSUB
@@ -208,9 +204,20 @@ struct SourceLineModel
     std::vector<VariableModel> variables;  // Variables with indices
     std::vector<VariableExpressionModel> varexprs;  // Variables with expressions for indices
 public:
+    StatementModel() :
+        paramline(0), relative(false), gotogosub(false), deffnorusr(false), fileoper(false), nocrlf(false),
+        filemode(FileModeAny) { }
+};
+
+struct SourceLineModel
+{
+    int		number;		// Line number
+    string  text;       // Full line text
+    bool    error;      // Flag indicating that this line has an error
+    StatementModel statement;
+public:
     SourceLineModel() :
-        number(0), error(false), paramline(0), relative(false), gotogosub(false), deffnorusr(false),
-        filemode(FileModeAny), fileoper(false), nocrlf(false) {}
+        number(0), error(false) {}
 };
 
 struct SourceModel

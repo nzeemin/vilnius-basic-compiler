@@ -157,7 +157,7 @@ bool Generator::ProcessLine()
     m_final->AddLine(linenumlabel);
 
     // Find keyword generator implementation
-    KeywordIndex keyword = line.statement.keyword;
+    KeywordIndex keyword = line.statement.token.keyword;
     GeneratorMethodRef methodref = nullptr;
     for (auto it = std::begin(m_keywordspecs); it != std::end(m_keywordspecs); ++it)
     {
@@ -363,7 +363,7 @@ void Generator::GenerateAssignment(SourceLineModel& line, VariableExpressionMode
 
 void Generator::GenerateIgnoredStatement(SourceLineModel& line)
 {
-    m_final->AddLine("; " + line.statement.text + " statement is ignored");
+    m_final->AddLine("; " + line.statement.token.text + " statement is ignored");
 }
 
 void Generator::GenerateBeep(SourceLineModel& line)
@@ -415,12 +415,12 @@ void Generator::GenerateEnd(SourceLineModel& line)
 void Generator::GenerateFor(SourceLineModel& line)
 {
     // Calculate expression for "from"
-    assert(line.args.size() > 1);
-    ExpressionModel& expr1 = line.args[0];
+    assert(line.statement.args.size() > 1);
+    ExpressionModel& expr1 = line.statement.args[0];
 
-    assert(line.ident.type == TokenTypeIdentifier);
+    assert(line.statement.ident.type == TokenTypeIdentifier);
     VariableExpressionModel var;
-    var.name = line.ident.text;
+    var.name = line.statement.ident.text;
     string deconame = var.GetVariableDecoratedName();
 
     // Assign the expression to the loop variable
@@ -428,7 +428,7 @@ void Generator::GenerateFor(SourceLineModel& line)
 
     // Calculate expression for "to"
     string tovalue = "#0";
-    ExpressionModel& expr2 = line.args[1];
+    ExpressionModel& expr2 = line.statement.args[1];
     if (expr2.IsConstExpression())
     {
         tovalue = "#" + std::to_string((int)std::floor(expr2.GetConstExpressionDValue())) + ".";
@@ -444,13 +444,13 @@ void Generator::GenerateFor(SourceLineModel& line)
         m_final->AddLine("\tMOV\tR0, @#<N" + std::to_string(line.number) + "+2>");  //  Save "to" value
     }
 
-    if (line.args.size() > 2)  // has STEP expression
+    if (line.statement.args.size() > 2)  // has STEP expression
     {
         // Calculate expression for "step"
-        ExpressionModel& expr3 = line.args[2];
+        ExpressionModel& expr3 = line.statement.args[2];
         GenerateExpression(expr3);
         // Save "step" value
-        m_final->AddLine("\tMOV\tR0, @#<L" + std::to_string(line.paramline) + "+2>");
+        m_final->AddLine("\tMOV\tR0, @#<L" + std::to_string(line.statement.paramline) + "+2>");
     }
 
     int nextlinenum = m_source->GetNextLineNumber(line.number);
@@ -461,36 +461,36 @@ void Generator::GenerateFor(SourceLineModel& line)
 
 void Generator::GenerateGosub(SourceLineModel& line)
 {
-    string calllinenum = "\tCALL\tL" + std::to_string(line.paramline);
+    string calllinenum = "\tCALL\tL" + std::to_string(line.statement.paramline);
     m_final->AddLine(calllinenum);
 }
 
 void Generator::GenerateGoto(SourceLineModel& line)
 {
-    string jmplinenum = "\tJMP\tL" + std::to_string(line.paramline);
+    string jmplinenum = "\tJMP\tL" + std::to_string(line.statement.paramline);
     m_final->AddLine(jmplinenum);
 }
 
 void Generator::GenerateIf(SourceLineModel& line)
 {
-    assert(line.args.size() > 0);
-    const ExpressionModel& expr = line.args[0];
+    assert(line.statement.args.size() > 0);
+    const ExpressionModel& expr = line.statement.args[0];
     
     if (expr.IsConstExpression())
     {
         int ivalue = (int)expr.GetConstExpressionDValue();
         if (ivalue != 0)  // TRUE - generate THEN only
         {
-            int linenum = (int)line.params[0].dvalue;
+            int linenum = (int)line.statement.params[0].dvalue;
             m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN");
         }
         else  // FALSE - generate ELSE only
         {
-            if (line.params.size() == 1)
+            if (line.statement.params.size() == 1)
                 m_final->AddLine("\t\t\t; ELSE do nothing");
             else
             {
-                int linenum2 = (int)line.params[1].dvalue;
+                int linenum2 = (int)line.statement.params[1].dvalue;
                 m_final->AddLine("\tJMP\tL" + std::to_string(linenum2) + "\t; ELSE");
             }
         }
@@ -500,35 +500,35 @@ void Generator::GenerateIf(SourceLineModel& line)
     GenerateExpression(expr);
     //TODO: set flags: Z=0 for TRUE, Z=1 for FALSE
 
-    if (line.params.size() == 1)  // IF expr THEN linenum
+    if (line.statement.params.size() == 1)  // IF expr THEN linenum
     {
         int linenumnext = m_source->GetNextLineNumber(line.number);
         m_final->AddLine("\tBEQ\tL" + std::to_string(linenumnext));
-        int linenum = (int)line.params[0].dvalue;
+        int linenum = (int)line.statement.params[0].dvalue;
         m_final->AddLine("\tJMP\tL" + std::to_string(linenum));
     }
     else  // IF expr THEN linenum ELSE linenum
     {
         m_final->AddLine("\tBEQ\t10$");
-        int linenum1 = (int)line.params[0].dvalue;
+        int linenum1 = (int)line.statement.params[0].dvalue;
         m_final->AddLine("\tJMP\tL" + std::to_string(linenum1));
-        int linenum2 = (int)line.params[1].dvalue;
+        int linenum2 = (int)line.statement.params[1].dvalue;
         m_final->AddLine("10$:\tJMP\tL" + std::to_string(linenum2));
     }
 }
 
 void Generator::GenerateInput(SourceLineModel& line)
 {
-    if (line.params.size() > 0)  // Write the const string prompt
+    if (line.statement.params.size() > 0)  // Write the const string prompt
     {
-        Token& param = line.params[0];
+        Token& param = line.statement.params[0];
         int strindex = m_source->GetConstStringIndex(param.text);
         string strdeco = "SZ" + std::to_string(strindex);
         m_final->AddLine("\tMOV\t" + strdeco + ", R0");
         m_final->AddLine("\tCALL\tWRSZ\t; print the prompt");
     }
 
-    for (auto it = std::begin(line.variables); it != std::end(line.variables); ++it)
+    for (auto it = std::begin(line.statement.variables); it != std::end(line.statement.variables); ++it)
     {
         ValueType vtype = it->GetValueType();
         string vardeco = it->GetVariableDecoratedName();
@@ -558,35 +558,35 @@ void Generator::GenerateClose(SourceLineModel& line)
 
 void Generator::GenerateLet(SourceLineModel& line)
 {
-    assert(line.args.size() == 1);
-    ExpressionModel& expr = line.args[0];
+    assert(line.statement.args.size() == 1);
+    ExpressionModel& expr = line.statement.args[0];
 
-    VariableExpressionModel& var = line.varexprs[0];
+    VariableExpressionModel& var = line.statement.varexprs[0];
 
     GenerateAssignment(line, var, expr);
 }
 
 void Generator::GenerateOn(SourceLineModel& line)
 {
-    ExpressionModel& expr = line.args[0];
+    ExpressionModel& expr = line.statement.args[0];
     GenerateExpression(expr);
-    int numofcases = line.params.size();
+    int numofcases = line.statement.params.size();
     string nextline = "L" + std::to_string(m_source->GetNextLineNumber(line.number));
     m_final->AddLine("\tDEC\tR0");
     m_final->AddLine("\tBLO\t" + nextline);
     m_final->AddLine("\tCMP\t#" + std::to_string(numofcases) + ", R0");
     m_final->AddLine("\tBGE\t" + nextline);
     m_final->AddLine("\tASL\tR0");
-    if (line.gotogosub)
+    if (line.statement.gotogosub)
         m_final->AddLine("\tJMP\t@10$(R0)");
     else
     {
         m_final->AddLine("\tCALL\t@10$(R0)");
         m_final->AddLine("\tBR\t" + nextline);
     }
-    int linenum = (int)line.params[0].dvalue;
+    int linenum = (int)line.statement.params[0].dvalue;
     m_final->AddLine("10$:\t.WORD\tL" + std::to_string(linenum));
-    for (auto it = std::begin(line.params); it != std::end(line.params); ++it)
+    for (auto it = std::begin(line.statement.params); it != std::end(line.statement.params); ++it)
     {
         linenum = (int)it->dvalue;
         m_final->AddLine("\t.WORD\tL" + std::to_string(linenum));
@@ -595,18 +595,18 @@ void Generator::GenerateOn(SourceLineModel& line)
 
 void Generator::GenerateLocate(SourceLineModel& line)
 {
-    assert(line.args.size() > 0);
-    const ExpressionModel& expr1 = line.args[0];  // column, could be empty
+    assert(line.statement.args.size() > 0);
+    const ExpressionModel& expr1 = line.statement.args[0];  // column, could be empty
 
-    if (line.args.size() > 1)
+    if (line.statement.args.size() > 1)
     {
-        const ExpressionModel& expr2 = line.args[1];  // row, could be empty
+        const ExpressionModel& expr2 = line.statement.args[1];  // row, could be empty
         //TODO
     }
 
-    if (line.args.size() > 2)
+    if (line.statement.args.size() > 2)
     {
-        const ExpressionModel& expr3 = line.args[2];  // on/off, could be empty
+        const ExpressionModel& expr3 = line.statement.args[2];  // on/off, could be empty
         //TODO
     }
 
@@ -628,14 +628,14 @@ void Generator::GeneratePreset(SourceLineModel& line)
 
 void Generator::GenerateNext(SourceLineModel& line)
 {
-    assert(line.paramline != 0);
-    SourceLineModel& linefor = m_source->GetSourceLine(line.paramline);
+    assert(line.statement.paramline != 0);
+    SourceLineModel& linefor = m_source->GetSourceLine(line.statement.paramline);
 
-    string varname = linefor.ident.text;
+    string varname = linefor.statement.ident.text;
     string deconame = DecorateVariableName(GetCanonicVariableName(varname));
-    int forlinenum = line.paramline;
+    int forlinenum = line.statement.paramline;
 
-    if (linefor.args.size() < 3)
+    if (linefor.statement.args.size() < 3)
         m_final->AddLine("\tINC\t" + deconame);
     else
         m_final->AddLine("\tADD\t#1, " + deconame);
@@ -648,15 +648,15 @@ void Generator::GenerateNext(SourceLineModel& line)
 
 void Generator::GeneratePoke(SourceLineModel& line)
 {
-    assert(line.args.size() == 2);
+    assert(line.statement.args.size() == 2);
 
-    ExpressionModel& expr1 = line.args[0];
+    ExpressionModel& expr1 = line.statement.args[0];
     //TODO: Simplified version for const/var expression
     GenerateExpression(expr1);
     // Save value
     m_final->AddLine("\tMOV\tR0, @#<10$+2>");
 
-    ExpressionModel& expr2 = line.args[1];
+    ExpressionModel& expr2 = line.statement.args[1];
     //TODO: Simplified version for const/var expression
     GenerateExpression(expr2);
     // Save value
@@ -685,7 +685,7 @@ void Generator::GeneratePaint(SourceLineModel& line)
 
 void Generator::GeneratePrint(SourceLineModel& line)
 {
-    for (auto it = std::begin(line.args); it != std::end(line.args); ++it)
+    for (auto it = std::begin(line.statement.args); it != std::end(line.statement.args); ++it)
     {
         const ExpressionModel& expr = *it;
         const ExpressionNode& root = expr.nodes[expr.root];
@@ -732,7 +732,7 @@ void Generator::GeneratePrint(SourceLineModel& line)
     }
  
     // CR/LF at end of PRINT
-    if (!line.nocrlf)
+    if (!line.statement.nocrlf)
         m_final->AddLine("\tCALL\tWRCRLF");
 }
 
