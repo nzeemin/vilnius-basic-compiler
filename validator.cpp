@@ -723,10 +723,44 @@ void Validator::ValidatePrint(SourceLineModel& model)
     for (auto it = std::begin(model.statement.args); it != std::end(model.statement.args); ++it)
     {
         ExpressionModel& expr = *it;
-        //TODO: don't validate Comma
-        ValidateExpression(expr);
         if (expr.IsEmpty())
             MODEL_ERROR("Expressions should not be empty.");
+        ExpressionNode& root = expr.nodes[expr.root];
+        if (root.node.IsComma())
+        {
+            // Don't validate Comma
+        }
+        else if (root.node.IsKeyword(KeywordAT))
+        {
+            if (root.args.size() != 2)
+                MODEL_ERROR("Two expressions expected for AT function.");
+            ExpressionModel& expr1 = root.args[0];
+            if (!CheckIntegerOrSingleExpression(expr1))
+                return;
+            ExpressionModel& expr2 = root.args[1];
+            if (!CheckIntegerOrSingleExpression(expr2))
+                return;
+        }
+        else if (root.node.IsKeyword(KeywordTAB))
+        {
+            if (root.args.size() != 1)
+                MODEL_ERROR("Ome expressions expected for TAB function.");
+            ExpressionModel& expr1 = root.args[0];
+            if (!CheckIntegerOrSingleExpression(expr1))
+                return;
+        }
+        else if (root.node.IsKeyword(KeywordSPC))
+        {
+            if (root.args.size() != 1)
+                MODEL_ERROR("Ome expressions expected for SPC function.");
+            ExpressionModel& expr1 = root.args[0];
+            if (!CheckIntegerOrSingleExpression(expr1))
+                return;
+        }
+        else
+        {
+            ValidateExpression(expr);
+        }
     }
 }
 

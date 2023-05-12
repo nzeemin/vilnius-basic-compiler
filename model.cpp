@@ -221,16 +221,15 @@ int ExpressionNode::GetOperationPriority() const
         if (node.text == "=" || node.text == "<>" || node.text == "><" ||
             node.text == "=>" || node.text == "<=" || node.text == "=>" || node.text == "=<")
             return 7;
+        if (node.type == TokenTypeOperation &&
+            (node.text == "AND" || node.text == "OR" || node.text == "XOR" ||
+                node.text == "EQV" || node.text == "IMP"))
+            return 8;
         return 0;
     }
 
     if (node.type == TokenTypeKeyword && node.keyword == KeywordMOD)
         return 5;
-
-    if (node.type == TokenTypeOperation &&
-        (node.text == "AND" || node.text == "OR" || node.text == "XOR" ||
-            node.text == "EQV" || node.text == "IMP"))
-        return 8;
 
     return 0;
 }

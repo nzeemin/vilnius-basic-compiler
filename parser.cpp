@@ -225,6 +225,10 @@ SourceLineModel Parser::ParseNextLine()
 
     ParseStatement(model.statement);
 
+    token = PeekNextTokenSkipDivider();
+    if (token.IsEolOrEof())
+        GetNextToken();
+
     return model;
 }
 
@@ -337,6 +341,17 @@ void Parser::SkipTilEnd()
         Token token = GetNextToken();
         if (token.IsEolOrEof())
             break;
+    }
+}
+
+void Parser::SkipTilStatementEnd()
+{
+    while (true)  // Skip til EOL/EOF
+    {
+        Token token = PeekNextToken();
+        if (token.IsEndOfStatement())
+            break;
+        GetNextToken();
     }
 }
 
@@ -667,24 +682,22 @@ VariableExpressionModel Parser::ParseVariableExpression()
 #define SKIP_COMMA \
     { SkipComma(); if (m_line->error) return; }
 
-void Parser::ParseIgnoredStatement(StatementModel& model)
+void Parser::ParseIgnoredStatement(StatementModel& statement)
 {
-    SkipTilEnd();
+    SkipTilStatementEnd();
 }
 
-void Parser::ParseStatementNoParams(StatementModel& model)
+void Parser::ParseStatementNoParams(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-        return;
-
-    MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+    Token token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseClear(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         MODEL_ERROR("Argument expected.");
 
     ExpressionModel expr1 = ParseExpression();
@@ -693,7 +706,7 @@ void Parser::ParseClear(StatementModel& statement)
     statement.args.push_back(expr1);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;  // One argument
 
     if (!token.IsComma())
@@ -706,14 +719,14 @@ void Parser::ParseClear(StatementModel& statement)
     statement.args.push_back(expr2);
 
     token = PeekNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseColor(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         MODEL_ERROR(MSG_ARGUMENTS_EXPECTED);
 
     ExpressionModel expr1 = ParseExpression();
@@ -721,7 +734,7 @@ void Parser::ParseColor(StatementModel& statement)
     statement.args.push_back(expr1);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
     if (!token.IsComma())
         MODEL_ERROR(MSG_UNEXPECTED);
@@ -732,7 +745,7 @@ void Parser::ParseColor(StatementModel& statement)
     statement.args.push_back(expr2);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
     if (!token.IsComma())
         MODEL_ERROR(MSG_UNEXPECTED);
@@ -743,8 +756,8 @@ void Parser::ParseColor(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr3);
     statement.args.push_back(expr3);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -768,12 +781,13 @@ void Parser::ParseData(StatementModel& statement)
             MODEL_ERROR("Number or string expected.");
         statement.params.push_back(token);
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (!token.IsComma())
             break;
+        GetNextToken();  // Comma
     }
 
-    if (!token.IsEolOrEof())
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -786,12 +800,11 @@ void Parser::ParseDim(StatementModel& statement)
         CHECK_MODEL_ERROR;
         statement.variables.push_back(var);
 
-        token = GetNextTokenSkipDivider();
-        if (token.IsEolOrEof())
-            return;  // End of the list
+        token = PeekNextTokenSkipDivider();
+        if (token.IsEndOfStatement())
+            break;  // End of the list
 
-        if (!token.IsComma())
-            MODEL_ERROR(MSG_COMMA_EXPECTED);
+        SKIP_COMMA;
     }
 }
 
@@ -804,7 +817,7 @@ void Parser::ParseDraw(StatementModel& statement)
     statement.args.push_back(expr1);
 
     token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -837,7 +850,7 @@ void Parser::ParseFor(StatementModel& statement)
     statement.args.push_back(expr2);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
 
     if (token.type != TokenTypeKeyword || token.keyword != KeywordSTEP)
@@ -850,7 +863,7 @@ void Parser::ParseFor(StatementModel& statement)
     statement.args.push_back(expr3);
 
     token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -861,15 +874,15 @@ void Parser::ParseGotoGosub(StatementModel& statement)
         MODEL_ERROR("Line number expected.");
     statement.paramline = atoi(token.text.c_str());
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 //NOTE: For now, in form: IF expr THEN linenum [ELSE linueum]
 void Parser::ParseIf(StatementModel& statement)
 {
-    Token token = PeekNextToken();
+    Token token = PeekNextTokenSkipDivider();
     ExpressionModel expr = ParseExpression();
     CHECK_MODEL_ERROR;
     CHECK_EXPRESSION_NOT_EMPTY(expr);
@@ -878,25 +891,45 @@ void Parser::ParseIf(StatementModel& statement)
     token = GetNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || (token.keyword != KeywordTHEN && token.keyword != KeywordGOTO))
         MODEL_ERROR("Keyword THEN or GOTO expected.");
+    bool isthen = (token.keyword == KeywordTHEN);
 
-    token = GetNextTokenSkipDivider();
-    if (token.type != TokenTypeNumber || !token.IsDValueInteger())
-        MODEL_ERROR("Line number expected.");
-    statement.params.push_back(token);
+    token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeNumber)
+    {
+        GetNextToken();  // Number
+        if (!token.IsDValueInteger())
+            MODEL_ERROR("Line number must be an Integer.");
+        statement.params.push_back(token);
+    }
+    else if (isthen)  // Statement under THEN
+    {
+        StatementModel stthen;//TODO: should be in line model
+        ParseStatement(stthen);
+    }
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
         return;
     if (token.type != TokenTypeKeyword || token.keyword != KeywordELSE)
         MODEL_ERROR(MSG_UNEXPECTED);
+    GetNextToken();  // ELSE
 
-    token = GetNextTokenSkipDivider();
-    if (token.type != TokenTypeNumber || !token.IsDValueInteger())
-        MODEL_ERROR("Line number expected.");
-    statement.params.push_back(token);
+    token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeNumber)
+    {
+        GetNextToken();  // Number
+        if (!token.IsDValueInteger())
+            MODEL_ERROR("Line number must be an Integer.");
+        statement.params.push_back(token);
+    }
+    else
+    {
+        StatementModel stthen;//TODO: should be in line model
+        ParseStatement(stthen);
+    }
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -928,7 +961,7 @@ void Parser::ParseInput(StatementModel& statement)
             break;
     }
 
-    if (!token.IsEolOrEof())
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -954,7 +987,7 @@ void Parser::ParseOpen(StatementModel& statement)
         token = GetNextTokenSkipDivider();
     }
 
-    if (!token.IsEolOrEof())
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -974,8 +1007,8 @@ void Parser::ParseKey(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr2);
     statement.args.push_back(expr2);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1039,15 +1072,15 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr);
     statement.args.push_back(expr);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseLocate(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         MODEL_ERROR(MSG_ARGUMENTS_EXPECTED);
 
     ExpressionModel expr1 = ParseExpression();
@@ -1055,7 +1088,7 @@ void Parser::ParseLocate(StatementModel& statement)
     statement.args.push_back(expr1);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
     if (!token.IsComma())
         MODEL_ERROR(MSG_UNEXPECTED);
@@ -1066,7 +1099,7 @@ void Parser::ParseLocate(StatementModel& statement)
     statement.args.push_back(expr2);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
     if (!token.IsComma())
         MODEL_ERROR(MSG_UNEXPECTED);
@@ -1077,15 +1110,15 @@ void Parser::ParseLocate(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr3);
     statement.args.push_back(expr3);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseNext(StatementModel& statement)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
 
     while (true)
@@ -1095,12 +1128,13 @@ void Parser::ParseNext(StatementModel& statement)
 
         statement.params.push_back(token);
 
-        token = GetNextTokenSkipDivider();
-        if (token.IsEolOrEof())
+        token = PeekNextTokenSkipDivider();
+        if (token.IsEndOfStatement())
             break;
+        GetNextToken();
 
-        if (token.type != TokenTypeSymbol || token.symbol != ',')
-            MODEL_ERROR("Comma or end of line expected.");
+        if (!token.IsComma())
+            MODEL_ERROR("Comma or end of statement expected.");
 
         token = GetNextTokenSkipDivider();
     }
@@ -1109,7 +1143,7 @@ void Parser::ParseNext(StatementModel& statement)
 void Parser::ParseOn(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         MODEL_ERROR("Expreession expected.");
 
     ExpressionModel expr = ParseExpression();
@@ -1131,9 +1165,11 @@ void Parser::ParseOn(StatementModel& statement)
         token = GetNextToken();
         statement.params.push_back(token);
 
-        token = GetNextTokenSkipDivider();
-        if (token.IsEolOrEof())
+        token = PeekNextTokenSkipDivider();
+        if (token.IsEndOfStatement())
             break;
+        GetNextToken();
+
         if (!token.IsComma())
             MODEL_ERROR(MSG_UNEXPECTED);
     }
@@ -1142,7 +1178,7 @@ void Parser::ParseOn(StatementModel& statement)
 void Parser::ParseOut(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         MODEL_ERROR(MSG_ARGUMENTS_EXPECTED);
 
     ExpressionModel expr1 = ParseExpression();
@@ -1166,8 +1202,8 @@ void Parser::ParseOut(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr3);
     statement.args.push_back(expr3);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1175,11 +1211,8 @@ void Parser::ParseOut(StatementModel& statement)
 void Parser::ParsePrint(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-    {
-        GetNextToken();
+    if (token.IsEndOfStatement())
         return;  // Empty PRINT
-    }
 
     //TODO: Symbol #, optional
     //TODO: Check for end
@@ -1187,13 +1220,9 @@ void Parser::ParsePrint(StatementModel& statement)
     while (true)
     {
         token = PeekNextTokenSkipDivider();
-        if (token.IsEolOrEof())
-        {
-            GetNextToken();
+        if (token.IsEndOfStatement())
             return;
-        }
 
-        token = PeekNextTokenSkipDivider();
         if (token.IsKeyword(KeywordAT))
         {
             ExpressionNode node0;
@@ -1291,14 +1320,14 @@ void Parser::ParsePrint(StatementModel& statement)
             statement.args.push_back(expr);
 
         token = PeekNextTokenSkipDivider();
-        if (token.IsEolOrEof())
+        if (token.IsEndOfStatement())
             break;
 
         if (token.IsSemicolon())
         {
             GetNextToken();
             token = PeekNextTokenSkipDivider();
-            if (token.IsEolOrEof())
+            if (token.IsEndOfStatement())
             {
                 statement.nocrlf = true;  // Semicolon ends the PRINT means no CR/LF at the end
                 break;
@@ -1317,8 +1346,6 @@ void Parser::ParsePrint(StatementModel& statement)
             statement.args.push_back(expr0);
         }
     }
-
-    GetNextToken();  // EOL/EOT
 }
 
 void Parser::ParsePoke(StatementModel& statement)
@@ -1337,8 +1364,8 @@ void Parser::ParsePoke(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr2);
     statement.args.push_back(expr2);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1374,7 +1401,7 @@ void Parser::ParsePsetPreset(StatementModel& statement)
         MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
     if (!token.IsComma())
         MODEL_ERROR("Unexpected text after arguments.");
@@ -1385,8 +1412,8 @@ void Parser::ParsePsetPreset(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr3);
     statement.args.push_back(expr3);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1465,7 +1492,7 @@ void Parser::ParseLine(StatementModel& statement)
         //TODO: add two empty expressions
     }
 
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
 
     if (token.IsComma())  // we have ARG5
@@ -1490,7 +1517,7 @@ void Parser::ParseLine(StatementModel& statement)
         }
     }
 
-    if (!token.IsEolOrEof())
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1534,7 +1561,7 @@ void Parser::ParseCircle(StatementModel& statement)
     statement.args.push_back(expr3);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
 
     if (token.IsComma())
@@ -1574,7 +1601,7 @@ void Parser::ParseCircle(StatementModel& statement)
         }
     }
     
-    if (!token.IsEolOrEof())
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1629,7 +1656,7 @@ void Parser::ParsePaint(StatementModel& statement)
         }
     }
 
-    if (!token.IsEolOrEof())
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1642,12 +1669,11 @@ void Parser::ParseRead(StatementModel& statement)
         CHECK_MODEL_ERROR;
         statement.varexprs.push_back(var);
 
-        token = GetNextTokenSkipDivider();
-        if (token.IsEolOrEof())
+        token = PeekNextTokenSkipDivider();
+        if (token.IsEndOfStatement())
             return;  // End of the list
-
-        if (!token.IsComma())
-            MODEL_ERROR(MSG_COMMA_EXPECTED);
+        
+        SKIP_COMMA;
     }
 }
 
@@ -1658,20 +1684,20 @@ void Parser::ParseRem(StatementModel& statement)
 
 void Parser::ParseRestore(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    Token token = PeekNextTokenSkipDivider();
+    if (token.IsEndOfStatement())
     {
         statement.paramline = 0;
         return;  // RESTORE without parameters
     }
-
+    GetNextToken();
     if (token.type != TokenTypeNumber)
         MODEL_ERROR("Numeric argument expected.");
     //TODO: Check for valid range
     statement.paramline = (int)token.dvalue;
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1725,8 +1751,8 @@ void Parser::ParseDefFn(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr);
     statement.args.push_back(expr);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1754,8 +1780,8 @@ void Parser::ParseDefUsr(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr);
     statement.args.push_back(expr);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1767,8 +1793,8 @@ void Parser::ParseScreen(StatementModel& statement)
 
     statement.params.push_back(token);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
@@ -1782,7 +1808,7 @@ void Parser::ParseWidth(StatementModel& statement)
     statement.params.push_back(token);
 
     token = GetNextTokenSkipDivider();
-    if (token.IsEolOrEof())
+    if (token.IsEndOfStatement())
         return;
     if (!token.IsComma())
         MODEL_ERROR(MSG_UNEXPECTED);
@@ -1792,8 +1818,8 @@ void Parser::ParseWidth(StatementModel& statement)
         MODEL_ERROR("Numeric argument expected.");
     statement.params.push_back(token);
 
-    token = GetNextTokenSkipDivider();
-    if (!token.IsEolOrEof())
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
