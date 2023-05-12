@@ -256,7 +256,7 @@ SourceLineModel Parser::ParseNextLine()
             SkipTilEnd();
         return model;
     }
-    if (token.type == TokenTypeKeyword && token.keyword == KeywordMID)
+    if (token.IsKeyword(KeywordMID))
     {
         Token tokenlet;
         tokenlet.type = TokenTypeKeyword;
@@ -309,7 +309,7 @@ SourceLineModel Parser::ParseNextLine()
     return model;
 }
 
-void Parser::Error(SourceLineModel& model, Token& token, const string& message)
+void Parser::Error(SourceLineModel& model, const Token& token, const string& message)
 {
     std::cerr << "ERROR at " << token.line << ":" << token.pos << " line " << model.number << " - " << message << std::endl;
     const string& linetext = model.text;
@@ -492,7 +492,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                 index = (int)expression.nodes.size();
                 expression.nodes.push_back(node);
             }
-            else  // Other token like Ident
+            else  // Other token like Ident, Number, String
             {
                 // Put the token into the list
                 ExpressionNode node;
@@ -502,6 +502,42 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
 
                 index = (int)expression.nodes.size();
                 expression.nodes.push_back(node);
+
+                if (token.type == TokenTypeIdentifier)
+                {
+                    token = PeekNextTokenSkipDivider();
+                    if (token.IsOpenBracket())  // List of array indices
+                    {
+                        GetNextToken();  // open bracket
+                        while (true)
+                        {
+                            token = PeekNextTokenSkipDivider();
+                            ExpressionModel expri = ParseExpression(model);
+                            if (model.error)
+                                return expression;
+                            if (expri.IsEmpty())
+                            {
+                                Error(model, token, "Expression should not be empty.");
+                                return expression;
+                            }
+                            node.args.push_back(expri);
+
+                            token = PeekNextTokenSkipDivider();
+                            if (token.IsCloseBracket())
+                            {
+                                GetNextToken();  // close bracket
+                                break;
+                            }
+                            if (!token.IsComma())
+                            {
+                                Error(model, token, MSG_COMMA_EXPECTED);
+                                return expression;
+                            }
+
+                            GetNextToken();  // comma
+                        }
+                    }
+                }
             }
 
             // Put node in the tree
@@ -590,9 +626,15 @@ VariableExpressionModel Parser::ParseVariableExpression(SourceLineModel& model)
     GetNextToken();  // Open bracket
     while (true)
     {
+        token = PeekNextTokenSkipDivider();
         ExpressionModel expr1 = ParseExpression(model);
-        //TODO: not empty expression
-        //TODO: check type is Integer/Single
+        if (model.error)
+            return var;
+        if (expr1.IsEmpty())
+        {
+            Error(model, token, MSG_EXPRESSION_SHOULDNOT_BE_EMPTY);
+            return var;
+        }
         var.args.push_back(expr1);
 
         token = GetNextTokenSkipDivider();
@@ -891,12 +933,12 @@ void Parser::ParseOpen(SourceLineModel& model)
     model.args.push_back(expr1);
 
     token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeKeyword && token.keyword == KeywordFOR)
+    if (token.IsKeyword(KeywordFOR))
     {
         token = GetNextTokenSkipDivider();
-        if (token.type == TokenTypeKeyword && token.keyword == KeywordINPUT)
+        if (token.IsKeyword(KeywordINPUT))
             model.filemode = FileModeInput;
-        else if (token.type == TokenTypeKeyword && token.keyword == KeywordOUTPUT)
+        else if (token.IsKeyword(KeywordOUTPUT))
             model.filemode = FileModeOutput;
         else
             MODEL_ERROR(MSG_UNEXPECTED);
@@ -950,7 +992,7 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
         CHECK_MODEL_ERROR;
         model.varexprs.push_back(var);
     }
-    else if (tokenIdentOrMid.type == TokenTypeKeyword && tokenIdentOrMid.keyword == KeywordMID)
+    else if (tokenIdentOrMid.IsKeyword(KeywordMID))
     {
         GetNextToken();  // MID$
 
@@ -1042,7 +1084,6 @@ void Parser::ParseNext(SourceLineModel& model)
     {
         if (token.type != TokenTypeIdentifier)
             MODEL_ERROR("Identifier expected.");
-        //TODO: Check for numeric variable
 
         model.params.push_back(token);
 
@@ -1145,7 +1186,7 @@ void Parser::ParsePrint(SourceLineModel& model)
         }
 
         token = PeekNextTokenSkipDivider();
-        if (token.type == TokenTypeKeyword && token.keyword == KeywordAT)
+        if (token.IsKeyword(KeywordAT))
         {
             ExpressionNode node0;
             node0.node = GetNextToken();  // AT keyword
@@ -1181,7 +1222,7 @@ void Parser::ParsePrint(SourceLineModel& model)
 
             continue;
         }
-        if (token.type == TokenTypeKeyword && token.keyword == KeywordTAB)
+        if (token.IsKeyword(KeywordTAB))
         {
             ExpressionNode node0;
             node0.node = GetNextToken();  // TAB keyword
@@ -1208,7 +1249,7 @@ void Parser::ParsePrint(SourceLineModel& model)
 
             continue;
         }
-        if (token.type == TokenTypeKeyword && token.keyword == KeywordSPC)
+        if (token.IsKeyword(KeywordSPC))
         {
             ExpressionNode node0;
             node0.node = GetNextToken();  // SPC keyword
@@ -1297,7 +1338,7 @@ void Parser::ParsePsetPreset(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
-        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
+        (token.IsKeyword(KeywordSTEP)))
     {
         model.relative = true;
         token = GetNextTokenSkipDivider();
@@ -1345,7 +1386,7 @@ void Parser::ParseLine(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
-        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
+        (token.IsKeyword(KeywordSTEP)))
     {
         model.relative = true;
         token = GetNextTokenSkipDivider();
@@ -1383,7 +1424,7 @@ void Parser::ParseLine(SourceLineModel& model)
 
     token = GetNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
-        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
+        (token.IsKeyword(KeywordSTEP)))
     {
         //model.relative = true;//TODO
         token = GetNextTokenSkipDivider();
@@ -1449,7 +1490,7 @@ void Parser::ParseCircle(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
-        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
+        (token.IsKeyword(KeywordSTEP)))
     {
         model.relative = true;
         token = GetNextTokenSkipDivider();
@@ -1533,7 +1574,7 @@ void Parser::ParsePaint(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
-        (token.type == TokenTypeKeyword && token.keyword == KeywordSTEP))
+        (token.IsKeyword(KeywordSTEP)))
     {
         model.relative = true;
         token = GetNextTokenSkipDivider();
@@ -1589,9 +1630,9 @@ void Parser::ParseRead(SourceLineModel& model)
     Token token;
     while (true)
     {
-        VariableModel var = ParseVariable(model);
+        VariableExpressionModel var = ParseVariableExpression(model);
         CHECK_MODEL_ERROR;
-        model.variables.push_back(var);
+        model.varexprs.push_back(var);
 
         token = GetNextTokenSkipDivider();
         if (token.IsEolOrEof())
@@ -1629,9 +1670,9 @@ void Parser::ParseRestore(SourceLineModel& model)
 void Parser::ParseDef(SourceLineModel& model)
 {
     Token token = GetNextTokenSkipDivider();
-    if (token.type == TokenTypeKeyword && token.keyword == KeywordFN)  // DEF FN
+    if (token.IsKeyword(KeywordFN))  // DEF FN
         ParseDefFn(model);
-    else if (token.type == TokenTypeKeyword && token.keyword == KeywordUSR)  // DEF USR
+    else if (token.IsKeyword(KeywordUSR))  // DEF USR
         ParseDefUsr(model);
     else
         MODEL_ERROR("\'FN\' or \'USR\' expected.");

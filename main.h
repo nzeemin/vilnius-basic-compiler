@@ -115,6 +115,7 @@ public:
     bool IsComma() const { return type == TokenTypeSymbol && symbol == ','; }
     bool IsSemicolon() const { return type == TokenTypeSymbol && symbol == ';'; }
     bool IsEqualSign() const { return type == TokenTypeOperation && text == "="; }
+    bool IsKeyword(KeywordIndex index) const { return type == TokenTypeKeyword && keyword == index; }
     bool IsEndOfExpression() const
     {
         return type == TokenTypeEOL || type == TokenTypeEndComment || type == TokenTypeEOT ||
@@ -301,7 +302,7 @@ private:
     Token PeekNextTokenSkipDivider();
     void SkipTilEnd();
     void SkipComma(SourceLineModel& model);
-    void Error(SourceLineModel& model, Token& token, const string& message);
+    void Error(SourceLineModel& model, const Token& token, const string& message);
     ExpressionModel ParseExpression(SourceLineModel& model);
     VariableModel ParseVariable(SourceLineModel& model);
     VariableExpressionModel ParseVariableExpression(SourceLineModel& model);

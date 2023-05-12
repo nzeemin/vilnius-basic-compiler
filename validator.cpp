@@ -482,13 +482,12 @@ void Validator::ValidateGotoGosub(SourceLineModel& model)
 
 void Validator::ValidateIf(SourceLineModel& model)
 {
-    if (model.args.size() == 0)
-        MODEL_ERROR("Expression expected.");
+    if (model.args.size() != 1)
+        MODEL_ERROR("One expression expected.");
     ExpressionModel& expr = model.args[0];
     ValidateExpression(expr);
-    //TODO: Check for non-empty expression
-    if (model.args.size() > 1)
-        MODEL_ERROR("Too many expressions.");
+    if (expr.IsEmpty())
+        MODEL_ERROR("Expression should not be empty.");
 
     if (model.params.size() == 0)
         MODEL_ERROR("Parameter expected.");
@@ -645,6 +644,8 @@ void Validator::ValidateNext(SourceLineModel& model)
         string varname = GetCanonicVariableName(it->text);
         if (!m_source->IsVariableRegistered(varname))
             MODEL_ERROR("Variable not found:" + varname + ".");
+        
+        //TODO: Check for numeric variable type?
 
         ValidatorForSpec forspec = m_fornextstack.back();
         m_fornextstack.pop_back();

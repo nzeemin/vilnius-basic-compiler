@@ -29,6 +29,7 @@ const GeneratorKeywordSpec Generator::m_keywordspecs[] =
     { KeywordGOTO,      &Generator::GenerateGoto },
     { KeywordIF,        &Generator::GenerateIf },
     { KeywordINPUT,     &Generator::GenerateInput },
+    { KeywordKEY,       &Generator::GenerateIgnoredStatement },
     { KeywordLET,       &Generator::GenerateLet },
     { KeywordLINE,      &Generator::GenerateLine },
     { KeywordLOAD,      &Generator::GenerateIgnoredStatement },
@@ -688,7 +689,7 @@ void Generator::GeneratePrint(SourceLineModel& line)
     {
         const ExpressionModel& expr = *it;
         const ExpressionNode& root = expr.nodes[expr.root];
-        if (root.node.type == TokenTypeKeyword && root.node.keyword == KeywordAT)
+        if (root.node.IsKeyword(KeywordAT))
         {
             assert(root.args.size() == 2);
             const ExpressionModel& expr1 = root.args[0];
@@ -698,14 +699,14 @@ void Generator::GeneratePrint(SourceLineModel& line)
             //TODO
             m_final->AddLine(";TODO PRINT AT");
         }
-        else if (root.node.type == TokenTypeKeyword && root.node.keyword == KeywordTAB)
+        else if (root.node.IsKeyword(KeywordTAB))
         {
             assert(root.args.size() == 1);
             const ExpressionModel& expr1 = root.args[0];
             GenerateExpression(expr1);
             m_final->AddLine("\tCALL\tWRTAB");
         }
-        else if (root.node.type == TokenTypeKeyword && root.node.keyword == KeywordSPC)
+        else if (root.node.IsKeyword(KeywordSPC))
         {
             assert(root.args.size() == 1);
             const ExpressionModel& expr1 = root.args[0];
