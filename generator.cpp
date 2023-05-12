@@ -11,11 +11,15 @@
 const GeneratorKeywordSpec Generator::m_keywordspecs[] =
 {
     { KeywordBEEP,      &Generator::GenerateBeep },
+    { KeywordBLOAD,     &Generator::GenerateIgnoredStatement },
+    { KeywordBSAVE,     &Generator::GenerateIgnoredStatement },
     { KeywordCIRCLE,    &Generator::GenerateCircle },
     { KeywordCLEAR,     &Generator::GenerateClear },
+    { KeywordCLOAD,     &Generator::GenerateIgnoredStatement },
     { KeywordCLOSE,     &Generator::GenerateClose },
     { KeywordCLS,       &Generator::GenerateCls },
     { KeywordCOLOR,     &Generator::GenerateColor },
+    { KeywordCSAVE,     &Generator::GenerateIgnoredStatement },
     { KeywordDATA,      &Generator::GenerateData },
     { KeywordDIM,       &Generator::GenerateDim },
     { KeywordDRAW,      &Generator::GenerateDraw },
@@ -27,6 +31,7 @@ const GeneratorKeywordSpec Generator::m_keywordspecs[] =
     { KeywordINPUT,     &Generator::GenerateInput },
     { KeywordLET,       &Generator::GenerateLet },
     { KeywordLINE,      &Generator::GenerateLine },
+    { KeywordLOAD,      &Generator::GenerateIgnoredStatement },
     { KeywordLOCATE,    &Generator::GenerateLocate },
     { KeywordNEXT,      &Generator::GenerateNext },
     { KeywordON,        &Generator::GenerateOn },
@@ -40,10 +45,11 @@ const GeneratorKeywordSpec Generator::m_keywordspecs[] =
     { KeywordREM,       &Generator::GenerateRem },
     { KeywordRESTORE,   &Generator::GenerateRestore },
     { KeywordRETURN,    &Generator::GenerateReturn },
+    { KeywordSAVE,      &Generator::GenerateIgnoredStatement },
     { KeywordSCREEN,    &Generator::GenerateScreen },
     { KeywordSTOP,      &Generator::GenerateStop },
-    { KeywordTRON,      &Generator::GenerateTron },
-    { KeywordTROFF,     &Generator::GenerateTroff },
+    { KeywordTRON,      &Generator::GenerateIgnoredStatement },
+    { KeywordTROFF,     &Generator::GenerateIgnoredStatement },
     { KeywordWIDTH,     &Generator::GenerateWidth },
 };
 
@@ -298,7 +304,7 @@ void Generator::GenerateExprFunction(const ExpressionModel& expr, const Expressi
 
 // Calculate expression and assign the result to variable
 // To use in LET and FOR
-void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, ExpressionModel& expr)
+void Generator::GenerateAssignment(SourceLineModel& line, VariableExpressionModel& var, ExpressionModel& expr)
 {
     const string comment = "\t; assignment";
 
@@ -354,6 +360,11 @@ void Generator::GenerateAssignment(SourceLineModel& line, VariableModel& var, Ex
     }
 }
 
+void Generator::GenerateIgnoredStatement(SourceLineModel& line)
+{
+    m_final->AddLine("; " + line.statement.text + " statement is ignored");
+}
+
 void Generator::GenerateBeep(SourceLineModel& line)
 {
     m_final->AddLine("\tCALL\tBEEP");
@@ -407,7 +418,7 @@ void Generator::GenerateFor(SourceLineModel& line)
     ExpressionModel& expr1 = line.args[0];
 
     assert(line.ident.type == TokenTypeIdentifier);
-    VariableModel var;
+    VariableExpressionModel var;
     var.name = line.ident.text;
     string deconame = var.GetVariableDecoratedName();
 
@@ -549,7 +560,7 @@ void Generator::GenerateLet(SourceLineModel& line)
     assert(line.args.size() == 1);
     ExpressionModel& expr = line.args[0];
 
-    VariableModel& var = line.variables[0];
+    VariableExpressionModel& var = line.varexprs[0];
 
     GenerateAssignment(line, var, expr);
 }
@@ -754,16 +765,6 @@ void Generator::GenerateScreen(SourceLineModel& line)
 void Generator::GenerateStop(SourceLineModel& line)
 {
     m_final->AddLine("\tHALT");
-}
-
-void Generator::GenerateTron(SourceLineModel& line)
-{
-    m_final->AddLine("; TRON statement is ignored");
-}
-
-void Generator::GenerateTroff(SourceLineModel& line)
-{
-    m_final->AddLine("; TROFF statement is ignored");
 }
 
 void Generator::GenerateWidth(SourceLineModel& line)

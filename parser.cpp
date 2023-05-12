@@ -11,10 +11,14 @@
 const ParserKeywordSpec Parser::m_keywordspecs[] =
 {
     { KeywordBEEP,      &Parser::ParseStatementNoParams },
+    { KeywordBLOAD,     &Parser::ParseIgnoredStatement },
+    { KeywordBSAVE,     &Parser::ParseIgnoredStatement },
     { KeywordCLEAR,     &Parser::ParseClear },
+    { KeywordCLOAD,     &Parser::ParseIgnoredStatement },
     { KeywordCLOSE,     &Parser::ParseStatementNoParams },
     { KeywordCLS,       &Parser::ParseStatementNoParams },
     { KeywordCOLOR,     &Parser::ParseColor },
+    { KeywordCSAVE,     &Parser::ParseIgnoredStatement },
     { KeywordDATA,      &Parser::ParseData },
     { KeywordDEF,       &Parser::ParseDef },
     { KeywordDIM,       &Parser::ParseDim },
@@ -27,6 +31,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordIF,        &Parser::ParseIf },
     { KeywordINPUT,     &Parser::ParseInput },
     { KeywordLET,       &Parser::ParseLet },
+    { KeywordLOAD,      &Parser::ParseIgnoredStatement },
     { KeywordLOCATE,    &Parser::ParseLocate },
     { KeywordNEXT,      &Parser::ParseNext },
     { KeywordON,        &Parser::ParseOn },
@@ -43,6 +48,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordREM,       &Parser::ParseRem },
     { KeywordRESTORE,   &Parser::ParseRestore },
     { KeywordRETURN,    &Parser::ParseStatementNoParams },
+    { KeywordSAVE,      &Parser::ParseIgnoredStatement },
     { KeywordSCREEN,    &Parser::ParseScreen },
     { KeywordSTOP,      &Parser::ParseStatementNoParams },
     { KeywordTROFF,     &Parser::ParseStatementNoParams },
@@ -564,6 +570,44 @@ VariableModel Parser::ParseVariable(SourceLineModel& model)
     return var;
 }
 
+VariableExpressionModel Parser::ParseVariableExpression(SourceLineModel& model)
+{
+    VariableExpressionModel var;
+    Token token = PeekNextTokenSkipDivider();
+    if (token.type != TokenTypeIdentifier)
+    {
+        Error(model, token, "Identifier expected.");
+        return var;
+    }
+    token = GetNextToken();  // Identifier
+    var.name = GetCanonicVariableName(token.text);
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsOpenBracket())  // end of definition
+        return var;
+
+    // Parse array indices
+    GetNextToken();  // Open bracket
+    while (true)
+    {
+        ExpressionModel expr1 = ParseExpression(model);
+        //TODO: not empty expression
+        //TODO: check type is Integer/Single
+        var.args.push_back(expr1);
+
+        token = GetNextTokenSkipDivider();
+        if (token.IsCloseBracket())
+            break;
+        if (!token.IsComma())
+        {
+            Error(model, token, MSG_COMMA_EXPECTED);
+            return var;
+        }
+    }
+
+    return var;
+}
+
 #define MODEL_ERROR(msg) \
     { Error(model, token, msg); return; }
 #define CHECK_MODEL_ERROR \
@@ -572,6 +616,11 @@ VariableModel Parser::ParseVariable(SourceLineModel& model)
     { if (expr.IsEmpty()) { Error(model, token, MSG_EXPRESSION_SHOULDNOT_BE_EMPTY); return; } }
 #define SKIP_COMMA \
     { SkipComma(model); if (model.error) return; }
+
+void Parser::ParseIgnoredStatement(SourceLineModel& model)
+{
+    SkipTilEnd();
+}
 
 void Parser::ParseStatementNoParams(SourceLineModel& model)
 {
@@ -897,9 +946,9 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
     Token token;
     if (tokenIdentOrMid.type == TokenTypeIdentifier)
     {
-        VariableModel var = ParseVariable(model);
+        VariableExpressionModel var = ParseVariableExpression(model);
         CHECK_MODEL_ERROR;
-        model.variables.push_back(var);
+        model.varexprs.push_back(var);
     }
     else if (tokenIdentOrMid.type == TokenTypeKeyword && tokenIdentOrMid.keyword == KeywordMID)
     {
@@ -909,9 +958,9 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model)
         if (!token.IsOpenBracket())
             MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
 
-        VariableModel var = ParseVariable(model);
+        VariableExpressionModel var = ParseVariableExpression(model);
         CHECK_MODEL_ERROR;
-        model.variables.push_back(var);
+        model.varexprs.push_back(var);
 
         SKIP_COMMA;
 

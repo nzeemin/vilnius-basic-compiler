@@ -14,11 +14,15 @@
 const ValidatorKeywordSpec Validator::m_keywordspecs[] =
 {
     { KeywordBEEP,      &Validator::ValidateNothing },
+    { KeywordBLOAD,     &Validator::ValidateNothing },
+    { KeywordBSAVE,     &Validator::ValidateNothing },
     { KeywordCIRCLE,    &Validator::ValidateCircle },
     { KeywordCLEAR,     &Validator::ValidateClear },
+    { KeywordCLOAD,     &Validator::ValidateNothing },
     { KeywordCLOSE,     &Validator::ValidateNothing },
     { KeywordCLS,       &Validator::ValidateNothing },
     { KeywordCOLOR,     &Validator::ValidateColor },
+    { KeywordCSAVE,     &Validator::ValidateNothing },
     { KeywordDATA,      &Validator::ValidateData },
     { KeywordDIM,       &Validator::ValidateDim },
     { KeywordKEY,       &Validator::ValidateKey },
@@ -33,6 +37,7 @@ const ValidatorKeywordSpec Validator::m_keywordspecs[] =
     { KeywordINPUT,     &Validator::ValidateInput },
     { KeywordLET,       &Validator::ValidateLet },
     { KeywordLINE,      &Validator::ValidateLine },
+    { KeywordLOAD,      &Validator::ValidateNothing },
     { KeywordLOCATE,    &Validator::ValidateLocate },
     { KeywordNEXT,      &Validator::ValidateNext },
     { KeywordON,        &Validator::ValidateOn },
@@ -45,6 +50,7 @@ const ValidatorKeywordSpec Validator::m_keywordspecs[] =
     { KeywordPRESET,    &Validator::ValidatePreset },
     { KeywordRESTORE,   &Validator::ValidateRestore },
     { KeywordRETURN,    &Validator::ValidateNothing },
+    { KeywordSAVE,      &Validator::ValidateNothing },
     { KeywordSCREEN,    &Validator::ValidateScreen },
     { KeywordSTOP,      &Validator::ValidateNothing },
     { KeywordTROFF,     &Validator::ValidateNothing },
@@ -554,10 +560,13 @@ void Validator::ValidatePaint(SourceLineModel& model)
 
 void Validator::ValidateLet(SourceLineModel& model)
 {
-    if (model.variables.size() != 1)
+    if (model.varexprs.size() != 1)
         MODEL_ERROR("One variable expected.");
 
-    VariableModel& var = model.variables[0];
+    VariableExpressionModel& var = model.varexprs[0];
+    for (auto it = std::begin(var.args); it != std::end(var.args); it++)
+        ValidateExpression(*it);
+
     m_source->RegisterVariable(var);
 
     if (model.args.size() != 1)

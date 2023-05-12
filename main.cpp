@@ -104,6 +104,8 @@ void PrintLineModel(SourceLineModel& line)
         std::cout << " params(" << line.params.size() << ")";
     if (line.variables.size() > 0)
         std::cout << " vars(" << line.variables.size() << ")";
+    if (line.varexprs.size() > 0)
+        std::cout << " varexs(" << line.varexprs.size() << ")";
     if (line.args.size() > 0)
     {
         for (size_t i = 0; i < line.args.size(); i++)
@@ -137,6 +139,23 @@ void PrintLineModel(SourceLineModel& line)
                     std::cout << var.indices[j];
                 }
                 std::cout << ")";
+            }
+        }
+    }
+    if (line.varexprs.size() > 0)
+    {
+        for (size_t i = 0; i < line.varexprs.size(); i++)
+        {
+            VariableExpressionModel& var = line.varexprs[i];
+            std::cout << std::endl << std::setw(2) << "  varex" << i << ": ";
+            std::cout << var.name;
+            if (!var.args.empty())
+            {
+                for (size_t j = 0; j < line.args.size(); j++)
+                {
+                    ExpressionModel& expr = var.args[j];
+                    PrintExpression(expr, j, 2);
+                }
             }
         }
     }

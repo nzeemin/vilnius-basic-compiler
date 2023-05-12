@@ -185,9 +185,9 @@ void Token::Dump(std::ostream& out) const
 
 
 //////////////////////////////////////////////////////////////////////
-// VariableModel
+// VariableBaseModel
 
-ValueType VariableModel::GetValueType()
+ValueType VariableBaseModel::GetValueType() const
 {
     char ch = name[name.length() - 1];
     switch (ch)
@@ -424,6 +424,16 @@ bool SourceModel::RegisterVariable(const VariableModel& var)
     vars.push_back(var);
 
     return true;
+}
+
+bool SourceModel::RegisterVariable(const VariableExpressionModel& var)
+{
+    VariableModel var1;
+    var1.name = var.name;
+    for (auto it = std::begin(var.args); it != std::end(var.args); it++)
+        var1.indices.push_back(1);
+
+    return RegisterVariable(var1);
 }
 
 bool SourceModel::IsLineNumberExists(int linenumber) const

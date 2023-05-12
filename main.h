@@ -134,14 +134,17 @@ public:
     void Dump(std::ostream& out) const;
 };
 
-struct VariableModel
+struct VariableBaseModel
 {
     string name;  // Variable name in canonic form
-    std::vector<int> indices;  // List of variable indices if any
 public:
-    ValueType GetValueType();
-public:
+    ValueType GetValueType() const;
     string GetVariableDecoratedName() const { return DecorateVariableName(GetCanonicVariableName(name)); }
+};
+
+struct VariableModel : VariableBaseModel
+{
+    std::vector<int> indices;  // List of variable indices if any
 };
 
 struct ExpressionModel;
@@ -179,6 +182,11 @@ public:
     int AddOperationNode(ExpressionNode& node, int prev);  // Add binary operation node into the tree
 };
 
+struct VariableExpressionModel : VariableBaseModel
+{
+    std::vector<ExpressionModel> args;  // List of variable indices as expressions
+};
+
 struct SourceLineModel
 {
     int		number;		// Line number
@@ -196,7 +204,8 @@ struct SourceLineModel
     FileMode filemode;  // File mode for OPEN
     std::vector<ExpressionModel> args;  // Statement arguments
     std::vector<Token> params;  // Statement params like list of variables
-    std::vector<VariableModel> variables;
+    std::vector<VariableModel> variables;  // Variables with indices
+    std::vector<VariableExpressionModel> varexprs;  // Variables with expressions for indices
 public:
     SourceLineModel() :
         number(0), error(false), paramline(0), relative(false), gotogosub(false), deffnorusr(false),
@@ -210,6 +219,7 @@ struct SourceModel
     std::vector<string> conststrings;//TODO: change to set
 public:
     bool RegisterVariable(const VariableModel& var);  // Add variable to the list
+    bool RegisterVariable(const VariableExpressionModel& var);
     bool IsVariableRegistered(const string& varname) const;
     bool IsLineNumberExists(int linenumber) const;
     int GetNextLineNumber(int linenumber) const;
@@ -294,8 +304,10 @@ private:
     void Error(SourceLineModel& model, Token& token, const string& message);
     ExpressionModel ParseExpression(SourceLineModel& model);
     VariableModel ParseVariable(SourceLineModel& model);
+    VariableExpressionModel ParseVariableExpression(SourceLineModel& model);
     void ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model);
 private:
+    void ParseIgnoredStatement(SourceLineModel& model);
     void ParseStatementNoParams(SourceLineModel& model);
     void ParseClear(SourceLineModel& model);
     void ParseColor(SourceLineModel& model);
@@ -501,8 +513,9 @@ private:
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node);
-    void GenerateAssignment(SourceLineModel& line, VariableModel& var, ExpressionModel& expr);
+    void GenerateAssignment(SourceLineModel& line, VariableExpressionModel& var, ExpressionModel& expr);
 private:
+    void GenerateIgnoredStatement(SourceLineModel& line);
     void GenerateBeep(SourceLineModel& line);
     void GenerateCircle(SourceLineModel& line);
     void GenerateClear(SourceLineModel& line);
@@ -535,8 +548,6 @@ private:
     void GenerateReturn(SourceLineModel& line);
     void GenerateScreen(SourceLineModel& line);
     void GenerateStop(SourceLineModel& line);
-    void GenerateTron(SourceLineModel& line);
-    void GenerateTroff(SourceLineModel& line);
     void GenerateWidth(SourceLineModel& line);
 private:
     void GenerateOperPlus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
