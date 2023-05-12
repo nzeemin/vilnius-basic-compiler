@@ -56,7 +56,6 @@ enum TokenizerMode
 {
     TokenizerModeUsual  = 0,
     TokenizerModeData   = 1,
-    TokenizerModePrint  = 2,
 };
 
 enum TokenType
@@ -193,6 +192,7 @@ struct SourceLineModel
     bool    fileoper;   // File operation, for INPUT
     bool    gotogosub;  // true for ON GOTO, false for ON GOSUB
     bool    deffnorusr; // true for DEF FN, false for DEF USR
+    bool    nocrlf;     // PRINT flag indicating we don't need CR/LF at the end
     FileMode filemode;  // File mode for OPEN
     std::vector<ExpressionModel> args;  // Statement arguments
     std::vector<Token> params;  // Statement params like list of variables
@@ -200,7 +200,7 @@ struct SourceLineModel
 public:
     SourceLineModel() :
         number(0), error(false), paramline(0), relative(false), gotogosub(false), deffnorusr(false),
-        filemode(FileModeAny), fileoper(false) {}
+        filemode(FileModeAny), fileoper(false), nocrlf(false) {}
 };
 
 struct SourceModel
@@ -407,6 +407,9 @@ private:
     void ValidateRestore(SourceLineModel& model);
     void ValidateScreen(SourceLineModel& model);
     void ValidateWidth(SourceLineModel& model);
+private:
+    void ValidateUnaryPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight);
+    void ValidateUnaryMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight);
 private:
     void ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);

@@ -677,9 +677,34 @@ void Generator::GeneratePrint(SourceLineModel& line)
     {
         const ExpressionModel& expr = *it;
         const ExpressionNode& root = expr.nodes[expr.root];
-        if (root.vtype == ValueTypeString)
+        if (root.node.type == TokenTypeKeyword && root.node.keyword == KeywordAT)
+        {
+            assert(root.args.size() == 2);
+            const ExpressionModel& expr1 = root.args[0];
+            GenerateExpression(expr1);
+            const ExpressionModel& expr2 = root.args[1];
+            GenerateExpression(expr2);
+            //TODO
+            m_final->AddLine(";TODO PRINT AT");
+        }
+        else if (root.node.type == TokenTypeKeyword && root.node.keyword == KeywordTAB)
+        {
+            assert(root.args.size() == 1);
+            const ExpressionModel& expr1 = root.args[0];
+            GenerateExpression(expr1);
+            m_final->AddLine("\tCALL\tWRTAB");
+        }
+        else if (root.node.type == TokenTypeKeyword && root.node.keyword == KeywordSPC)
+        {
+            assert(root.args.size() == 1);
+            const ExpressionModel& expr1 = root.args[0];
+            GenerateExpression(expr1);
+            m_final->AddLine("\tCALL\tWRSPC");
+        }
+        else if (root.vtype == ValueTypeString)
         {
             //TODO
+            m_final->AddLine(";TODO PRINT string expression");
         }
         else if (root.vtype == ValueTypeInteger)
         {
@@ -691,11 +716,12 @@ void Generator::GeneratePrint(SourceLineModel& line)
             GenerateExpression(expr);
             m_final->AddLine("\tCALL\tWRSNG");
         }
-        //TODO: AT/TAB/SPC
+        //TODO: Comma
     }
  
     // CR/LF at end of PRINT
-    m_final->AddLine("\tCALL\tWRCRLF");
+    if (!line.nocrlf)
+        m_final->AddLine("\tCALL\tWRCRLF");
 }
 
 void Generator::GenerateRead(SourceLineModel& line)

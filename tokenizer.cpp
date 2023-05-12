@@ -235,8 +235,7 @@ Token Tokenizer::GetNextToken()
     }
 
     char next = PeekNextChar();
-    if ((ch >= '0' && ch <= '9') || ch == '.' ||
-        (ch == '-' && ((next >= '0' && next <= '9') || next == '.')))  // Number
+    if ((ch >= '0' && ch <= '9') || ch == '.')  // Number
     {
         TokenizeNumber(ch, next, token);
         return token;

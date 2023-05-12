@@ -211,8 +211,22 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
         m_source->RegisterVariable(var);
     }
 
-    //TODO: Unary plus/minus with one operand only
-    if (node.node.type == TokenTypeOperation && node.left >= 0 && node.right >= 0)
+    if (node.node.type == TokenTypeOperation && node.left < 0 && node.right >= 0)  // Unary operation, one operand
+    {
+        const ExpressionNode& noderight = expr.nodes[node.right];
+
+        if (node.node.text == "+")
+            ValidateUnaryPlus(expr, node, noderight);
+        else if (node.node.text == "-")
+            ValidateUnaryMinus(expr, node, noderight);
+        //TODO: Unary NOT
+        else
+        {
+            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO validate unary operator " << node.node.text << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+    else if (node.node.type == TokenTypeOperation && node.left >= 0 && node.right >= 0)
     {
         const ExpressionNode& nodeleft = expr.nodes[node.left];
         const ExpressionNode& noderight = expr.nodes[node.right];
@@ -698,10 +712,11 @@ void Validator::ValidatePrint(SourceLineModel& model)
 {
     for (auto it = std::begin(model.args); it != std::end(model.args); ++it)
     {
-        const ExpressionModel& expr = *it;
+        ExpressionModel& expr = *it;
+        //TODO: don't validate Comma
+        ValidateExpression(expr);
         if (expr.IsEmpty())
             MODEL_ERROR("Expressions should not be empty.");
-        //TODO
     }
 }
 
@@ -771,9 +786,41 @@ void Validator::ValidateWidth(SourceLineModel& model)
 
 #define EXPR_ERROR(msg) \
     { Error(expr, node, msg); return; }
+#define EXPR_CHECK_OPERAND_VTYPE_NONE \
+    { if (noderight.vtype == ValueTypeNone) { Error(expr, noderight, "Operand vtype not defined."); return; } }
 #define EXPR_CHECK_OPERANDS_VTYPE_NONE \
     { if (nodeleft.vtype == ValueTypeNone) { Error(expr, nodeleft, "Operand vtype not defined."); return; } \
       if (noderight.vtype == ValueTypeNone) { Error(expr, noderight, "Operand vtype not defined."); return; } }
+
+void Validator::ValidateUnaryPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERAND_VTYPE_NONE;
+
+    if (noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'-\' not applicable to strings.");
+
+    node.vtype = noderight.vtype;
+    node.constval = noderight.constval;
+    if (node.constval)
+    {
+        node.node.dvalue = noderight.node.dvalue;
+    }
+}
+
+void Validator::ValidateUnaryMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERAND_VTYPE_NONE;
+
+    if (noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'-\' not applicable to strings.");
+
+    node.vtype = noderight.vtype;
+    node.constval = noderight.constval;
+    if (node.constval)
+    {
+        node.node.dvalue = -noderight.node.dvalue;  // invert sign
+    }
+}
 
 void Validator::ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {

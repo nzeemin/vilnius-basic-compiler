@@ -200,16 +200,17 @@ SourceLineModel Parser::ParseNextLine()
         Error(model, token, "Line number not found.");
         return model;
     }
-    //TODO: Check if line number in proper format
     model.number = atoi(token.text.c_str());
     if (model.number <= 0 || model.number > MAX_LINE_NUMBER)
     {
         Error(model, token, "Line number is out of valid range.");
+        SkipTilEnd();
         return model;
     }
     if (model.number <= m_prevlinenum)
     {
         Error(model, token, "Line number is incorrect.");
+        SkipTilEnd();
         return model;
     }
     m_prevlinenum = model.number;
@@ -348,7 +349,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
         return expression;  // Empty expression
 
     // Check if we have unary plus/minus sign
-    if (token.type == TokenTypeSymbol && (token.symbol == '+' || token.symbol == '-'))
+    if (token.type == TokenTypeOperation && (token.text == "+" || token.text == "-"))
     {
         token = GetNextToken();  // get the token we peeked
 
@@ -370,11 +371,7 @@ ExpressionModel Parser::ParseExpression(SourceLineModel& model)
                 break;  // It's okay to end here
 
             if (!token.IsBinaryOperation())
-                break;
-            //{
-            //    Error(model, token, "Binary operation expected in expression.");
-            //    return expression;
-            //}
+                break;  // End of expression: we have something unknown here
 
             token = GetNextToken();  // get the token we peeked
 
@@ -660,7 +657,15 @@ void Parser::ParseData(SourceLineModel& model)
     while (true)
     {
         token = GetNextTokenSkipDivider();
-        if (token.type != TokenTypeNumber && token.type != TokenTypeString)
+        if (token.type == TokenTypeOperation && token.text == "-")  // unary minus
+        {
+            token = GetNextToken();
+            if (token.type != TokenTypeNumber)
+                MODEL_ERROR("Number expected.");
+            token.text.insert(0, "-");
+            token.dvalue = -token.dvalue;  // invert sign
+        }
+        else if (token.type != TokenTypeNumber && token.type != TokenTypeString)
             MODEL_ERROR("Number or string expected.");
         model.params.push_back(token);
 
@@ -1071,8 +1076,6 @@ void Parser::ParseOut(SourceLineModel& model)
 //TODO: LPRINT
 void Parser::ParsePrint(SourceLineModel& model)
 {
-    m_tokenizer->SetMode(TokenizerModePrint);
-
     Token token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
     {
@@ -1186,14 +1189,23 @@ void Parser::ParsePrint(SourceLineModel& model)
 
         ExpressionModel expr = ParseExpression(model);
         CHECK_MODEL_ERROR;
-        model.args.push_back(expr);
+        if (!expr.IsEmpty())
+            model.args.push_back(expr);
 
         token = PeekNextTokenSkipDivider();
         if (token.IsEolOrEof())
             break;
 
         if (token.IsSemicolon())
+        {
             GetNextToken();
+            token = PeekNextTokenSkipDivider();
+            if (token.IsEolOrEof())
+            {
+                model.nocrlf = true;  // Semicolon ends the PRINT means no CR/LF at the end
+                break;
+            }
+        }
         else if (token.IsComma())
         {
             GetNextToken();
