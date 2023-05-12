@@ -274,7 +274,7 @@ private:
 };
 
 class Parser;
-typedef void (Parser::* ParseMethodRef)(SourceLineModel&);
+typedef void (Parser::* ParseMethodRef)(StatementModel&);
 struct ParserKeywordSpec
 {
     KeywordIndex keyword;
@@ -294,6 +294,7 @@ class Parser
     Token	m_nexttoken;
     bool	m_havenexttoken;
     int     m_prevlinenum;
+    SourceLineModel* m_line;  // Curent line being parsed
 public:
     Parser(Tokenizer* tokenizer);
 public:
@@ -303,50 +304,51 @@ private:
     static const ParserFunctionSpec m_funcspecs[];
     static const ParserFunctionSpec* FindFunctionSpec(KeywordIndex keyword);
 private:
+    void ParseStatement(StatementModel& statement);
     Token GetNextToken();
     Token GetNextTokenSkipDivider();
     Token PeekNextToken();
     Token PeekNextTokenSkipDivider();
     void SkipTilEnd();
-    void SkipComma(SourceLineModel& model);
-    void Error(SourceLineModel& model, const Token& token, const string& message);
-    ExpressionModel ParseExpression(SourceLineModel& model);
-    VariableModel ParseVariable(SourceLineModel& model);
-    VariableExpressionModel ParseVariableExpression(SourceLineModel& model);
-    void ParseLetShort(Token& tokenIdentOrMid, SourceLineModel& model);
+    void SkipComma();
+    void Error(const Token& token, const string& message);
+    ExpressionModel ParseExpression();
+    VariableModel ParseVariable();
+    VariableExpressionModel ParseVariableExpression();
+    void ParseLetShort(Token& tokenIdentOrMid, StatementModel& model);
 private:
-    void ParseIgnoredStatement(SourceLineModel& model);
-    void ParseStatementNoParams(SourceLineModel& model);
-    void ParseClear(SourceLineModel& model);
-    void ParseColor(SourceLineModel& model);
-    void ParseData(SourceLineModel& model);
-    void ParseDef(SourceLineModel& model);
-    void ParseDefFn(SourceLineModel& model);
-    void ParseDefUsr(SourceLineModel& model);
-    void ParseDim(SourceLineModel& model);
-    void ParseDraw(SourceLineModel& model);
-    void ParseFor(SourceLineModel& model);
-    void ParseGotoGosub(SourceLineModel& model);
-    void ParseIf(SourceLineModel& model);
-    void ParseInput(SourceLineModel& model);
-    void ParseKey(SourceLineModel& model);
-    void ParseLet(SourceLineModel& model);
-    void ParseLocate(SourceLineModel& model);
-    void ParseNext(SourceLineModel& model);
-    void ParseOn(SourceLineModel& model);
-    void ParseOpen(SourceLineModel& model);
-    void ParseOut(SourceLineModel& model);
-    void ParsePrint(SourceLineModel& model);
-    void ParsePoke(SourceLineModel& model);
-    void ParsePsetPreset(SourceLineModel& model);
-    void ParseLine(SourceLineModel& model);
-    void ParseCircle(SourceLineModel& model);
-    void ParsePaint(SourceLineModel& model);
-    void ParseRead(SourceLineModel& model);
-    void ParseRem(SourceLineModel& model);
-    void ParseRestore(SourceLineModel& model);
-    void ParseScreen(SourceLineModel& model);
-    void ParseWidth(SourceLineModel& model);
+    void ParseIgnoredStatement(StatementModel& model);
+    void ParseStatementNoParams(StatementModel& model);
+    void ParseClear(StatementModel& model);
+    void ParseColor(StatementModel& model);
+    void ParseData(StatementModel& model);
+    void ParseDef(StatementModel& model);
+    void ParseDefFn(StatementModel& model);
+    void ParseDefUsr(StatementModel& model);
+    void ParseDim(StatementModel& model);
+    void ParseDraw(StatementModel& model);
+    void ParseFor(StatementModel& model);
+    void ParseGotoGosub(StatementModel& model);
+    void ParseIf(StatementModel& model);
+    void ParseInput(StatementModel& model);
+    void ParseKey(StatementModel& model);
+    void ParseLet(StatementModel& model);
+    void ParseLocate(StatementModel& model);
+    void ParseNext(StatementModel& model);
+    void ParseOn(StatementModel& model);
+    void ParseOpen(StatementModel& model);
+    void ParseOut(StatementModel& model);
+    void ParsePrint(StatementModel& model);
+    void ParsePoke(StatementModel& model);
+    void ParsePsetPreset(StatementModel& model);
+    void ParseLine(StatementModel& model);
+    void ParseCircle(StatementModel& model);
+    void ParsePaint(StatementModel& model);
+    void ParseRead(StatementModel& model);
+    void ParseRem(StatementModel& model);
+    void ParseRestore(StatementModel& model);
+    void ParseScreen(StatementModel& model);
+    void ParseWidth(StatementModel& model);
 };
 
 class Validator;
