@@ -61,6 +61,7 @@ const GeneratorOperSpec Generator::m_operspecs[] =
     { "*",              &Generator::GenerateOperMul },
     { "/",              &Generator::GenerateOperDiv },
     { "\\",             &Generator::GenerateOperDivInt },
+    { "MOD",            &Generator::GenerateOperMod },
     { "^",              &Generator::GenerateOperPower },
     { "=",              &Generator::GenerateOperEqual },
     { "<>",             &Generator::GenerateOperNotEqual },
@@ -99,6 +100,21 @@ void Generator::ProcessEnd()
     m_final->AddLine("L" + std::to_string(MAX_LINE_NUMBER + 1) + ":");
     m_final->AddLine("\t.EXIT");  // In case we run after last line
 
+    if (!m_source->conststrings.empty())
+    {
+        m_final->AddLine("; STRINGS");
+        m_final->AddLine("\t.EVEN");
+        for (size_t i = 0; i < m_source->conststrings.size(); ++i)
+        {
+            string strdeco = "SZ" + std::to_string(i + 1);
+            string& str = m_source->conststrings[i];
+            m_final->AddLine(strdeco + ":\t.ASCIZ\t/" + str + "/");
+            //TODO: Pascal strings with length in the first byte
+            //TODO: Special symbols
+            //TODO: Align to words
+        }
+    }
+
     m_final->AddLine("; VARIABLES");
     for (auto it = std::begin(m_source->vars); it != std::end(m_source->vars); ++it)
     {
@@ -116,17 +132,6 @@ void Generator::ProcessEnd()
         default:  // Single
             m_final->AddLine(deconame + ":\t.WORD\t0,0\t; " + it->name);
             break;
-        }
-    }
-
-    if (!m_source->conststrings.empty())
-    {
-        m_final->AddLine("; STRINGS");
-        for (size_t i = 0; i < m_source->conststrings.size(); ++i)
-        {
-            string strdeco = "SZ" + std::to_string(i + 1);
-            string& str = m_source->conststrings[i];
-            m_final->AddLine(strdeco + ":\t.ASCIZ\t/" + str + "/");
         }
     }
 
@@ -314,16 +319,27 @@ void Generator::GenerateAssignment(SourceLineModel& line, VariableExpressionMode
 
     if (expr.IsConstExpression())
     {
-        int ivalue = (int)std::floor(expr.GetConstExpressionDValue());
-        if (ivalue == 0)
+        if (vtype == ValueTypeInteger)
         {
-            m_final->AddLine("\tCLR\t" + deconame + comment);
-        }
-        else {
-            string svalue = "#" + std::to_string(ivalue) + ".";
-            m_final->AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
+            int ivalue = (int)std::floor(expr.GetConstExpressionDValue());
+            if (ivalue == 0)
+            {
+                m_final->AddLine("\tCLR\t" + deconame + comment);
+            }
+            else {
+                string svalue = "#" + std::to_string(ivalue) + ".";
+                m_final->AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
+            }
         }
         //TODO: version for Single type
+        else if (vtype == ValueTypeString)
+        {
+            string svalue = expr.GetConstExpressionSValue();
+            int sindex = m_source->GetConstStringIndex(svalue);
+            m_final->AddLine("\tMOV\t#S" + std::to_string(sindex) + ", R0");
+            m_final->AddLine("\tMOV\t#" + deconame + ", R1");
+            m_final->AddLine("\tCALL\tSTRCPY" + comment);
+        }
     }
     else if (expr.IsVariableExpression())
     {
@@ -862,6 +878,12 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
 {
     //TODO
     m_final->AddLine(";TODO operation divint");
+}
+
+void Generator::GenerateOperMod(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    //TODO
+    m_final->AddLine(";TODO operation MOD");
 }
 
 void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)

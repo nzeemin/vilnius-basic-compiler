@@ -93,12 +93,12 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordEXP,       &Validator::ValidateFuncExp },
     { KeywordLOG,       &Validator::ValidateFuncLog },
     { KeywordABS,       &Validator::ValidateFuncAbs },
-    { KeywordFIX,       &Validator::ValidateFuncFix },
+    { KeywordFIX,       &Validator::ValidateFuncCintFix },
     { KeywordINT,       &Validator::ValidateFuncInt },
     { KeywordSGN,       &Validator::ValidateFuncSgn },
     { KeywordRND,       &Validator::ValidateFuncRnd },
     { KeywordFRE,       &Validator::ValidateFuncFre },
-    { KeywordCINT,      &Validator::ValidateFuncCint },
+    { KeywordCINT,      &Validator::ValidateFuncCintFix },
     { KeywordCSNG,      &Validator::ValidateFuncCsng },
     { KeywordPEEK,      &Validator::ValidateFuncPeek },
     { KeywordINP,       &Validator::ValidateFuncInp },
@@ -202,6 +202,11 @@ void Validator::ValidateExpression(ExpressionModel& expr)
         return;
 
     ValidateExpression(expr, expr.root);
+
+    if (expr.IsConstExpression() && expr.GetExpressionValueType() == ValueTypeString)
+    {
+        m_source->RegisterConstString(expr.GetConstExpressionSValue());
+    }
 }
 
 void Validator::ValidateExpression(ExpressionModel& expr, int index)
@@ -454,6 +459,9 @@ void Validator::ValidateDraw(StatementModel& statement)
     ExpressionModel& expr1 = statement.args[0];
     if (!CheckStringExpression(expr1))
         return;
+
+    if (expr1.IsConstExpression())
+        m_source->RegisterConstString(expr1.GetConstExpressionSValue());
 }
 
 void Validator::ValidateFor(StatementModel& statement)
@@ -1304,7 +1312,7 @@ void Validator::ValidateFuncAbs(ExpressionModel& expr, ExpressionNode& node)
     }
 }
 
-void Validator::ValidateFuncFix(ExpressionModel& expr, ExpressionNode& node)
+void Validator::ValidateFuncCintFix(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
         EXPR_ERROR("One argument expected.");
@@ -1320,6 +1328,7 @@ void Validator::ValidateFuncFix(ExpressionModel& expr, ExpressionNode& node)
     {
         node.constval = true;
         node.node.dvalue = (int)(expr1.GetConstExpressionDValue());
+        //TODO: check for range -32768..32767
     }
 }
 
@@ -1388,25 +1397,6 @@ void Validator::ValidateFuncFre(ExpressionModel& expr, ExpressionNode& node)
         ExpressionModel& expr1 = node.args[0];
         ValidateExpression(expr1);
         //NOTE: Could be of type Integer/Single or String
-    }
-}
-
-void Validator::ValidateFuncCint(ExpressionModel& expr, ExpressionNode& node)
-{
-    if (node.args.size() != 1)
-        EXPR_ERROR("One argument expected.");
-
-    ExpressionModel& expr1 = node.args[0];
-    if (!CheckIntegerOrSingleExpression(expr1))
-        return;
-
-    node.vtype = ValueTypeInteger;
-    node.constval = false;
-
-    if (expr1.IsConstExpression())
-    {
-        node.constval = true;
-        node.node.dvalue = (int)(expr1.GetConstExpressionDValue());
     }
 }
 

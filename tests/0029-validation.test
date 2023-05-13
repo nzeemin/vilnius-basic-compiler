@@ -5,6 +5,6 @@
 120 POKE "AAA", 0
 ----------------------------------------------------------------------
 ERROR in line 100 - Invalid line number 65535.
-ERROR in line 110, expression at 2:14 - Expression should be of type Integer or Single.
-ERROR in line 120, expression at 3:10 - Expression should be of type Integer or Single.
+ERROR in line 110 at 2:14 - Expression should be of type Integer or Single.
+ERROR in line 120 at 3:10 - Expression should be of type Integer or Single.
 Validation ERRORS: 3

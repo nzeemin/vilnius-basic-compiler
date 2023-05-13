@@ -466,12 +466,11 @@ private:
     void ValidateFuncExp(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncLog(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncAbs(ExpressionModel& expr, ExpressionNode& node);
-    void ValidateFuncFix(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncSgn(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncFre(ExpressionModel& expr, ExpressionNode& node);
-    void ValidateFuncCint(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncCintFix(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncInp(ExpressionModel& expr, ExpressionNode& node);
@@ -574,6 +573,7 @@ private:
     void GenerateOperMul(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperDiv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperDivInt(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperMod(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperPower(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment);
     void GenerateOperEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
