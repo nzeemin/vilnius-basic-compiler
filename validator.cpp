@@ -784,7 +784,7 @@ void Validator::ValidatePrint(StatementModel& statement)
         else if (root.node.IsKeyword(KeywordTAB))
         {
             if (root.args.size() != 1)
-                MODEL_ERROR("Ome expressions expected for TAB function.");
+                MODEL_ERROR("One expressions expected for TAB function.");
             ExpressionModel& expr1 = root.args[0];
             if (!CheckIntegerOrSingleExpression(expr1))
                 return;
@@ -792,10 +792,16 @@ void Validator::ValidatePrint(StatementModel& statement)
         else if (root.node.IsKeyword(KeywordSPC))
         {
             if (root.args.size() != 1)
-                MODEL_ERROR("Ome expressions expected for SPC function.");
+                MODEL_ERROR("One expressions expected for SPC function.");
             ExpressionModel& expr1 = root.args[0];
             if (!CheckIntegerOrSingleExpression(expr1))
                 return;
+            if (expr1.IsConstExpression())
+            {
+                int ivalue = (int)expr1.GetConstExpressionDValue();
+                if (ivalue < 0 || ivalue > 255)
+                    MODEL_ERROR("PRINT SPC argument is " + std::to_string(ivalue) + ", out of 0..255 range.");
+            }
         }
         else
         {

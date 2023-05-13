@@ -492,7 +492,7 @@ private:
 };
 
 class Generator;
-typedef void (Generator::* GeneratorMethodRef)(SourceLineModel&);
+typedef void (Generator::* GeneratorMethodRef)(StatementModel&);
 struct GeneratorKeywordSpec
 {
     KeywordIndex keyword;
@@ -516,58 +516,62 @@ class Generator
     SourceModel*    m_source;
     FinalModel*     m_final;
     int             m_lineindex;
+    SourceLineModel* m_line;  // Curent line being generated
 public:
     Generator(SourceModel* source, FinalModel* intermed);
 public:
     void ProcessBegin();
     bool ProcessLine();
     void ProcessEnd();
+    void GenerateStrings();
+    void GenerateVariables();
 private:
     static const GeneratorKeywordSpec m_keywordspecs[];
     static const GeneratorOperSpec m_operspecs[];
     static const GeneratorFuncSpec m_funcspecs[];
 private:
-    void Error(SourceLineModel& line, const string& message);
+    void Error(const string& message);
     void GenerateExpression(const ExpressionModel& expr);
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node);
-    void GenerateAssignment(SourceLineModel& line, VariableExpressionModel& var, ExpressionModel& expr);
+    void GenerateAssignment(VariableExpressionModel& var, ExpressionModel& expr);
 private:
-    void GenerateIgnoredStatement(SourceLineModel& line);
-    void GenerateBeep(SourceLineModel& line);
-    void GenerateCircle(SourceLineModel& line);
-    void GenerateClear(SourceLineModel& line);
-    void GenerateClose(SourceLineModel& line);
-    void GenerateCls(SourceLineModel& line);
-    void GenerateColor(SourceLineModel& line);
-    void GenerateData(SourceLineModel& line);
-    void GenerateDim(SourceLineModel& line);
-    void GenerateDraw(SourceLineModel& line);
-    void GenerateEnd(SourceLineModel& line);
-    void GenerateFor(SourceLineModel& line);
-    void GenerateGosub(SourceLineModel& line);
-    void GenerateGoto(SourceLineModel& line);
-    void GenerateIf(SourceLineModel& line);
-    void GenerateInput(SourceLineModel& line);
-    void GenerateLet(SourceLineModel& line);
-    void GenerateLine(SourceLineModel& line);
-    void GenerateLocate(SourceLineModel& line);
-    void GenerateNext(SourceLineModel& line);
-    void GenerateOn(SourceLineModel& line);
-    void GenerateOpen(SourceLineModel& line);
-    void GeneratePaint(SourceLineModel& line);
-    void GeneratePoke(SourceLineModel& line);
-    void GeneratePrint(SourceLineModel& line);
-    void GeneratePreset(SourceLineModel& line);
-    void GeneratePset(SourceLineModel& line);
-    void GenerateRead(SourceLineModel& line);
-    void GenerateRem(SourceLineModel& line);
-    void GenerateRestore(SourceLineModel& line);
-    void GenerateReturn(SourceLineModel& line);
-    void GenerateScreen(SourceLineModel& line);
-    void GenerateStop(SourceLineModel& line);
-    void GenerateWidth(SourceLineModel& line);
+    void GenerateIgnoredStatement(StatementModel& statement);
+    void GenerateBeep(StatementModel& statement);
+    void GenerateCircle(StatementModel& statement);
+    void GenerateClear(StatementModel& statement);
+    void GenerateClose(StatementModel& statement);
+    void GenerateCls(StatementModel& statement);
+    void GenerateColor(StatementModel& statement);
+    void GenerateData(StatementModel& statement);
+    void GenerateDim(StatementModel& statement);
+    void GenerateDraw(StatementModel& statement);
+    void GenerateEnd(StatementModel& statement);
+    void GenerateFor(StatementModel& statement);
+    void GenerateGosub(StatementModel& statement);
+    void GenerateGoto(StatementModel& statement);
+    void GenerateIf(StatementModel& statement);
+    void GenerateInput(StatementModel& statement);
+    void GenerateLet(StatementModel& statement);
+    void GenerateLine(StatementModel& statement);
+    void GenerateLocate(StatementModel& statement);
+    void GenerateNext(StatementModel& statement);
+    void GenerateOn(StatementModel& statement);
+    void GenerateOpen(StatementModel& statement);
+    void GenerateOut(StatementModel& statement);
+    void GeneratePaint(StatementModel& statement);
+    void GeneratePoke(StatementModel& statement);
+    void GeneratePrint(StatementModel& statement);
+    void GeneratePreset(StatementModel& statement);
+    void GeneratePset(StatementModel& statement);
+    void GenerateRead(StatementModel& statement);
+    void GenerateRem(StatementModel& statement);
+    void GenerateRestore(StatementModel& statement);
+    void GenerateReturn(StatementModel& statement);
+    void GenerateScreen(StatementModel& statement);
+    void GenerateStop(StatementModel& statement);
+    void GenerateWidth(StatementModel& statement);
 private:
     void GenerateOperPlus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperMinus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);

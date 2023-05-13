@@ -816,7 +816,7 @@ void Parser::ParseDraw(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr1);
     statement.args.push_back(expr1);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
@@ -961,11 +961,13 @@ void Parser::ParseInput(StatementModel& statement)
         CHECK_MODEL_ERROR;
         statement.variables.push_back(var);
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (!token.IsComma())
             break;
+        GetNextToken();  // comma
     }
 
+    token = PeekNextTokenSkipDivider();
     if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
@@ -1405,11 +1407,11 @@ void Parser::ParsePsetPreset(StatementModel& statement)
     if (!token.IsCloseBracket())
         MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
         return;
-    if (!token.IsComma())
-        MODEL_ERROR("Unexpected text after arguments.");
+
+    SKIP_COMMA;
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr3 = ParseExpression();
@@ -1424,16 +1426,18 @@ void Parser::ParsePsetPreset(StatementModel& statement)
 
 void Parser::ParseLine(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
         (token.IsKeyword(KeywordSTEP)))
     {
+        GetNextToken();  // @
         statement.relative = true;
-        token = GetNextTokenSkipDivider();
     }
 
+    token = PeekNextTokenSkipDivider();
     if (token.IsOpenBracket())  // we ahve ARG1, ARG2
     {
+        GetNextToken();  // open bracket
         token = PeekNextTokenSkipDivider();
         ExpressionModel expr1 = ParseExpression();
         CHECK_MODEL_ERROR;
@@ -1451,27 +1455,30 @@ void Parser::ParseLine(StatementModel& statement)
         token = GetNextTokenSkipDivider();
         if (!token.IsCloseBracket())
             MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
-
-        token = GetNextTokenSkipDivider();
     }
     else
     {
         //TODO: add two empty expressions
     }
 
+    token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeOperation || token.text != "-")
         MODEL_ERROR("Minus \'-\' sign expected.");
+    GetNextToken();  // minus sign
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
         (token.IsKeyword(KeywordSTEP)))
     {
+        GetNextToken();  // @
         //model.relative = true;//TODO
-        token = GetNextTokenSkipDivider();
     }
 
+    token = PeekNextTokenSkipDivider();
     if (token.IsOpenBracket())  // we have ARG3, ARG4
     {
+        GetNextToken();  // open bracket
+
         token = PeekNextTokenSkipDivider();
         ExpressionModel expr3 = ParseExpression();
         CHECK_MODEL_ERROR;
@@ -1489,53 +1496,55 @@ void Parser::ParseLine(StatementModel& statement)
         token = GetNextTokenSkipDivider();
         if (!token.IsCloseBracket())
             MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
-
-        token = GetNextTokenSkipDivider();
     }
     else
     {
         //TODO: add two empty expressions
     }
 
+    token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
         return;
 
     if (token.IsComma())  // we have ARG5
     {
+        GetNextToken();  // comma
+
         token = PeekNextTokenSkipDivider();
         ExpressionModel expr5 = ParseExpression();
         CHECK_MODEL_ERROR;
         CHECK_EXPRESSION_NOT_EMPTY(expr5);
         statement.args.push_back(expr5);
 
-        token = GetNextTokenSkipDivider();
-
+        token = PeekNextTokenSkipDivider();
         if (token.IsComma())  // we have "B" or "BF" here
         {
+            GetNextToken();  // comma
+
             token = GetNextTokenSkipDivider();
             if (token.type != TokenTypeIdentifier || (token.text != "B" && token.text != "BF"))
                 MODEL_ERROR("\'B\' or \'BR\' expected.");
 
             //TODO: save to model
-
-            token = GetNextTokenSkipDivider();
         }
     }
 
+    token = PeekNextTokenSkipDivider();
     if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParseCircle(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
         (token.IsKeyword(KeywordSTEP)))
     {
+        GetNextToken();  // @ or STEP
         statement.relative = true;
-        token = GetNextTokenSkipDivider();
     }
 
+    token = GetNextTokenSkipDivider();
     if (!token.IsOpenBracket())
         MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
 
@@ -1565,61 +1574,69 @@ void Parser::ParseCircle(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr3);
     statement.args.push_back(expr3);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
         return;
 
     if (token.IsComma())
     {
+        GetNextToken();  // comma
+
         token = PeekNextTokenSkipDivider();
         ExpressionModel expr4 = ParseExpression();
         CHECK_MODEL_ERROR;
         statement.args.push_back(expr4);
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (token.IsComma())
         {
+            GetNextToken();  // comma
+
             token = PeekNextTokenSkipDivider();
             ExpressionModel expr5 = ParseExpression();
             CHECK_MODEL_ERROR;
             statement.args.push_back(expr5);
 
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (token.IsComma())
             {
+                GetNextToken();  // comma
+
                 token = PeekNextTokenSkipDivider();
                 ExpressionModel expr6 = ParseExpression();
                 CHECK_MODEL_ERROR;
                 statement.args.push_back(expr6);
 
-                token = GetNextTokenSkipDivider();
+                token = PeekNextTokenSkipDivider();
                 if (token.IsComma())
                 {
+                    GetNextToken();  // comma
+
                     token = PeekNextTokenSkipDivider();
                     ExpressionModel expr7 = ParseExpression();
                     CHECK_MODEL_ERROR;
                     statement.args.push_back(expr7);
-
-                    token = GetNextTokenSkipDivider();
                 }
             }
         }
     }
     
+    token = PeekNextTokenSkipDivider();
     if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
 void Parser::ParsePaint(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
         (token.IsKeyword(KeywordSTEP)))
     {
+        GetNextToken();  // @ or STEP
         statement.relative = true;
-        token = GetNextTokenSkipDivider();
     }
 
+    token = GetNextTokenSkipDivider();
     if (!token.IsOpenBracket())
         MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
 
@@ -1641,26 +1658,29 @@ void Parser::ParsePaint(StatementModel& statement)
     if (!token.IsCloseBracket())
         MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.IsComma())
     {
+        GetNextToken();  // comma
+
         token = PeekNextTokenSkipDivider();
         ExpressionModel expr3 = ParseExpression();
         CHECK_MODEL_ERROR;
         statement.args.push_back(expr3);
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (token.IsComma())
         {
+            GetNextToken();  // comma
+
             token = PeekNextTokenSkipDivider();
             ExpressionModel expr4 = ParseExpression();
             CHECK_MODEL_ERROR;
             statement.args.push_back(expr4);
-
-            token = GetNextTokenSkipDivider();
         }
     }
 
+    token = PeekNextTokenSkipDivider();
     if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
