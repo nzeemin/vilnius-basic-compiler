@@ -76,6 +76,7 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordPEEK,      &Generator::GenerateFuncPeek },
     { KeywordINP,       &Generator::GenerateFuncInp },
     { KeywordLEN,       &Generator::GenerateFuncLen },
+    { KeywordINKEY,     &Generator::GenerateFuncInkey },
 };
 
 
@@ -102,7 +103,7 @@ void Generator::ProcessEnd()
 
     if (!m_source->conststrings.empty())
     {
-        m_final->AddLine("; STRINGS");
+        m_final->AddComment("STRINGS");
         m_final->AddLine("\t.EVEN");
         for (size_t i = 0; i < m_source->conststrings.size(); ++i)
         {
@@ -115,7 +116,7 @@ void Generator::ProcessEnd()
         }
     }
 
-    m_final->AddLine("; VARIABLES");
+    m_final->AddComment("VARIABLES");
     for (auto it = std::begin(m_source->vars); it != std::end(m_source->vars); ++it)
     {
         string deconame = DecorateVariableName(it->name);
@@ -157,7 +158,7 @@ bool Generator::ProcessLine()
     }
 
     SourceLineModel& line = m_source->lines[m_lineindex];
-    m_final->AddLine("; " + line.text);
+    m_final->AddComment(line.text);
     string linenumlabel = "L" + std::to_string(line.number) + ":";//TODO function GetLineNumberLabel
     m_final->AddLine(linenumlabel);
 
@@ -207,7 +208,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
 
     if (node.vtype != ValueTypeInteger && node.vtype != ValueTypeSingle)
     {
-        m_final->AddLine("; TODO calculate non-integer expression");
+        m_final->AddComment("TODO calculate non-integer expression");
         return;
     }
 
@@ -247,7 +248,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
 
     if (node.left != -1 || node.right != -1)
     {
-        m_final->AddLine("; TODO generate complex expression");
+        m_final->AddComment("TODO generate complex expression");
         return;
     }
 }
@@ -301,7 +302,7 @@ void Generator::GenerateExprFunction(const ExpressionModel& expr, const Expressi
 
     if (methodref == nullptr)
     {
-        m_final->AddLine("; TODO generate function expression for " + GetKeywordString(keyword));
+        m_final->AddComment("TODO generate function expression for " + GetKeywordString(keyword));
         return;
     }
 
@@ -379,7 +380,7 @@ void Generator::GenerateAssignment(SourceLineModel& line, VariableExpressionMode
 
 void Generator::GenerateIgnoredStatement(SourceLineModel& line)
 {
-    m_final->AddLine("; " + line.statement.token.text + " statement is ignored");
+    m_final->AddComment(line.statement.token.text + " statement is ignored");
 }
 
 void Generator::GenerateBeep(SourceLineModel& line)
@@ -389,7 +390,7 @@ void Generator::GenerateBeep(SourceLineModel& line)
 
 void Generator::GenerateClear(SourceLineModel& line)
 {
-    m_final->AddLine("; CLEAR statement is ignored");
+    m_final->AddComment("CLEAR statement is ignored");
 }
 
 void Generator::GenerateCls(SourceLineModel& line)
@@ -400,13 +401,13 @@ void Generator::GenerateCls(SourceLineModel& line)
 void Generator::GenerateColor(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO COLOR");
+    m_final->AddComment("TODO COLOR");
 }
 
 void Generator::GenerateData(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO DATA");
+    m_final->AddComment("TODO DATA");
 }
 
 void Generator::GenerateDim(SourceLineModel& line)
@@ -417,7 +418,7 @@ void Generator::GenerateDim(SourceLineModel& line)
 void Generator::GenerateDraw(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO DRAW");
+    m_final->AddComment("TODO DRAW");
 }
 
 void Generator::GenerateEnd(SourceLineModel& line)
@@ -497,11 +498,13 @@ void Generator::GenerateIf(SourceLineModel& line)
         int ivalue = (int)expr.GetConstExpressionDValue();
         if (ivalue != 0)  // TRUE - generate THEN only
         {
+            //TODO: Statement under THEN
             int linenum = (int)line.statement.params[0].dvalue;
             m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN");
         }
         else  // FALSE - generate ELSE only
         {
+            //TODO: Statement under ELSE
             if (line.statement.params.size() == 1)
                 m_final->AddLine("\t\t\t; ELSE do nothing");
             else
@@ -515,6 +518,9 @@ void Generator::GenerateIf(SourceLineModel& line)
 
     GenerateExpression(expr);
     //TODO: set flags: Z=0 for TRUE, Z=1 for FALSE
+
+    //TODO: Statement under THEN
+    //TODO: Statement under ELSE
 
     if (line.statement.params.size() == 1)  // IF expr THEN linenum
     {
@@ -555,7 +561,7 @@ void Generator::GenerateInput(SourceLineModel& line)
         }
         else
         {
-            m_final->AddLine("; TODO INPUT " + it->name);  //TODO
+            m_final->AddComment("TODO INPUT " + it->name);  //TODO
         }
     }
 }
@@ -563,13 +569,13 @@ void Generator::GenerateInput(SourceLineModel& line)
 void Generator::GenerateOpen(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO OPEN");
+    m_final->AddComment("TODO OPEN");
 }
 
 void Generator::GenerateClose(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO CLOSE");
+    m_final->AddComment("TODO CLOSE");
 }
 
 void Generator::GenerateLet(SourceLineModel& line)
@@ -627,19 +633,19 @@ void Generator::GenerateLocate(SourceLineModel& line)
     }
 
     //TODO
-    m_final->AddLine("; TODO LOCATE");
+    m_final->AddComment("TODO LOCATE");
 }
 
 void Generator::GeneratePset(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO PSET");
+    m_final->AddComment("TODO PSET");
 }
 
 void Generator::GeneratePreset(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO PRESET");
+    m_final->AddComment("TODO PRESET");
 }
 
 void Generator::GenerateNext(SourceLineModel& line)
@@ -684,19 +690,19 @@ void Generator::GeneratePoke(SourceLineModel& line)
 void Generator::GenerateLine(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO LINE");  //TODO
+    m_final->AddComment("TODO LINE");  //TODO
 }
 
 void Generator::GenerateCircle(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO CIRCLE");  //TODO
+    m_final->AddComment("TODO CIRCLE");  //TODO
 }
 
 void Generator::GeneratePaint(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO PAINT");  //TODO
+    m_final->AddComment("TODO PAINT");  //TODO
 }
 
 void Generator::GeneratePrint(SourceLineModel& line)
@@ -713,7 +719,7 @@ void Generator::GeneratePrint(SourceLineModel& line)
             const ExpressionModel& expr2 = root.args[1];
             GenerateExpression(expr2);
             //TODO
-            m_final->AddLine(";TODO PRINT AT");
+            m_final->AddComment("TODO PRINT AT");
         }
         else if (root.node.IsKeyword(KeywordTAB))
         {
@@ -732,7 +738,7 @@ void Generator::GeneratePrint(SourceLineModel& line)
         else if (root.vtype == ValueTypeString)
         {
             //TODO
-            m_final->AddLine(";TODO PRINT string expression");
+            m_final->AddComment("TODO PRINT string expression");
         }
         else if (root.vtype == ValueTypeInteger)
         {
@@ -755,7 +761,7 @@ void Generator::GeneratePrint(SourceLineModel& line)
 void Generator::GenerateRead(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO READ");
+    m_final->AddComment("TODO READ");
 }
 
 void Generator::GenerateRem(SourceLineModel& line)
@@ -766,7 +772,7 @@ void Generator::GenerateRem(SourceLineModel& line)
 void Generator::GenerateRestore(SourceLineModel& line)
 {
     //TODO
-    m_final->AddLine("; TODO RESTORE");
+    m_final->AddComment("TODO RESTORE");
 }
 
 void Generator::GenerateReturn(SourceLineModel& line)
@@ -776,7 +782,7 @@ void Generator::GenerateReturn(SourceLineModel& line)
 
 void Generator::GenerateScreen(SourceLineModel& line)
 {
-    m_final->AddLine("; SCREEN statement is ignored");
+    m_final->AddComment("SCREEN statement is ignored");
 }
 
 void Generator::GenerateStop(SourceLineModel& line)
@@ -786,7 +792,7 @@ void Generator::GenerateStop(SourceLineModel& line)
 
 void Generator::GenerateWidth(SourceLineModel& line)
 {
-    m_final->AddLine("; WIDTH statement is ignored");
+    m_final->AddComment("WIDTH statement is ignored");
 }
 
 
@@ -864,32 +870,57 @@ void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionN
 
 void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
+    const string comment = "\t; Operation \'*\'";
+
+    // Code to calculate left sub-expression, with result in R0
+    GenerateExpression(expr, nodeleft);
+
     //TODO
-    m_final->AddLine(";TODO operation multiply");
+    m_final->AddComment("TODO operation multiply");
 }
 
 void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
+    const string comment = "\t; Operation \'/\'";
+
+    // Code to calculate left sub-expression, with result in R0
+    GenerateExpression(expr, nodeleft);
+
     //TODO
-    m_final->AddLine(";TODO operation division");
+    m_final->AddComment("TODO operation division");
 }
 
 void Generator::GenerateOperDivInt(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
+    const string comment = "\t; Operation \'\\\'";
+
+    // Code to calculate left sub-expression, with result in R0
+    GenerateExpression(expr, nodeleft);
+
     //TODO
-    m_final->AddLine(";TODO operation divint");
+    m_final->AddComment("TODO operation divint");
 }
 
 void Generator::GenerateOperMod(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
+    const string comment = "\t; Operation \'MOD\'";
+
+    // Code to calculate left sub-expression, with result in R0
+    GenerateExpression(expr, nodeleft);
+
     //TODO
-    m_final->AddLine(";TODO operation MOD");
+    m_final->AddComment("TODO operation MOD");
 }
 
 void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
+    const string comment = "\t; Operation \'^\'";
+
+    // Code to calculate left sub-expression, with result in R0
+    GenerateExpression(expr, nodeleft);
+
     //TODO
-    m_final->AddLine(";TODO operation power");
+    m_final->AddComment("TODO operation power");
 }
 
 void Generator::GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment)
@@ -927,7 +958,7 @@ void Generator::GenerateOperEqual(const ExpressionModel& expr, const ExpressionN
     //m_final->AddLine("\tBEQ\t");
 
     //TODO
-    m_final->AddLine(";TODO operation equal");
+    m_final->AddComment("TODO operation equal");
 }
 
 void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -939,7 +970,7 @@ void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const Expressi
     //m_final->AddLine("\tBNE\t");
 
     //TODO
-    m_final->AddLine(";TODO operation not-equal");
+    m_final->AddComment("TODO operation not-equal");
 }
 
 void Generator::GenerateOperLess(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -951,7 +982,7 @@ void Generator::GenerateOperLess(const ExpressionModel& expr, const ExpressionNo
     //m_final->AddLine("\tBLO\t");
 
     //TODO
-    m_final->AddLine(";TODO operation less");
+    m_final->AddComment("TODO operation less");
 }
 
 void Generator::GenerateOperGreater(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -963,7 +994,7 @@ void Generator::GenerateOperGreater(const ExpressionModel& expr, const Expressio
     //m_final->AddLine("\tBHI\t");
 
     //TODO
-    m_final->AddLine(";TODO operation greater");
+    m_final->AddComment("TODO operation greater");
 }
 
 
@@ -1034,6 +1065,12 @@ void Generator::GenerateFuncLen(const ExpressionModel& expr, const ExpressionNod
 
     m_final->AddLine("\tCLR\tR0\t");
     m_final->AddLine("\tBISB\t(R0), R0\t; LEN");
+}
+
+void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    //TODO
+    m_final->AddComment("TODO INKEY$");
 }
 
 

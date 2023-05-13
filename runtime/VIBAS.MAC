@@ -35,6 +35,24 @@ PUTCH::
 	MOV	R0, @#177566	; передаём символ в канал 0
 	RETURN
 
+; Подпрограмма: PRINT AT(C,R), перемещение курсора
+WRAT::
+;TODO
+	RETURN
+
+; Подпрограмма: PRINT TAB(N), вывод пробелов пока не достигнем колонки N
+WRTAB::
+;TODO
+	RETURN
+
+; Подпрограмма: PRINT SPC(N), печать пробелов, R0 = количество, R0 > 0
+WRSPC::
+	MOV	R0, R1
+	MOV	#040, R0	; пробел
+1$:	CALL	PUTCH
+	SOB	R1, 1$
+	RETURN
+
 ; Подпрограмма: Печать целого числа R0
 WRINT::
 	MOV	R0, R4

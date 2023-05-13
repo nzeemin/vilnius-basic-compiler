@@ -248,6 +248,7 @@ struct FinalModel
     std::vector<string> lines;
 public:
     void AddLine(string str) { lines.push_back(str); }
+    void AddComment(string str) { lines.push_back("; " + str); }
 };
 
 
@@ -586,4 +587,5 @@ private:
     void GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncInp(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncLen(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node);
 };
