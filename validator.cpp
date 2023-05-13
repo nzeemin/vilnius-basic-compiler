@@ -126,7 +126,7 @@ Validator::Validator(SourceModel* source)
     m_source = source;
 
     m_lineindex = -1;
-    m_linenumber = -1;
+    m_line = nullptr;
 }
 
 bool Validator::ProcessLine()
@@ -146,11 +146,17 @@ bool Validator::ProcessLine()
         return false;
     }
 
-    SourceLineModel& line = m_source->lines[m_lineindex];
-    m_linenumber = line.number;
+    m_line = &(m_source->lines[m_lineindex]);
 
+    ValidateStatement(m_line->statement);
+
+    return true;
+}
+
+void Validator::ValidateStatement(StatementModel& statement)
+{
     // Find validator implementation
-    KeywordIndex keyword = line.statement.token.keyword;
+    KeywordIndex keyword = statement.token.keyword;
     ValidatorMethodRef methodref = nullptr;
     for (auto it = std::begin(m_keywordspecs); it != std::end(m_keywordspecs); ++it)
     {
@@ -162,31 +168,31 @@ bool Validator::ProcessLine()
     }
     if (methodref == nullptr)
     {
-        Error(line, "Validator not found for keyword " + GetKeywordString(keyword) + ".");
-        return true;
+        Error("Validator not found for keyword " + GetKeywordString(keyword) + ".");
+        return;
     }
 
-    (this->*methodref)(line);
-
-    return true;
+    (this->*methodref)(statement);
 }
 
-void Validator::Error(SourceLineModel& line, const string& message)
+void Validator::Error(const string& message)
 {
-    std::cerr << "ERROR in line " << m_linenumber << " - " << message << std::endl;
-    line.error = true;
+    std::cerr << "ERROR in line " << m_line->number << " - " << message << std::endl;
+    m_line->error = true;
     RegisterError();
 }
 
 void Validator::Error(ExpressionModel& expr, const string& message)
 {
-    std::cerr << "ERROR in line " << m_linenumber << " in expression - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_line->number << " in expression - " << message << std::endl;
+    m_line->error = true;
     RegisterError();
 }
 
 void Validator::Error(ExpressionModel& expr, const ExpressionNode& node, const string& message)
 {
-    std::cerr << "ERROR in line " << m_linenumber << ", expression at " << node.node.line << ":" << node.node.pos << " - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - " << message << std::endl;
+    m_line->error = true;
     RegisterError();
 }
 
@@ -228,8 +234,10 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
         //TODO: Unary NOT
         else
         {
-            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO validate unary operator " << node.node.text << std::endl;
-            exit(EXIT_FAILURE);
+            std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - TODO validate unary operator " << node.node.text << std::endl;
+            m_line->error = true;
+            RegisterError();
+            return;
         }
     }
     else if (node.node.type == TokenTypeOperation && node.left >= 0 && node.right >= 0)
@@ -239,8 +247,10 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
 
         if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
         {
-            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node." << std::endl;
-            exit(EXIT_FAILURE);
+            std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node." << std::endl;
+            m_line->error = true;
+            RegisterError();
+            return;
         }
 
         // Find validator implementation
@@ -258,7 +268,12 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
         if (methodref != nullptr)
             (this->*methodref)(expr, node, nodeleft, noderight);
         else
-            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO validate operator \'" + text + "\'." << std::endl;
+        {
+            std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - TODO validate operator \'" + text + "\'." << std::endl;
+            m_line->error = true;
+            RegisterError();
+            return;
+        }
     }
 
     if (node.node.type == TokenTypeKeyword)  // Check is it function, validate function
@@ -277,7 +292,9 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
 
         if (methodref == nullptr)
         {
-            std::cerr << "ERROR in expression at " << node.node.line << ":" << node.node.pos << " - TODO validate function " + GetKeywordString(keyword) << std::endl;
+            std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - TODO validate function " + GetKeywordString(keyword) << std::endl;
+            m_line->error = true;
+            RegisterError();
             return;
         }
 
@@ -331,38 +348,40 @@ bool Validator::CheckStringExpression(ExpressionModel& expr)
 // Statement validation //////////////////////////////////////////////
 
 #define MODEL_ERROR(msg) \
-    { Error(model, msg); return; }
+    { Error(msg); return; }
+#define CHECK_MODEL_ERROR \
+    { if (m_line->error) return; }
 
-void Validator::ValidateNothing(SourceLineModel& model)
+void Validator::ValidateNothing(StatementModel& statement)
 {
     // Nothing to validate
 }
 
-void Validator::ValidateClear(SourceLineModel& model)
+void Validator::ValidateClear(StatementModel& statement)
 {
-    if (model.statement.args.size() == 0)
+    if (statement.args.size() == 0)
         MODEL_ERROR("Expression expected.");
 
-    ExpressionModel& expr1 = model.statement.args[0];
+    ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
     
-    if (model.statement.args.size() > 1)
+    if (statement.args.size() > 1)
     {
-        ExpressionModel& expr2 = model.statement.args[1];
+        ExpressionModel& expr2 = statement.args[1];
         if (!CheckIntegerOrSingleExpression(expr2))
             return;
     }
-    if (model.statement.args.size() > 2)
+    if (statement.args.size() > 2)
         MODEL_ERROR("Too many expressions.");
 }
 
-void Validator::ValidateData(SourceLineModel& model)
+void Validator::ValidateData(StatementModel& statement)
 {
-    if (model.statement.params.size() == 0)
+    if (statement.params.size() == 0)
         MODEL_ERROR("Parameter(s) expected.");
 
-    for (auto it = std::begin(model.statement.params); it != std::end(model.statement.params); ++it)
+    for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
     {
         Token& token = *it;
         if (token.type != TokenTypeNumber && token.type != TokenTypeString)
@@ -372,250 +391,263 @@ void Validator::ValidateData(SourceLineModel& model)
     }
 }
 
-void Validator::ValidateRead(SourceLineModel& model)
+void Validator::ValidateRead(StatementModel& statement)
 {
     //TODO
 }
 
-void Validator::ValidateColor(SourceLineModel& model)
+void Validator::ValidateColor(StatementModel& statement)
 {
-    if (model.statement.args.size() == 0)
+    if (statement.args.size() == 0)
         MODEL_ERROR("Expression expected.");
 
     {
-        ExpressionModel& expr1 = model.statement.args[0];
+        ExpressionModel& expr1 = statement.args[0];
         if (!expr1.IsEmpty() && !CheckIntegerOrSingleExpression(expr1))
             return;
     }
-    if (model.statement.args.size() > 1)
+    if (statement.args.size() > 1)
     {
-        ExpressionModel& expr2 = model.statement.args[1];
+        ExpressionModel& expr2 = statement.args[1];
         if (!expr2.IsEmpty() && !CheckIntegerOrSingleExpression(expr2))
             return;
     }
-    if (model.statement.args.size() > 2)
+    if (statement.args.size() > 2)
     {
-        ExpressionModel& expr3 = model.statement.args[2];
+        ExpressionModel& expr3 = statement.args[2];
         if (!expr3.IsEmpty() && !CheckIntegerOrSingleExpression(expr3))
             return;
     }
 
-    if (model.statement.args.size() > 3)
+    if (statement.args.size() > 3)
         MODEL_ERROR("Too many expressions.");
 }
 
-void Validator::ValidateDim(SourceLineModel& model)
+void Validator::ValidateDim(StatementModel& statement)
 {
-    for (auto it = std::begin(model.statement.variables); it != std::end(model.statement.variables); ++it)
+    for (auto it = std::begin(statement.variables); it != std::end(statement.variables); ++it)
     {
         if (!m_source->RegisterVariable(*it))
             MODEL_ERROR("Variable redefinition for " + it->name + ".");
     }
 }
 
-void Validator::ValidateKey(SourceLineModel& model)
+void Validator::ValidateKey(StatementModel& statement)
 {
-    if (model.statement.args.size() != 2)
+    if (statement.args.size() != 2)
         MODEL_ERROR("Two expressions expected.");
 
-    ExpressionModel& expr1 = model.statement.args[0];
+    ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
-    ExpressionModel& expr2 = model.statement.args[1];
+    ExpressionModel& expr2 = statement.args[1];
     if (!CheckStringExpression(expr2))
         return;
 }
 
-void Validator::ValidateDraw(SourceLineModel& model)
+void Validator::ValidateDraw(StatementModel& statement)
 {
-    if (model.statement.args.size() != 1)
+    if (statement.args.size() != 1)
         MODEL_ERROR("One expression expected.");
 
-    ExpressionModel& expr1 = model.statement.args[0];
+    ExpressionModel& expr1 = statement.args[0];
     if (!CheckStringExpression(expr1))
         return;
 }
 
-void Validator::ValidateFor(SourceLineModel& model)
+void Validator::ValidateFor(StatementModel& statement)
 {
-    if (model.statement.ident.type != TokenTypeIdentifier)
+    if (statement.ident.type != TokenTypeIdentifier)
         MODEL_ERROR("Identifier expected.");
 
     VariableModel var;
-    var.name = GetCanonicVariableName(model.statement.ident.text);
+    var.name = GetCanonicVariableName(statement.ident.text);
     m_source->RegisterVariable(var);
 
     // Add FOR variable to FOR/NEXT stack
     ValidatorForSpec forspec;
     forspec.varname = var.name;
-    forspec.linenum = model.number;
+    forspec.linenum = m_line->number;
     m_fornextstack.push_back(forspec);
 
-    if (model.statement.args.size() < 2)
+    if (statement.args.size() < 2)
         MODEL_ERROR("Two expressions expected.");
 
-    ExpressionModel& expr1 = model.statement.args[0];
+    ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
-    ExpressionModel& expr2 = model.statement.args[1];
+    ExpressionModel& expr2 = statement.args[1];
     if (!CheckIntegerOrSingleExpression(expr2))
         return;
 
-    if (model.statement.args.size() > 2)  // has STEP expression
+    if (statement.args.size() > 2)  // has STEP expression
     {
-        ExpressionModel& expr3 = model.statement.args[1];
+        ExpressionModel& expr3 = statement.args[1];
         if (!CheckIntegerOrSingleExpression(expr3))
             return;
 
-        if (model.statement.args.size() > 3)
+        if (statement.args.size() > 3)
             MODEL_ERROR("Too many expressions.");
     }
 }
 
-void Validator::ValidateGotoGosub(SourceLineModel& model)
+void Validator::ValidateGotoGosub(StatementModel& statement)
 {
-    if (!m_source->IsLineNumberExists(model.statement.paramline))
-        MODEL_ERROR("Invalid line number " + std::to_string(model.statement.paramline) + ".");
+    if (!m_source->IsLineNumberExists(statement.paramline))
+        MODEL_ERROR("Invalid line number " + std::to_string(statement.paramline) + ".");
 }
 
-void Validator::ValidateIf(SourceLineModel& model)
+void Validator::ValidateIf(StatementModel& statement)
 {
-    if (model.statement.args.size() != 1)
+    if (statement.args.size() != 1)
         MODEL_ERROR("One expression expected.");
-    ExpressionModel& expr = model.statement.args[0];
+    ExpressionModel& expr = statement.args[0];
     ValidateExpression(expr);
     if (expr.IsEmpty())
         MODEL_ERROR("Expression should not be empty.");
 
-    if (model.statement.params.size() == 0)
-        MODEL_ERROR("Parameter expected.");
+    if (statement.params.size() < 1 || statement.params.size() > 2)
+        MODEL_ERROR("One or two parameters expected.");
 
-    // Line number for THEN
-    Token& param1 = model.statement.params[0];
-    int linenum1 = (int)param1.dvalue;
-    if (!m_source->IsLineNumberExists(linenum1))
-        MODEL_ERROR("Invalid line number " + std::to_string(linenum1) + ".");
-
-    if (model.statement.params.size() > 1)
+    if (statement.stthen == nullptr)
     {
-        // Line number for ELSE
-        Token& param2 = model.statement.params[1];
-        int linenum2 = (int)param2.dvalue;
-        if (!m_source->IsLineNumberExists(linenum2))
-            MODEL_ERROR("Invalid line number " + std::to_string(linenum2) + ".");
+        // Line number for THEN
+        Token& param1 = statement.params[0];
+        int linenum1 = (int)param1.dvalue;
+        if (!m_source->IsLineNumberExists(linenum1))
+            MODEL_ERROR("Invalid line number " + std::to_string(linenum1) + ".");
     }
-    
-    if (model.statement.params.size() > 2)
-        MODEL_ERROR("Too many parameters.");
+    else
+    {
+        ValidateStatement(*statement.stthen);
+        CHECK_MODEL_ERROR;
+    }
+
+    if (statement.stelse == nullptr)
+    {
+        if (statement.params.size() > 1)
+        {
+            // Line number for ELSE
+            Token& param2 = statement.params[1];
+            int linenum2 = (int)param2.dvalue;
+            if (!m_source->IsLineNumberExists(linenum2))
+                MODEL_ERROR("Invalid line number " + std::to_string(linenum2) + ".");
+        }
+    }
+    else
+    {
+        ValidateStatement(*statement.stelse);
+        CHECK_MODEL_ERROR;
+    }
 }
 
-void Validator::ValidateInput(SourceLineModel& model)
+void Validator::ValidateInput(StatementModel& statement)
 {
-    if (model.statement.params.size() > 1)
+    if (statement.params.size() > 1)
         MODEL_ERROR("Too many parameters.");
-    if (model.statement.params.size() > 0)
+    if (statement.params.size() > 0)
     {
-        Token& param = model.statement.params[0];
+        Token& param = statement.params[0];
         if (param.type != TokenTypeString)
             MODEL_ERROR("Parameter should be of type String.");
         m_source->RegisterConstString(param.text);
     }
 
-    if (model.statement.variables.size() == 0)
+    if (statement.variables.size() == 0)
         MODEL_ERROR("Variable(s) expected.");
 
-    for (auto it = std::begin(model.statement.variables); it != std::end(model.statement.variables); ++it)
+    for (auto it = std::begin(statement.variables); it != std::end(statement.variables); ++it)
     {
         m_source->RegisterVariable(*it);
     }
 }
 
-void Validator::ValidateOpen(SourceLineModel& model)
+void Validator::ValidateOpen(StatementModel& statement)
 {
-    if (model.statement.args.size() != 1)
+    if (statement.args.size() != 1)
         MODEL_ERROR("One expression expected.");
 
-    ExpressionModel& expr1 = model.statement.args[0];
+    ExpressionModel& expr1 = statement.args[0];
     if (!CheckStringExpression(expr1))
         return;
 }
 
-void Validator::ValidateLine(SourceLineModel& model)
+void Validator::ValidateLine(StatementModel& statement)
 {
     //TODO
 }
 
-void Validator::ValidateCircle(SourceLineModel& model)
+void Validator::ValidateCircle(StatementModel& statement)
 {
     //TODO
 }
 
-void Validator::ValidatePaint(SourceLineModel& model)
+void Validator::ValidatePaint(StatementModel& statement)
 {
     //TODO
 }
 
-void Validator::ValidateLet(SourceLineModel& model)
+void Validator::ValidateLet(StatementModel& statement)
 {
-    if (model.statement.varexprs.size() != 1)
+    if (statement.varexprs.size() != 1)
         MODEL_ERROR("One variable expected.");
 
-    VariableExpressionModel& var = model.statement.varexprs[0];
+    VariableExpressionModel& var = statement.varexprs[0];
     for (auto it = std::begin(var.args); it != std::end(var.args); it++)
         ValidateExpression(*it);
 
     m_source->RegisterVariable(var);
 
-    if (model.statement.args.size() != 1)
+    if (statement.args.size() != 1)
         MODEL_ERROR("One expression expected.");
 
-    ExpressionModel& expr = model.statement.args[0];
+    ExpressionModel& expr = statement.args[0];
     ValidateExpression(expr);
 
     //TODO: Check types compatibility between variable and expression
 }
 
-void Validator::ValidateLocate(SourceLineModel& model)
+void Validator::ValidateLocate(StatementModel& statement)
 {
-    if (model.statement.args.size() == 0)
+    if (statement.args.size() == 0)
         MODEL_ERROR("Expression expected.");
 
-    ExpressionModel& expr1 = model.statement.args[0];
+    ExpressionModel& expr1 = statement.args[0];
     if (!expr1.IsEmpty() && !CheckIntegerOrSingleExpression(expr1))
         return;
 
-    if (model.statement.args.size() > 1)
+    if (statement.args.size() > 1)
     {
-        ExpressionModel& expr2 = model.statement.args[1];
+        ExpressionModel& expr2 = statement.args[1];
         if (!expr2.IsEmpty() && !CheckIntegerOrSingleExpression(expr2))
             return;
     }
-    if (model.statement.args.size() > 2)
+    if (statement.args.size() > 2)
     {
-        ExpressionModel& expr3 = model.statement.args[2];
+        ExpressionModel& expr3 = statement.args[2];
         if (!expr3.IsEmpty() && !CheckIntegerOrSingleExpression(expr3))
             return;
     }
 
-    if (model.statement.args.size() > 3)
+    if (statement.args.size() > 3)
         MODEL_ERROR("Too many expressions.");
 }
 
-void Validator::ValidatePset(SourceLineModel& model)
+void Validator::ValidatePset(StatementModel& statement)
 {
     //TODO
 }
 
-void Validator::ValidatePreset(SourceLineModel& model)
+void Validator::ValidatePreset(StatementModel& statement)
 {
     //TODO
 }
 
-void Validator::ValidateNext(SourceLineModel& model)
+void Validator::ValidateNext(StatementModel& statement)
 {
-    if (model.statement.params.empty())  // NEXT without parameters
+    if (statement.params.empty())  // NEXT without parameters
     {
         if (m_fornextstack.empty())
             MODEL_ERROR("NEXT without FOR.");
@@ -626,20 +658,20 @@ void Validator::ValidateNext(SourceLineModel& model)
         Token tokenvar;
         tokenvar.type = TokenTypeIdentifier;
         tokenvar.text = forspec.varname;
-        model.statement.params.push_back(tokenvar);
+        statement.params.push_back(tokenvar);
 
         // link NEXT to the corresponding FOR
-        model.statement.paramline = forspec.linenum;
+        statement.paramline = forspec.linenum;
 
         // link FOR to the NEXT line number
         SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
-        linefor.statement.paramline = model.number;
+        linefor.statement.paramline = m_line->number;
 
         return;
     }
 
     //TODO: need to change the model for case of several NEXT variables
-    for (auto it = std::begin(model.statement.params); it != std::end(model.statement.params); ++it)
+    for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
     {
         string varname = GetCanonicVariableName(it->text);
         if (!m_source->IsVariableRegistered(varname))
@@ -654,27 +686,27 @@ void Validator::ValidateNext(SourceLineModel& model)
             MODEL_ERROR("NEXT variable expected: " + forspec.varname + ", found:" + varname + ".");
 
         // link NEXT to the corresponding FOR
-        model.statement.paramline = forspec.linenum;
+        statement.paramline = forspec.linenum;
 
         // link FOR to the NEXT line number
         SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
-        linefor.statement.paramline = model.number;
+        linefor.statement.paramline = m_line->number;
     }
 }
 
-void Validator::ValidateOn(SourceLineModel& model)
+void Validator::ValidateOn(StatementModel& statement)
 {
-    if (model.statement.args.size() != 1)
+    if (statement.args.size() != 1)
         MODEL_ERROR("One Expression expected.");
 
-    ExpressionModel& expr = model.statement.args[0];
+    ExpressionModel& expr = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr))
         return;
 
-    if (model.statement.params.size() == 0)
+    if (statement.params.size() == 0)
         MODEL_ERROR("Parameters expected.");
 
-    for (auto it = std::begin(model.statement.params); it != std::end(model.statement.params); ++it)
+    for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
     {
         Token& param = *it;
         if (param.type != TokenTypeNumber || !param.IsDValueInteger())
@@ -686,41 +718,41 @@ void Validator::ValidateOn(SourceLineModel& model)
     }
 }
 
-void Validator::ValidateOut(SourceLineModel& model)
+void Validator::ValidateOut(StatementModel& statement)
 {
-    if (model.statement.args.size() != 3)
+    if (statement.args.size() != 3)
         MODEL_ERROR("Three expressions expected.");
 
-    ExpressionModel& expr1 = model.statement.args[0];
+    ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
-    ExpressionModel& expr2 = model.statement.args[1];
+    ExpressionModel& expr2 = statement.args[1];
     if (!CheckIntegerOrSingleExpression(expr2))
         return;
 
-    ExpressionModel& expr3 = model.statement.args[2];
+    ExpressionModel& expr3 = statement.args[2];
     if (!CheckIntegerOrSingleExpression(expr3))
         return;
 }
 
-void Validator::ValidatePoke(SourceLineModel& model)
+void Validator::ValidatePoke(StatementModel& statement)
 {
-    if (model.statement.args.size() != 2)
+    if (statement.args.size() != 2)
         MODEL_ERROR("Two expressions expected.");
 
-    ExpressionModel& expr1 = model.statement.args[0];
+    ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
-    ExpressionModel& expr2 = model.statement.args[1];
+    ExpressionModel& expr2 = statement.args[1];
     if (!CheckIntegerOrSingleExpression(expr2))
         return;
 }
 
-void Validator::ValidatePrint(SourceLineModel& model)
+void Validator::ValidatePrint(StatementModel& statement)
 {
-    for (auto it = std::begin(model.statement.args); it != std::end(model.statement.args); ++it)
+    for (auto it = std::begin(statement.args); it != std::end(statement.args); ++it)
     {
         ExpressionModel& expr = *it;
         if (expr.IsEmpty())
@@ -764,57 +796,57 @@ void Validator::ValidatePrint(SourceLineModel& model)
     }
 }
 
-void Validator::ValidateRestore(SourceLineModel& model)
+void Validator::ValidateRestore(StatementModel& statement)
 {
-    if (model.statement.paramline != 0)  // optional param
+    if (statement.paramline != 0)  // optional param
     {
-        if (!m_source->IsLineNumberExists(model.statement.paramline))
-            MODEL_ERROR("Invalid line number " + std::to_string(model.statement.paramline));
+        if (!m_source->IsLineNumberExists(statement.paramline))
+            MODEL_ERROR("Invalid line number " + std::to_string(statement.paramline));
     }
 }
 
-void Validator::ValidateDef(SourceLineModel& model)
+void Validator::ValidateDef(StatementModel& statement)
 {
-    if (model.statement.deffnorusr)  // DEF FN
+    if (statement.deffnorusr)  // DEF FN
     {
         //TODO
 
-        if (model.statement.args.size() != 1)
+        if (statement.args.size() != 1)
             MODEL_ERROR("One expression expected.");
 
-        ExpressionModel& expr1 = model.statement.args[0];
+        ExpressionModel& expr1 = statement.args[0];
         ValidateExpression(expr1);
         //TODO
     }
     else  // DEF USR
     {
-        if (model.statement.paramline < 0 || model.statement.paramline > 9)
+        if (statement.paramline < 0 || statement.paramline > 9)
             MODEL_ERROR("DEF USR number is out of range 0..9.");
 
-        if (model.statement.args.size() != 1)
+        if (statement.args.size() != 1)
             MODEL_ERROR("One expression expected.");
 
-        ExpressionModel& expr1 = model.statement.args[0];
+        ExpressionModel& expr1 = statement.args[0];
         if (!CheckIntegerOrSingleExpression(expr1))
             return;
     }
 }
 
-void Validator::ValidateScreen(SourceLineModel& model)
+void Validator::ValidateScreen(StatementModel& statement)
 {
-    if (model.statement.params.size() < 1)
+    if (statement.params.size() < 1)
         MODEL_ERROR("Parameter expected.");
 
-    Token& token = model.statement.params[0];
+    Token& token = statement.params[0];
     if (token.type != TokenTypeNumber)
         MODEL_ERROR("Numeric parameter expected.");
 }
 
 // Undocumented instruction
 // WIDTH <Integer>, [<Integer>]
-void Validator::ValidateWidth(SourceLineModel& model)
+void Validator::ValidateWidth(StatementModel& statement)
 {
-    if (model.statement.params.size() < 1 || model.statement.params.size() > 2)
+    if (statement.params.size() < 1 || statement.params.size() > 2)
         MODEL_ERROR("One or two parameters expected.");
 
     //NOTE: Ignored for now

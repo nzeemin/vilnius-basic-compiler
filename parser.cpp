@@ -903,8 +903,12 @@ void Parser::ParseIf(StatementModel& statement)
     }
     else if (isthen)  // Statement under THEN
     {
-        StatementModel stthen;//TODO: should be in line model
-        ParseStatement(stthen);
+        assert(statement.stthen == nullptr);
+        statement.stthen = new StatementModel();
+        ParseStatement(*statement.stthen);
+
+        Token token0;
+        statement.params.push_back(token0);  // stub for THEN line number
     }
 
     token = PeekNextTokenSkipDivider();
@@ -924,8 +928,9 @@ void Parser::ParseIf(StatementModel& statement)
     }
     else
     {
-        StatementModel stthen;//TODO: should be in line model
-        ParseStatement(stthen);
+        assert(statement.stelse == nullptr);
+        statement.stelse = new StatementModel();
+        ParseStatement(*statement.stelse);
     }
 
     token = PeekNextTokenSkipDivider();
@@ -1221,7 +1226,7 @@ void Parser::ParsePrint(StatementModel& statement)
     {
         token = PeekNextTokenSkipDivider();
         if (token.IsEndOfStatement())
-            return;
+            break;
 
         if (token.IsKeyword(KeywordAT))
         {

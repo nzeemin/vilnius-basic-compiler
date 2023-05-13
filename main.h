@@ -208,10 +208,12 @@ struct StatementModel
     std::vector<Token> params;  // Statement params like list of variables
     std::vector<VariableModel> variables;  // Variables with indices
     std::vector<VariableExpressionModel> varexprs;  // Variables with expressions for indices
+    StatementModel* stthen;
+    StatementModel* stelse;
 public:
     StatementModel() :
         paramline(0), relative(false), gotogosub(false), deffnorusr(false), fileoper(false), nocrlf(false),
-        filemode(FileModeAny) { }
+        filemode(FileModeAny), stthen(nullptr), stelse(nullptr) { }
 };
 
 struct SourceLineModel
@@ -358,7 +360,7 @@ private:
 };
 
 class Validator;
-typedef void (Validator::* ValidatorMethodRef)(SourceLineModel&);
+typedef void (Validator::* ValidatorMethodRef)(StatementModel&);
 struct ValidatorKeywordSpec
 {
     KeywordIndex keyword;
@@ -387,7 +389,7 @@ class Validator
 {
     SourceModel*    m_source;
     int             m_lineindex;
-    int             m_linenumber;  // Line number for the line under analysis, for error reporting
+    SourceLineModel* m_line;  // Curent line being validated
     std::vector<ValidatorForSpec> m_fornextstack;
 private:
     static const ValidatorKeywordSpec m_keywordspecs[];
@@ -398,7 +400,8 @@ public:
 public:
     bool ProcessLine();
 private:
-    void Error(SourceLineModel& line, const string& message);
+    void ValidateStatement(StatementModel& statement);
+    void Error(const string& message);
     void Error(ExpressionModel& expr, const string& message);
     void Error(ExpressionModel& expr, const ExpressionNode& node, const string& message);
     bool CheckIntegerOrSingleExpression(ExpressionModel& expr);
@@ -406,35 +409,35 @@ private:
     void ValidateExpression(ExpressionModel& expr);
     void ValidateExpression(ExpressionModel& expr, int index);
 private:
-    void ValidateNothing(SourceLineModel& model);
-    void ValidateCircle(SourceLineModel& model);
-    void ValidateClear(SourceLineModel& model);
-    void ValidateColor(SourceLineModel& model);
-    void ValidateData(SourceLineModel& model);
-    void ValidateDef(SourceLineModel& model);
-    void ValidateDim(SourceLineModel& model);
-    void ValidateKey(SourceLineModel& model);
-    void ValidateDraw(SourceLineModel& model);
-    void ValidateFor(SourceLineModel& model);
-    void ValidateGotoGosub(SourceLineModel& model);
-    void ValidateIf(SourceLineModel& model);
-    void ValidateInput(SourceLineModel& model);
-    void ValidateLet(SourceLineModel& model);
-    void ValidateLine(SourceLineModel& model);
-    void ValidateLocate(SourceLineModel& model);
-    void ValidateNext(SourceLineModel& model);
-    void ValidateOn(SourceLineModel& model);
-    void ValidateOpen(SourceLineModel& model);
-    void ValidateOut(SourceLineModel& model);
-    void ValidatePaint(SourceLineModel& model);
-    void ValidatePoke(SourceLineModel& model);
-    void ValidatePrint(SourceLineModel& model);
-    void ValidatePreset(SourceLineModel& model);
-    void ValidatePset(SourceLineModel& model);
-    void ValidateRead(SourceLineModel& model);
-    void ValidateRestore(SourceLineModel& model);
-    void ValidateScreen(SourceLineModel& model);
-    void ValidateWidth(SourceLineModel& model);
+    void ValidateNothing(StatementModel& statement);
+    void ValidateCircle(StatementModel& statement);
+    void ValidateClear(StatementModel& statement);
+    void ValidateColor(StatementModel& statement);
+    void ValidateData(StatementModel& statement);
+    void ValidateDef(StatementModel& statement);
+    void ValidateDim(StatementModel& statement);
+    void ValidateKey(StatementModel& statement);
+    void ValidateDraw(StatementModel& statement);
+    void ValidateFor(StatementModel& statement);
+    void ValidateGotoGosub(StatementModel& statement);
+    void ValidateIf(StatementModel& statement);
+    void ValidateInput(StatementModel& statement);
+    void ValidateLet(StatementModel& statement);
+    void ValidateLine(StatementModel& statement);
+    void ValidateLocate(StatementModel& statement);
+    void ValidateNext(StatementModel& statement);
+    void ValidateOn(StatementModel& statement);
+    void ValidateOpen(StatementModel& statement);
+    void ValidateOut(StatementModel& statement);
+    void ValidatePaint(StatementModel& statement);
+    void ValidatePoke(StatementModel& statement);
+    void ValidatePrint(StatementModel& statement);
+    void ValidatePreset(StatementModel& statement);
+    void ValidatePset(StatementModel& statement);
+    void ValidateRead(StatementModel& statement);
+    void ValidateRestore(StatementModel& statement);
+    void ValidateScreen(StatementModel& statement);
+    void ValidateWidth(StatementModel& statement);
 private:
     void ValidateUnaryPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight);
     void ValidateUnaryMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight);
