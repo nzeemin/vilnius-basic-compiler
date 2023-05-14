@@ -2,6 +2,7 @@
 #include <cassert>
 #include <string>
 #include <algorithm>
+#include <sstream>
 
 #include "main.h"
 
@@ -135,11 +136,54 @@ void Generator::GenerateStrings()
     {
         string strdeco = "ST" + std::to_string(i + 1);
         string& str = m_source->conststrings[i];
-        m_final->AddLine(strdeco + ":\t.ASCIZ\t/" + str + "/");
-        //TODO: Pascal strings with length in the first byte
-        //TODO: Special symbols
-        //TODO: Align to words
-        //TODO: Break too long strings into several lines
+        string strlen = std::to_string(str.length());
+        if (str.length() > 7) strlen += '.';
+        if (str.length() % 2 == 0) str += '\0';  // to align strings to word boundary
+        // Mask special symbols, mask '/'
+        std::ostringstream oss;
+        oss << strdeco << ":\t.ASCII\t<" << strlen << ">";
+        bool mode = false;  // false = out of brackets, true = inside brackets
+        for (size_t i = 0; i < str.length(); i++)
+        {
+            char ch = str[i];
+            if ((ch >= 0 && ch < 32) || ch == '/')
+            {
+                if (mode)
+                {
+                    oss << "/";
+                    mode = false;
+                }
+                oss << "<" << std::oct << (unsigned int)ch << ">";
+            }
+            else
+            {
+                if (!mode)
+                {
+                    oss << "/";
+                    mode = true;
+                }
+                oss << ch;
+            }
+            if (oss.tellp() >= 93 - 6)
+            {
+                if (mode)
+                {
+                    oss << "/";
+                    mode = false;
+                }
+                m_final->AddLine(oss.str());
+                oss.str("");
+                oss.clear();
+                if (i < str.length() - 1)
+                    oss << "\t.ASCII\t";
+            }
+        }
+        if (oss.tellp() > 0)
+        {
+            if (mode)
+                oss << "/";
+            m_final->AddLine(oss.str());
+        }
     }
 }
 
@@ -269,7 +313,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
     if (node.node.type == TokenTypeIdentifier)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(node.node.text));
-        m_final->AddLine("\tMOV\t" + deconame + "., R0");
+        m_final->AddLine("\tMOV\t" + deconame + ", R0");
         return;
     }
 
@@ -377,7 +421,8 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
         {
             string svalue = expr.GetConstExpressionSValue();
             int sindex = m_source->GetConstStringIndex(svalue);
-            m_final->AddLine("\tMOV\t#S" + std::to_string(sindex) + ", R0");
+            //TODO: Special case for one-char string
+            m_final->AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
             m_final->AddLine("\tMOV\t#" + deconame + ", R1");
             m_final->AddLine("\tCALL\tSTRCPY" + comment);
         }
@@ -827,7 +872,7 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
         if (svalue.length() == 1)  // one-char string, no use of const string
         {
             //TODO: char to int conversion depends on encoding
-            m_final->AddLine("\tMOV\t#" + std::to_string((int)svalue[0]) + "., R0");
+            m_final->AddLine("\tMOV\t#" + std::to_string((unsigned int)svalue[0]) + "., R0");
             m_final->AddLine("\tCALL\tWRCHR");
             return;
         }

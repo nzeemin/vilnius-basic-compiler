@@ -247,8 +247,8 @@ struct FinalModel
 {
     std::vector<string> lines;
 public:
-    void AddLine(string str) { lines.push_back(str); }
-    void AddComment(string str) { lines.push_back("; " + str); }
+    void AddLine(const string& str);
+    void AddComment(const string& str);
 };
 
 

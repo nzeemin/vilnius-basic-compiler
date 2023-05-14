@@ -505,4 +505,23 @@ int SourceModel::GetConstStringIndex(const string& str)
 }
 
 
+// FinalModel
+
+void FinalModel::AddLine(const string& str)
+{
+    lines.push_back(str);
+
+    if (str.length() > 93)
+        std::cerr << "WARN: Line #" << lines.size() << " in .MAC file too long: " << str.length() << " chars." << std::endl;
+}
+
+void FinalModel::AddComment(const string& str)
+{
+    if (str.length() > 120 - 5)
+        lines.push_back("; " + str.substr(0, 120 - 5) + "...");
+    else
+        lines.push_back("; " + str);
+}
+
+
 //////////////////////////////////////////////////////////////////////
