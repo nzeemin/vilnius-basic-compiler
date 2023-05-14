@@ -1,6 +1,7 @@
 
 #include <cassert>
 #include <string>
+#include <algorithm>
 
 #include "main.h"
 
@@ -68,6 +69,11 @@ const GeneratorOperSpec Generator::m_operspecs[] =
     { "<>",             &Generator::GenerateOperNotEqual },
     { "<",              &Generator::GenerateOperLess },
     { ">",              &Generator::GenerateOperGreater },
+    { "<=",             &Generator::GenerateOperLessOrEqual },
+    { ">=",             &Generator::GenerateOperGreaterOrEqual },
+    { "=<",             &Generator::GenerateOperLessOrEqual },
+    { "=>",             &Generator::GenerateOperGreaterOrEqual },
+    { "AND",            &Generator::GenerateOperAnd },
 };
 
 const GeneratorFuncSpec Generator::m_funcspecs[] =
@@ -81,6 +87,14 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
 };
 
 
+bool CompareVariables(VariableModel a, VariableModel b)
+{
+    string deconamea = a.GetVariableDecoratedName();
+    string deconameb = b.GetVariableDecoratedName();
+    return deconamea < deconameb;
+}
+
+
 Generator::Generator(SourceModel* source, FinalModel* final)
     : m_source(source), m_final(final)
 {
@@ -88,6 +102,7 @@ Generator::Generator(SourceModel* source, FinalModel* final)
     assert(final != nullptr);
 
     m_lineindex = -1;
+    m_line = nullptr;
 }
 
 void Generator::ProcessBegin()
@@ -111,26 +126,32 @@ void Generator::ProcessEnd()
 
 void Generator::GenerateStrings()
 {
-    if (!m_source->conststrings.empty())
+    if (m_source->conststrings.empty())
+        return;
+
+    m_final->AddComment("STRINGS");
+    m_final->AddLine("\t.EVEN");
+    for (size_t i = 0; i < m_source->conststrings.size(); ++i)
     {
-        m_final->AddComment("STRINGS");
-        m_final->AddLine("\t.EVEN");
-        for (size_t i = 0; i < m_source->conststrings.size(); ++i)
-        {
-            string strdeco = "SZ" + std::to_string(i + 1);
-            string& str = m_source->conststrings[i];
-            m_final->AddLine(strdeco + ":\t.ASCIZ\t/" + str + "/");
-            //TODO: Pascal strings with length in the first byte
-            //TODO: Special symbols
-            //TODO: Align to words
-            //TODO: Break too long strings into several lines
-        }
+        string strdeco = "ST" + std::to_string(i + 1);
+        string& str = m_source->conststrings[i];
+        m_final->AddLine(strdeco + ":\t.ASCIZ\t/" + str + "/");
+        //TODO: Pascal strings with length in the first byte
+        //TODO: Special symbols
+        //TODO: Align to words
+        //TODO: Break too long strings into several lines
     }
 }
 
 void Generator::GenerateVariables()
 {
+    if (m_source->vars.empty())
+        return;
+
     m_final->AddComment("VARIABLES");
+
+    std::sort(m_source->vars.begin(), m_source->vars.end(), CompareVariables);
+
     for (auto it = std::begin(m_source->vars); it != std::end(m_source->vars); ++it)
     {
         string deconame = DecorateVariableName(it->name);
@@ -564,9 +585,9 @@ void Generator::GenerateInput(StatementModel& statement)
     {
         Token& param = statement.params[0];
         int strindex = m_source->GetConstStringIndex(param.text);
-        string strdeco = "SZ" + std::to_string(strindex);
+        string strdeco = "ST" + std::to_string(strindex);
         m_final->AddLine("\tMOV\t" + strdeco + ", R0");
-        m_final->AddLine("\tCALL\tWRSZ\t; print the prompt");
+        m_final->AddLine("\tCALL\tWRSTR\t; print the prompt");
     }
 
     for (auto it = std::begin(statement.variables); it != std::end(statement.variables); ++it)
@@ -708,6 +729,8 @@ void Generator::GeneratePoke(StatementModel& statement)
 
 void Generator::GenerateOut(StatementModel& statement)
 {
+    assert(statement.args.size() == 3);
+
     //TODO
     m_final->AddComment("TODO OUT");  //TODO
 }
@@ -735,16 +758,11 @@ void Generator::GeneratePrint(StatementModel& statement)
     for (auto it = std::begin(statement.args); it != std::end(statement.args); ++it)
     {
         const ExpressionModel& expr = *it;
+        assert(!it->IsEmpty());
         const ExpressionNode& root = expr.nodes[expr.root];
         if (root.node.IsKeyword(KeywordAT))
         {
-            assert(root.args.size() == 2);
-            const ExpressionModel& expr1 = root.args[0];
-            GenerateExpression(expr1);
-            const ExpressionModel& expr2 = root.args[1];
-            GenerateExpression(expr2);
-            //TODO
-            m_final->AddComment("TODO PRINT AT");
+            GeneratePrintAt(expr);
         }
         else if (root.node.IsKeyword(KeywordTAB))
         {
@@ -757,7 +775,7 @@ void Generator::GeneratePrint(StatementModel& statement)
         {
             assert(root.args.size() == 1);
             const ExpressionModel& expr1 = root.args[0];
-            if (!expr1.IsConstExpression() || (int)expr1.GetConstExpressionDValue() > 0)
+            if (!expr1.IsConstExpression() || (int)expr1.GetConstExpressionDValue() > 0)  // skip SPC(0)
             {
                 GenerateExpression(expr1);
                 m_final->AddLine("\tCALL\tWRSPC");
@@ -765,8 +783,7 @@ void Generator::GeneratePrint(StatementModel& statement)
         }
         else if (root.vtype == ValueTypeString)
         {
-            //TODO
-            m_final->AddComment("TODO PRINT string expression");
+            GeneratePrintString(expr);
         }
         else if (root.vtype == ValueTypeInteger)
         {
@@ -784,6 +801,51 @@ void Generator::GeneratePrint(StatementModel& statement)
     // CR/LF at end of PRINT
     if (!statement.nocrlf)
         m_final->AddLine("\tCALL\tWRCRLF");
+}
+
+void Generator::GeneratePrintAt(const ExpressionModel& expr)
+{
+    const ExpressionNode& root = expr.nodes[expr.root];
+    assert(root.args.size() == 2);
+
+    const ExpressionModel& expr1 = root.args[0];
+    GenerateExpression(expr1);
+    const ExpressionModel& expr2 = root.args[1];
+    GenerateExpression(expr2);//TODO: should be in R1
+
+    m_final->AddLine("\tCALL\tPRAT");
+}
+
+void Generator::GeneratePrintString(const ExpressionModel& expr)
+{
+    assert(!expr.IsEmpty());
+    const ExpressionNode& root = expr.nodes[expr.root];
+
+    if (root.constval)
+    {
+        string svalue = root.node.svalue;
+        if (svalue.length() == 1)  // one-char string, no use of const string
+        {
+            //TODO: char to int conversion depends on encoding
+            m_final->AddLine("\tMOV\t#" + std::to_string((int)svalue[0]) + "., R0");
+            m_final->AddLine("\tCALL\tWRCHR");
+            return;
+        }
+
+        int sindex = m_source->GetConstStringIndex(svalue);
+        if (sindex < 0)
+        {
+            Error("Failed to find const string index.");
+            return;
+        }
+
+        m_final->AddLine("\tMOV\tST" + std::to_string(sindex) + ", R0");
+        m_final->AddLine("\tCALL\tWRSTR");
+        return;
+    }
+
+    //TODO
+    m_final->AddComment("TODO PRINT string expression");
 }
 
 void Generator::GenerateRead(StatementModel& statement)
@@ -1023,6 +1085,38 @@ void Generator::GenerateOperGreater(const ExpressionModel& expr, const Expressio
 
     //TODO
     m_final->AddComment("TODO operation greater");
+}
+
+void Generator::GenerateOperLessOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    const string comment = "\t; Operation \'<=\'";
+
+    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
+
+    //m_final->AddLine("\tBLO\t");
+
+    //TODO
+    m_final->AddComment("TODO operation less or equal");
+}
+
+void Generator::GenerateOperGreaterOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    const string comment = "\t; Operation \'>=\'";
+
+    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
+
+    //m_final->AddLine("\tBHI\t");
+
+    //TODO
+    m_final->AddComment("TODO operation greater or equal");
+}
+
+void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    const string comment = "\t; Operation \'AND\'";
+
+    //TODO
+    m_final->AddComment("TODO operation AND");
 }
 
 

@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iomanip>
 #include <cmath>
+#include <string>
 
 #include "main.h"
 
@@ -53,10 +54,11 @@ string DecorateVariableName(const string& name)
         chtype = 'N'; break;
     }
     string stdname = name.substr(0, name.length() - 1);
-    if (stdname.length() < 2)
-        stdname += '.';
 
-    return "VAR" + stdname + chtype;
+    string deconame = string("VAR");
+    deconame += chtype;
+    deconame += stdname;
+    return deconame;
 }
 
 
@@ -475,6 +477,8 @@ SourceLineModel& SourceModel::GetSourceLine(int linenumber)
 void SourceModel::RegisterConstString(const string& str)
 {
     if (str.empty())
+        return;
+    if (str.length() < 2)  // one-char strings will be assigned inline, no need for const string
         return;
 
     for (auto it = std::begin(conststrings); it != std::end(conststrings); ++it)

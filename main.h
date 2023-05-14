@@ -563,6 +563,8 @@ private:
     void GeneratePaint(StatementModel& statement);
     void GeneratePoke(StatementModel& statement);
     void GeneratePrint(StatementModel& statement);
+    void GeneratePrintAt(const ExpressionModel& expr);
+    void GeneratePrintString(const ExpressionModel& expr);
     void GeneratePreset(StatementModel& statement);
     void GeneratePset(StatementModel& statement);
     void GenerateRead(StatementModel& statement);
@@ -585,6 +587,9 @@ private:
     void GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperLess(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperGreater(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperLessOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperGreaterOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperAnd(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
 private:
     void GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNode& node);

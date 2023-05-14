@@ -224,7 +224,7 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
     if (node.node.type == TokenTypeIdentifier)
     {
         VariableModel var;
-        var.name = node.node.text;
+        var.name = GetCanonicVariableName(node.node.text);
         m_source->RegisterVariable(var);
     }
 

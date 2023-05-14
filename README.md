@@ -50,12 +50,26 @@ L10:
 	MOV	#23., VARA.I	; assignment
 ; 20 PRINT A%
 L20:
-	MOV	VARA.I., R0
+	MOV	VARIA, R0
 	CALL	WRINT
 	CALL	WRCRLF
 L65536:
 	.EXIT
 ; VARIABLES
-VARA.I:	.WORD	0	; A%
+VARIA:	.WORD	0	; A%
 	.END	START
+```
+
+### Декорирование имён переменных
+
+Переменные в Бейсик Вильнюс опознаются по первым двум буквам.
+
+Имена переменных в коде для MACRO имеют вид: `VAR` + тип (`I`,`N`,`S`) + первые два символа имени переменной.
+
+Примеры декорирования:
+```
+A%             VARIA
+B или B!       VARNB
+C$             VARSC
+AAA            VARNAA
 ```

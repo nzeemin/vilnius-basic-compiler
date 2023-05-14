@@ -12,6 +12,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <cstring>
@@ -237,7 +238,7 @@ void process_test(string testfilename)
     string testname = testfilename.substr(0, dotpos);
 
     SetTextAttribute(TEXTATTRIBUTES_NORMAL);
-    std::cout << testname << std::endl;
+    std::cout << std::left << std::setw(24) << testname << "\t";
     SetTextAttribute(TEXTATTRIBUTES_WARNING);
     
     // make test directory
@@ -317,19 +318,24 @@ void process_test(string testfilename)
     }
     if (outlinesdifferent)
     {
-        std::cout << "  FAILED: Out lines are different." << std::endl;
+        std::cout << "  FAILED: Out lines are different" << std::endl;
         g_failedtests++;
         return;
     }
 
-    if (!errorlines.empty())
-        return;  // have errors, no need to check anything else
+    if (!errorlines.empty())  // have errors, no need to check anything else
+    {
+        SetTextAttribute(TEXTATTRIBUTES_NORMAL);
+        std::cout << "OK" << std::endl;
+        //std::cout << "\r";
+        return;
+    }
 
     // check if we have .MAC file
     string macfilename2 = findfile_bymask(testdirpath, macfilename);
     if (macfilename2.empty())
     {
-        std::cout << "  FAILED: .MAC file not found." << std::endl;
+        std::cout << "  FAILED: .MAC file not found" << std::endl;
         g_failedtests++;
         return;
     }
@@ -351,10 +357,14 @@ void process_test(string testfilename)
     fsmac.close();
     if (machastodos)
     {
-        std::cout << "  FAILED: .MAC file contains TODOs." << std::endl;
+        std::cout << "  FAILED: .MAC file contains TODOs" << std::endl;
         g_failedtests++;
         return;
     }
+
+    SetTextAttribute(TEXTATTRIBUTES_NORMAL);
+    std::cout << "OK" << std::endl;
+    //std::cout << "\r";
 }
 
 void parse_commandline(int argc, char* argv[])
