@@ -4,3 +4,7 @@
 30 ? TAB(10)"Some text"
 40 ? SPC(12)"Anoter text"
 50 ? AT(5,12)TAB(10)SPC(12)
+100 A$ = "A"
+101 B$ = "B"
+110 ? "AB", A$;B$
+120 ? "ABCD", A$;B;"C";"D"
