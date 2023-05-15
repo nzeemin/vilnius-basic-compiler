@@ -68,6 +68,7 @@ const GeneratorOperSpec Generator::m_operspecs[] =
     { "^",              &Generator::GenerateOperPower },
     { "=",              &Generator::GenerateOperEqual },
     { "<>",             &Generator::GenerateOperNotEqual },
+    { "><",             &Generator::GenerateOperNotEqual },
     { "<",              &Generator::GenerateOperLess },
     { ">",              &Generator::GenerateOperGreater },
     { "<=",             &Generator::GenerateOperLessOrEqual },
@@ -75,6 +76,10 @@ const GeneratorOperSpec Generator::m_operspecs[] =
     { "=<",             &Generator::GenerateOperLessOrEqual },
     { "=>",             &Generator::GenerateOperGreaterOrEqual },
     { "AND",            &Generator::GenerateOperAnd },
+    { "OR",             &Generator::GenerateOperOr },
+    //TODO: XOR
+    //TODO: EQV
+    //TODO: IMP
 };
 
 const GeneratorFuncSpec Generator::m_funcspecs[] =
@@ -88,7 +93,8 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
 };
 
 
-bool CompareVariables(VariableModel a, VariableModel b)
+// Comparison function to sort variables by decorated names
+bool CompareVariables(const VariableModel& a, const VariableModel& b)
 {
     string deconamea = a.GetVariableDecoratedName();
     string deconameb = b.GetVariableDecoratedName();
@@ -884,7 +890,15 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
             return;
         }
 
-        m_final->AddLine("\tMOV\tST" + std::to_string(sindex) + ", R0");
+        m_final->AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
+        m_final->AddLine("\tCALL\tWRSTR");
+        return;
+    }
+
+    if (root.node.type == TokenTypeIdentifier)
+    {
+        string deconame = DecorateVariableName(GetCanonicVariableName(root.node.text));
+        m_final->AddLine("\tMOV\t#" + deconame + ", R0");
         m_final->AddLine("\tCALL\tWRSTR");
         return;
     }
@@ -1158,10 +1172,18 @@ void Generator::GenerateOperGreaterOrEqual(const ExpressionModel& expr, const Ex
 
 void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    const string comment = "\t; Operation \'AND\'";
+    //const string comment = "\t; Operation \'AND\'";
 
     //TODO
     m_final->AddComment("TODO operation AND");
+}
+
+void Generator::GenerateOperOr(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    //const string comment = "\t; Operation \'OR\'";
+
+    //TODO
+    m_final->AddComment("TODO operation OR");
 }
 
 

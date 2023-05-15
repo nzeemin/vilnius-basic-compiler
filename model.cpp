@@ -505,6 +505,7 @@ int SourceModel::GetConstStringIndex(const string& str)
 }
 
 
+//////////////////////////////////////////////////////////////////////
 // FinalModel
 
 void FinalModel::AddLine(const string& str)

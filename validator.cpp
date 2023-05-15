@@ -70,6 +70,7 @@ const ValidatorOperSpec Validator::m_operspecs[] =
     { "^",              &Validator::ValidateOperPower },
     { "=",              &Validator::ValidateOperEqual },
     { "<>",             &Validator::ValidateOperNotEqual },
+    { "><",             &Validator::ValidateOperNotEqual },
     { "<",              &Validator::ValidateOperLess },
     { ">",              &Validator::ValidateOperGreater },
     { "<=",             &Validator::ValidateOperLessOrEqual },
@@ -760,6 +761,46 @@ void Validator::ValidatePoke(StatementModel& statement)
 
 void Validator::ValidatePrint(StatementModel& statement)
 {
+    if (statement.args.size() > 1)
+    {
+        // First, join const string expressions coming one after another
+        for (size_t i = 0; i < statement.args.size() - 1; i++)
+        {
+            ExpressionModel& expr1 = statement.args[i];
+            if (expr1.IsEmpty())
+                MODEL_ERROR("Expressions should not be empty.");
+            ExpressionModel& expr2 = statement.args[i + 1];
+
+            if (expr1.IsConstExpression() && expr1.GetExpressionValueType() == ValueTypeString &&
+                expr2.IsConstExpression() && expr2.GetExpressionValueType() == ValueTypeString)
+            {
+                // New node used to concatenate two strings
+                size_t shift = expr1.nodes.size() + 1;
+                ExpressionNode nodeplus;
+                nodeplus.node.type = TokenTypeOperation;
+                nodeplus.node.text = "+";
+                nodeplus.left = expr1.root;
+                nodeplus.right = shift + expr2.root;
+                nodeplus.constval = true;
+                nodeplus.node.svalue = expr1.GetConstExpressionSValue() + expr2.GetConstExpressionSValue();
+                expr1.root = expr1.nodes.size();
+                expr1.nodes.push_back(nodeplus);
+
+                // Add all expr2 nodes to expr1
+                for (size_t j = 0; j < expr2.nodes.size(); j++)
+                {
+                    ExpressionNode node = expr2.nodes[j];
+                    if (node.left >= 0) node.left += shift;
+                    if (node.right >= 0) node.right += shift;
+                    expr1.nodes.push_back(node);
+                }
+
+                expr2.nodes.clear();
+                statement.args.erase(statement.args.begin() + (i + 1));
+            }
+        }
+    }
+
     for (auto it = std::begin(statement.args); it != std::end(statement.args); ++it)
     {
         ExpressionModel& expr = *it;
