@@ -25,32 +25,6 @@ void RegisterError()
     g_errorcount++;
 }
 
-void ShowTokenization()
-{
-    std::ifstream instream;
-    instream.open(g_infilename);
-    if (!instream.is_open())
-    {
-        std::cerr << "Failed to open the Input file." << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    Tokenizer tokenizer(&instream);
-
-    while (true)
-    {
-        Token token = tokenizer.GetNextToken();
-
-        token.Dump(std::cout);
-        std::cout << std::endl;
-
-        if (token.type == TokenTypeEOT)
-            break;
-    }
-
-    instream.close();
-}
-
 void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
 {
     std::cout << std::endl << std::setw(indent * 2) << "  exp" << number << ":";
@@ -162,20 +136,22 @@ void PrintLineModel(SourceLineModel& line)
     std::cout << std::endl;
 }
 
-void ShowParsing()
+void ShowTokenization(Tokenizer& tokenizer)
 {
-    std::ifstream instream;
-    instream.open(g_infilename);
-    if (!instream.is_open())
+    while (true)
     {
-        std::cerr << "Failed to open the Input file." << std::endl;
-        exit(EXIT_FAILURE);
+        Token token = tokenizer.GetNextToken();
+
+        token.Dump(std::cout);
+        std::cout << std::endl;
+
+        if (token.type == TokenTypeEOT)
+            break;
     }
+}
 
-    Tokenizer tokenizer(&instream);
-
-    Parser parser(&tokenizer);
-
+void ShowParsing(Parser& parser)
+{
     while (true)
     {
         SourceLineModel line = parser.ParseNextLine();
@@ -186,45 +162,12 @@ void ShowParsing()
             std::cout << line.text << std::endl;
         PrintLineModel(line);
 
-        if (line.error)
-            break;
-
         g_source.lines.push_back(line);
     }
-
-    instream.close();
-
-    //if (g_errorcount > 0)
-    //    std::cout << std::endl << "ERRORS: " << g_errorcount << std::endl;
 }
 
-void ShowValidation()
+void ShowValidation(Validator& validator)
 {
-    std::ifstream instream;
-    instream.open(g_infilename);
-    if (!instream.is_open())
-    {
-        std::cerr << "Failed to open the Input file." << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    Tokenizer tokenizer(&instream);
-
-    Parser parser(&tokenizer);
-
-    while (true)
-    {
-        SourceLineModel line = parser.ParseNextLine();
-        if (line.number == 0)
-            break;
-
-        g_source.lines.push_back(line);
-    }
-
-    instream.close();
-
-    Validator validator(&g_source);
-
     for (size_t i = 0; i < g_source.lines.size(); i++)
     {
         validator.ProcessLine();
@@ -245,7 +188,25 @@ void ProcessFiles()
     }
 
     Tokenizer tokenizer(&instream);
+
+    if (g_tokenizeonly)
+    {
+        ShowTokenization(tokenizer);
+
+        instream.close();
+        return;
+    }
+
     Parser parser(&tokenizer);
+
+    if (g_parsingonly)
+    {
+        ShowParsing(parser);
+
+        instream.close();
+        return;
+    }
+
     g_errorcount = 0;
     while (true)
     {
@@ -264,6 +225,14 @@ void ProcessFiles()
     instream.close();
 
     Validator validator(&g_source);
+
+    if (g_validationonly)
+    {
+        ShowValidation(validator);
+
+        return;
+    }
+
     g_errorcount = 0;
     while (validator.ProcessLine())
         ;
@@ -315,14 +284,19 @@ void ParseCommandLine(int argc, char** argv)
         {
             if (_stricmp(arg + 1, "q") == 0 || _stricmp(arg, "--quiet") == 0)
                 g_quiet = true;
-            if (_stricmp(arg + 1, "t") == 0 || _stricmp(arg, "--tokenizeonly") == 0)
+            else if (_stricmp(arg + 1, "t") == 0 || _stricmp(arg, "--tokenizeonly") == 0)
                 g_tokenizeonly = true;
-            if (_stricmp(arg + 1, "p") == 0 || _stricmp(arg, "--parsingonly") == 0)
+            else if (_stricmp(arg + 1, "p") == 0 || _stricmp(arg, "--parsingonly") == 0)
                 g_parsingonly = true;
-            if (_stricmp(arg + 1, "v") == 0 || _stricmp(arg, "--validationonly") == 0)
+            else if (_stricmp(arg + 1, "v") == 0 || _stricmp(arg, "--validationonly") == 0)
                 g_validationonly = true;
-            if (_stricmp(arg + 1, "g") == 0 || _stricmp(arg, "--showgeneration") == 0)
+            else if (_stricmp(arg + 1, "g") == 0 || _stricmp(arg, "--showgeneration") == 0)
                 g_showgeneration = true;
+            else
+            {
+                std::cerr << "Unknown option: " << arg << std::endl;
+                exit(EXIT_FAILURE);
+            }
         }
         else
         {
@@ -351,25 +325,6 @@ int main(int argc, char* argv[])
 
     if (!g_quiet)
         std::cout << "vibasc  " << __DATE__ << std::endl;
-
-    if (g_tokenizeonly)
-    {
-        std::cout << std::endl;
-        ShowTokenization();
-        return EXIT_SUCCESS;
-    }
-    if (g_parsingonly)
-    {
-        std::cout << std::endl;
-        ShowParsing();
-        return EXIT_SUCCESS;
-    }
-    if (g_validationonly)
-    {
-        std::cout << std::endl;
-        ShowValidation();
-        return EXIT_SUCCESS;
-    }
 
     std::cout << std::endl;
     ProcessFiles();

@@ -28,7 +28,7 @@ enum KeywordIndex
     KeywordCDBL, KeywordCHR, KeywordCINT, KeywordCIRCLE, KeywordCLEAR, KeywordCLOAD, KeywordCLS,
     KeywordCOLOR, KeywordCONT, KeywordCOS, KeywordCSAVE, KeywordCSNG, KeywordCSRLIN, KeywordCLOSE, KeywordSCREEN,
     KeywordDELETE, KeywordDIM, KeywordDRAW, KeywordDATA, KeywordDEF,
-    KeywordELSE, KeywordEND, KeywordEOF, KeywordEXP,
+    KeywordELSE, KeywordEND, KeywordEOF, KeywordEQV, KeywordEXP,
     KeywordFILES, KeywordFIX, KeywordFN, KeywordFOR, KeywordFRE,
     KeywordGOSUB,
     KeywordGOTO,
@@ -442,6 +442,7 @@ private:
 private:
     void ValidateUnaryPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight);
     void ValidateUnaryMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight);
+    void ValidateUnaryNot(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight);
 private:
     void ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
@@ -458,6 +459,9 @@ private:
     void ValidateOperGreaterOrEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperAnd(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperOr(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperXor(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperEqv(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void ValidateOperImp(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
 private:
     void ValidateFuncSin(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCos(ExpressionModel& expr, ExpressionNode& node);

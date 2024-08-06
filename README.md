@@ -1,6 +1,7 @@
 # vilnius-basic-compiler
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/e6afa5b97cf04e169570eca8d9579c04)](https://app.codacy.com/gh/nzeemin/vilnius-basic-compiler/dashboard)
+[![CodeFactor](https://www.codefactor.io/repository/github/nzeemin/vilnius-basic-compiler/badge)](https://www.codefactor.io/repository/github/nzeemin/vilnius-basic-compiler)
 
 ## Vilnius BASIC Compiler
 

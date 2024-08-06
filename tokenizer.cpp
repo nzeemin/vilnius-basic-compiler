@@ -11,7 +11,7 @@ const char* Keywords[] = {
     "CDBL", "CHR$", "CINT", "CIRCLE", "CLEAR", "CLOAD", "CLS",
     "COLOR", "CONT", "COS", "CSAVE", "CSNG", "CSRLIN", "CLOSE", "SCREEN",
     "DELETE", "DIM", "DRAW", "DATA", "DEF",
-    "ELSE", "END", "EOF", "EXP",
+    "ELSE", "END", "EOF", "EQV", "EXP",
     "FILES", "FIX", "FN", "FOR", "FRE",
     "GOSUB",
     "GOTO",
@@ -224,6 +224,10 @@ Token Tokenizer::GetNextToken()
         ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')))
     {
         TokenizeIdentifierOrKeyword(ch, token);
+
+        if (token.IsKeyword(KeywordNOT))
+            token.type = TokenTypeOperation;
+
         return token;
     }
 
@@ -243,7 +247,10 @@ Token Tokenizer::GetNextToken()
     if (ch == '&')	// Hex, Octal, Binary
     {
         if (next == 'H' || next == 'O' || next == 'B')
+        {
             TokenizeHexOctalBinary(ch, next, token);
+            return token;
+        }
         // else it is symbol
     }
 
@@ -335,7 +342,8 @@ void Tokenizer::TokenizeIdentifierOrKeyword(char ch, Token& token)
     token.keyword = GetKeywordIndex(token.text);
 
     if (token.keyword == KeywordMOD ||
-        token.keyword == KeywordAND || token.keyword == KeywordOR || token.keyword == KeywordXOR || token.keyword == KeywordIMP)
+        token.keyword == KeywordAND || token.keyword == KeywordOR || token.keyword == KeywordXOR ||
+        token.keyword == KeywordEQV || token.keyword == KeywordIMP)
         token.type = TokenTypeOperation;
     else if (token.keyword != KeywordNone)
         token.type = TokenTypeKeyword;

@@ -76,7 +76,7 @@ string Token::GetTokenTypeStr() const
     case TokenTypeKeyword:  return "Keyword";
     case TokenTypeIdentifier: return "Ident";
     case TokenTypeSymbol:   return "Symbol";
-    case TokenTypeOperation: return "Operation";
+    case TokenTypeOperation: return "Opertn";
     case TokenTypeEOL:      return "EOL";
     case TokenTypeEOT:      return "EOT";
     default:
@@ -113,6 +113,8 @@ void Token::ParseDValue()
                 break;
             case 'O':
                 dvalue = (double)strtol(str + 2, &pend, 8);
+                if (dvalue > 32767)
+                    dvalue = dvalue - 65536;
                 break;
             case 'B':
                 dvalue = (double)strtol(str + 2, &pend, 2);
@@ -172,7 +174,7 @@ void Token::Dump(std::ostream& out) const
         out << " text:\"" << text << "\"";  //TODO: Escape special chars
     if (type == TokenTypeSymbol || symbol != 0)
         out << " symb:\'" << symbol << "\'";  //TODO: Escape special chars
-    if (type != TokenTypeString)
+    if (type != TokenTypeString && type != TokenTypeEOL && type != TokenTypeEOT)
     {
         std::cout.unsetf(std::ios::floatfield);
         if (IsDValueInteger())

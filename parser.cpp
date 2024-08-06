@@ -377,8 +377,8 @@ ExpressionModel Parser::ParseExpression()
     if (token.IsEndOfExpression())
         return expression;  // Empty expression
 
-    // Check if we have unary plus/minus sign
-    if (token.type == TokenTypeOperation && (token.text == "+" || token.text == "-"))
+    // Check if we have unary plus/minus sign or NOT operation
+    if (token.type == TokenTypeOperation && (token.text == "+" || token.text == "-" || token.text == "NOT"))
     {
         token = GetNextToken();  // get the token we peeked
 
@@ -417,6 +417,9 @@ ExpressionModel Parser::ParseExpression()
                 Error(token, "Operand expected in expression.");
                 return expression;
             }
+
+            //TODO: Check if we have unary plus/minus sign
+
             if (token.IsBinaryOperation())
             {
                 Error(token, "Binary operation is not expected here.");
@@ -1074,6 +1077,7 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, StatementModel& statement)
     if (!token.IsEqualSign())
         MODEL_ERROR("Equal sign (\'=\') expected.");
 
+    token = PeekNextTokenSkipDivider();
     ExpressionModel expr = ParseExpression();
     CHECK_MODEL_ERROR;
     CHECK_EXPRESSION_NOT_EMPTY(expr);
@@ -1435,7 +1439,7 @@ void Parser::ParseLine(StatementModel& statement)
     }
 
     token = PeekNextTokenSkipDivider();
-    if (token.IsOpenBracket())  // we ahve ARG1, ARG2
+    if (token.IsOpenBracket())  // we have ARG1, ARG2
     {
         GetNextToken();  // open bracket
         token = PeekNextTokenSkipDivider();

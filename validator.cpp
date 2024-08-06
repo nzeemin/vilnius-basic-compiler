@@ -79,9 +79,9 @@ const ValidatorOperSpec Validator::m_operspecs[] =
     { "=>",             &Validator::ValidateOperGreaterOrEqual },
     { "AND",            &Validator::ValidateOperAnd },
     { "OR",             &Validator::ValidateOperOr },
-    //TODO: XOR
-    //TODO: EQV
-    //TODO: IMP
+    { "XOR",            &Validator::ValidateOperXor },
+    { "EQV",            &Validator::ValidateOperEqv },
+    { "IMP",            &Validator::ValidateOperImp },
 };
 
 const ValidatorFuncSpec Validator::m_funcspecs[] =
@@ -237,7 +237,8 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
             ValidateUnaryPlus(expr, node, noderight);
         else if (node.node.text == "-")
             ValidateUnaryMinus(expr, node, noderight);
-        //TODO: Unary NOT
+        else if (node.node.text == "NOT")
+            ValidateUnaryNot(expr, node, noderight);
         else
         {
             std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - TODO validate unary operator " << node.node.text << std::endl;
@@ -1051,7 +1052,7 @@ void Validator::ValidateOperDivInt(ExpressionModel& expr, ExpressionNode& node, 
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
 
     if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
-        EXPR_ERROR("Operation \'MOD\' not applicable to strings.");
+        EXPR_ERROR("Operation \'\\\' not applicable to strings.");
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
@@ -1069,7 +1070,7 @@ void Validator::ValidateOperMod(ExpressionModel& expr, ExpressionNode& node, con
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
 
     if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
-        EXPR_ERROR("Operation \'\\\' not applicable to strings.");
+        EXPR_ERROR("Operation \'MOD\' not applicable to strings.");
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
@@ -1195,12 +1196,27 @@ void Validator::ValidateOperAnd(ExpressionModel& expr, ExpressionNode& node, con
     }
 }
 
+void Validator::ValidateUnaryNot(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERAND_VTYPE_NONE;
+
+    if (noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'NOT\' not applicable to strings.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = noderight.constval;
+    if (node.constval)
+    {
+        node.node.dvalue = noderight.node.dvalue == 0 ? -1 : 0;
+    }
+}
+
 void Validator::ValidateOperOr(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
 
     if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
-        EXPR_ERROR("Operation \'AND\' not applicable to strings.");
+        EXPR_ERROR("Operation \'OR\' not applicable to strings.");
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
@@ -1209,6 +1225,58 @@ void Validator::ValidateOperOr(ExpressionModel& expr, ExpressionNode& node, cons
         int ivalueleft = (int)nodeleft.node.dvalue;
         int ivalueright = (int)noderight.node.dvalue;
         node.node.dvalue = ivalueleft | ivalueright;
+    }
+}
+
+void Validator::ValidateOperXor(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'XOR\' not applicable to strings.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        int ivalueleft = (int)nodeleft.node.dvalue;
+        int ivalueright = (int)noderight.node.dvalue;
+        node.node.dvalue = ivalueleft ^ ivalueright;
+    }
+}
+
+void Validator::ValidateOperEqv(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'EQV\' not applicable to strings.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        int ivalueleft = (int)nodeleft.node.dvalue;
+        int ivalueright = (int)noderight.node.dvalue;
+        node.node.dvalue =
+            ((ivalueleft != 0) && (ivalueright != 0) || (ivalueleft == 0) && (ivalueright == 0)) ? -1 : 0;
+    }
+}
+
+void Validator::ValidateOperImp(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERANDS_VTYPE_NONE;
+
+    if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'IMP\' not applicable to strings.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = (nodeleft.constval && noderight.constval);
+    if (node.constval)
+    {
+        int ivalueleft = (int)nodeleft.node.dvalue;
+        int ivalueright = (int)noderight.node.dvalue;
+        node.node.dvalue = ((ivalueleft != 0) && (ivalueright == 0)) ? 0 : -1;
     }
 }
 
