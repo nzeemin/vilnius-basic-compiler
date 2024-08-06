@@ -69,16 +69,16 @@ string Token::GetTokenTypeStr() const
 {
     switch (type)
     {
-    case TokenTypeNone:     return "None";
-    case TokenTypeNumber:   return "Number";
-    case TokenTypeString:   return "String";
-    case TokenTypeDivider:  return "Divider";
-    case TokenTypeKeyword:  return "Keyword";
+    case TokenTypeNone:       return "None";
+    case TokenTypeNumber:     return "Number";
+    case TokenTypeString:     return "String";
+    case TokenTypeDivider:    return "Divider";
+    case TokenTypeKeyword:    return "Keyword";
     case TokenTypeIdentifier: return "Ident";
-    case TokenTypeSymbol:   return "Symbol";
-    case TokenTypeOperation: return "Opertn";
-    case TokenTypeEOL:      return "EOL";
-    case TokenTypeEOT:      return "EOT";
+    case TokenTypeSymbol:     return "Symbol";
+    case TokenTypeOperation:  return "Operatn";
+    case TokenTypeEOL:        return "EOL";
+    case TokenTypeEOT:        return "EOT";
     default:
         return "Unknown";
     }
@@ -94,7 +94,7 @@ string Token::GetTokenVTypeStr() const
         //case ValueTypeDouble:   return "Double";
     case ValueTypeString:   return "String";
     default:
-        return "unk";
+        return "UnknownType";
     }
 }
 
@@ -479,7 +479,10 @@ SourceLineModel& SourceModel::GetSourceLine(int linenumber)
 void SourceModel::RegisterConstString(const string& str)
 {
     if (str.empty())
+    {
+        assert(false);  // Trying to register an empty string
         return;
+    }
     if (str.length() < 2)  // one-char strings will be assigned inline, no need for const string
         return;
 

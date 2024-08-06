@@ -231,7 +231,7 @@ void process_test_run(const string& workingdir, const string& modulename, const 
 }
 #endif
 
-void process_test(string testfilename)
+void process_test(const string& testfilename)
 {
     size_t dotpos = testfilename.find_last_of('.');
     assert(dotpos != string::npos);

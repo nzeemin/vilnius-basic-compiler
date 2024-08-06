@@ -1,0 +1,22 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+100 REM Expressions with strings
+110 PRINT "65", ASC("A")
+111 PRINT "A",  CHR$(65)
+112 PRINT "65", ASC(CHR$(65))
+120 PRINT "0", BIN$(0)
+121 PRINT "11000000111001", BIN$(12345)
+122 PRINT "1100111111000111", BIN$(-12345)
+125 PRINT "0", HEX$(0)
+126 PRINT "D431", HEX$(-11215)
+130 PRINT "0", OCT$(0)
+131 PRINT "152061", OCT$(-11215)
+140 PRINT "AB", "A" + "B"
+200 REM Compare strings
+210 PRINT "-1", "A" = "A"
+212 PRINT "0",  "A" = "B"
+220 PRINT "-1", "A" <> "B"
+222 PRINT "0",  "A" <> "A"
+224 PRINT "-1", "A" >< "B"
+226 PRINT "0",  "A" >< "A"

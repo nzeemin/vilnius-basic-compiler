@@ -212,7 +212,7 @@ struct StatementModel
     StatementModel* stelse;
 public:
     StatementModel() :
-        paramline(0), relative(false), gotogosub(false), deffnorusr(false), fileoper(false), nocrlf(false),
+        paramline(0), relative(false), fileoper(false), gotogosub(false), deffnorusr(false), nocrlf(false),
         filemode(FileModeAny), stthen(nullptr), stelse(nullptr) { }
 };
 

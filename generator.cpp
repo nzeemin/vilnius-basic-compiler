@@ -875,6 +875,10 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
     if (root.constval)
     {
         string svalue = root.node.svalue;
+
+        if (svalue.length() == 0)
+            return;  // Empty string, nothing to print
+
         if (svalue.length() == 1)  // one-char string, no use of const string
         {
             //TODO: char to int conversion depends on encoding
@@ -886,7 +890,7 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
         int sindex = m_source->GetConstStringIndex(svalue);
         if (sindex < 0)
         {
-            Error("Failed to find const string index.");
+            Error("Failed to find index for const string \"" + svalue + "\".");
             return;
         }
 

@@ -206,7 +206,9 @@ void Validator::ValidateExpression(ExpressionModel& expr)
 
     if (expr.IsConstExpression() && expr.GetExpressionValueType() == ValueTypeString)
     {
-        m_source->RegisterConstString(expr.GetConstExpressionSValue());
+        string svalue = expr.GetConstExpressionSValue();
+        if (!svalue.empty())
+            m_source->RegisterConstString(svalue);
     }
 }
 
@@ -333,7 +335,6 @@ bool Validator::CheckIntegerOrSingleExpression(ExpressionModel& expr)
 
 bool Validator::CheckStringExpression(ExpressionModel& expr)
 {
-
     if (expr.IsEmpty())
     {
         Error(expr, "Expression should not be empty.");
@@ -463,7 +464,11 @@ void Validator::ValidateDraw(StatementModel& statement)
         return;
 
     if (expr1.IsConstExpression())
-        m_source->RegisterConstString(expr1.GetConstExpressionSValue());
+    {
+        string svalue = expr1.GetConstExpressionSValue();
+        if (!svalue.empty())
+            m_source->RegisterConstString(svalue);
+    }
 }
 
 void Validator::ValidateFor(StatementModel& statement)
@@ -562,7 +567,8 @@ void Validator::ValidateInput(StatementModel& statement)
         Token& param = statement.params[0];
         if (param.type != TokenTypeString)
             MODEL_ERROR("Parameter should be of type String.");
-        m_source->RegisterConstString(param.text);
+        if (!param.text.empty())
+            m_source->RegisterConstString(param.text);
     }
 
     if (statement.variables.size() == 0)
@@ -923,6 +929,11 @@ void Validator::ValidateWidth(StatementModel& statement)
 #define EXPR_CHECK_OPERANDS_VTYPE_NONE \
     { if (nodeleft.vtype == ValueTypeNone) { Error(expr, nodeleft, "Operand vtype not defined."); return; } \
       if (noderight.vtype == ValueTypeNone) { Error(expr, noderight, "Operand vtype not defined."); return; } }
+#define EXPR_CHECK_OPERANDS_VTYPE_FOR_COMARISON \
+    { if ((nodeleft.vtype == ValueTypeString && noderight.vtype != ValueTypeString) || \
+          (nodeleft.vtype != ValueTypeString && noderight.vtype == ValueTypeString)) { \
+          string msg = "Operand types (" + nodeleft.GetNodeVTypeStr() + ", " + noderight.GetNodeVTypeStr() + ") are not suitable for comparison operation."; \
+          Error(expr, node, msg); return; } }
 
 void Validator::ValidateUnaryPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight)
 {
@@ -1089,14 +1100,9 @@ void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, c
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
 
     if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
-        EXPR_ERROR("Operation \'\\\' not applicable to strings.");
-    if (nodeleft.vtype == noderight.vtype)
-        node.vtype = nodeleft.vtype;
-    else if ((nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger) ||
-        (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle))
-        node.vtype = ValueTypeSingle;
-    else
-        EXPR_ERROR("Value types are incompatible.");
+        EXPR_ERROR("Operation \'^\' not applicable to strings.");
+
+    node.vtype = ValueTypeSingle;
 
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
@@ -1104,78 +1110,152 @@ void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, c
         node.node.dvalue = pow(nodeleft.node.dvalue, noderight.node.dvalue);
         if (!std::isfinite(node.node.dvalue))
             EXPR_ERROR("Bad result of power operation in const expression.");
+
+        // Allow Integer result if operands are Integer and the result is in the range
+        if (nodeleft.vtype == ValueTypeInteger == ValueTypeInteger && noderight.vtype == ValueTypeInteger &&
+            node.node.dvalue >= -32768 && node.node.dvalue <= 32767)
+            node.vtype = ValueTypeInteger;
     }
 }
 
 void Validator::ValidateOperEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
+    EXPR_CHECK_OPERANDS_VTYPE_FOR_COMARISON;
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        node.node.dvalue = (nodeleft.node.dvalue == noderight.node.dvalue) ? -1 : 0;
+        if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+            (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+        {
+            node.node.dvalue = (nodeleft.node.dvalue == noderight.node.dvalue) ? -1 : 0;
+        }
+        else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
+        {
+            node.node.dvalue = (nodeleft.node.svalue == noderight.node.svalue) ? -1 : 0;
+        }
     }
 }
 
 void Validator::ValidateOperNotEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
+    EXPR_CHECK_OPERANDS_VTYPE_FOR_COMARISON;
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        node.node.dvalue = (nodeleft.node.dvalue != noderight.node.dvalue) ? -1 : 0;
+        if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+            (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+        {
+            node.node.dvalue = (nodeleft.node.dvalue != noderight.node.dvalue) ? -1 : 0;
+        }
+        else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
+        {
+            node.node.dvalue = (nodeleft.node.svalue == noderight.node.svalue) ? 0 : -1;
+        }
     }
 }
 
 void Validator::ValidateOperLess(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
+    EXPR_CHECK_OPERANDS_VTYPE_FOR_COMARISON;
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        node.node.dvalue = (nodeleft.node.dvalue < noderight.node.dvalue) ? -1 : 0;
+        if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+            (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+        {
+            node.node.dvalue = (nodeleft.node.dvalue < noderight.node.dvalue) ? -1 : 0;
+        }
+        else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
+        {
+            //TODO
+        }
     }
 }
 
 void Validator::ValidateOperLessOrEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
+    EXPR_CHECK_OPERANDS_VTYPE_FOR_COMARISON;
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        node.node.dvalue = (nodeleft.node.dvalue <= noderight.node.dvalue) ? -1 : 0;
+        if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+            (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+        {
+            node.node.dvalue = (nodeleft.node.dvalue <= noderight.node.dvalue) ? -1 : 0;
+        }
+        else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
+        {
+            //TODO
+        }
     }
 }
 
 void Validator::ValidateOperGreater(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
+    EXPR_CHECK_OPERANDS_VTYPE_FOR_COMARISON;
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        node.node.dvalue = (nodeleft.node.dvalue > noderight.node.dvalue) ? -1 : 0;
+        if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+            (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+        {
+            node.node.dvalue = (nodeleft.node.dvalue > noderight.node.dvalue) ? -1 : 0;
+        }
+        else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
+        {
+            //TODO
+        }
     }
 }
 
 void Validator::ValidateOperGreaterOrEqual(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
+    EXPR_CHECK_OPERANDS_VTYPE_FOR_COMARISON;
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        node.node.dvalue = (nodeleft.node.dvalue >= noderight.node.dvalue) ? -1 : 0;
+        if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+            (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+        {
+            node.node.dvalue = (nodeleft.node.dvalue >= noderight.node.dvalue) ? -1 : 0;
+        }
+        else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
+        {
+            //TODO
+        }
+    }
+}
+
+void Validator::ValidateUnaryNot(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight)
+{
+    EXPR_CHECK_OPERAND_VTYPE_NONE;
+
+    if (noderight.vtype == ValueTypeString)
+        EXPR_ERROR("Operation \'NOT\' not applicable to strings.");
+
+    node.vtype = ValueTypeInteger;
+    node.constval = noderight.constval;
+    if (node.constval)
+    {
+        node.node.dvalue = noderight.node.dvalue == 0 ? -1 : 0;
     }
 }
 
@@ -1193,21 +1273,6 @@ void Validator::ValidateOperAnd(ExpressionModel& expr, ExpressionNode& node, con
         int ivalueleft = (int)nodeleft.node.dvalue;
         int ivalueright = (int)noderight.node.dvalue;
         node.node.dvalue = ivalueleft & ivalueright;
-    }
-}
-
-void Validator::ValidateUnaryNot(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight)
-{
-    EXPR_CHECK_OPERAND_VTYPE_NONE;
-
-    if (noderight.vtype == ValueTypeString)
-        EXPR_ERROR("Operation \'NOT\' not applicable to strings.");
-
-    node.vtype = ValueTypeInteger;
-    node.constval = noderight.constval;
-    if (node.constval)
-    {
-        node.node.dvalue = noderight.node.dvalue == 0 ? -1 : 0;
     }
 }
 
@@ -1608,7 +1673,8 @@ void Validator::ValidateFuncChr(ExpressionModel& expr, ExpressionNode& node)
 
         node.node.svalue = (char)ivalue;
 
-        m_source->RegisterConstString(node.node.svalue);
+        if (!node.node.svalue.empty())
+            m_source->RegisterConstString(node.node.svalue);
     }
 }
 
@@ -1678,7 +1744,8 @@ void Validator::ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node)
             node.node.svalue = svalue1.substr(ivalue2 - 1, ivalue3);
         }
 
-        m_source->RegisterConstString(node.node.svalue);
+        if (!node.node.svalue.empty())
+            m_source->RegisterConstString(node.node.svalue);
     }
 }
 
@@ -1725,7 +1792,8 @@ void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
             node.node.svalue = string(ivalue1, filler);
         }
 
-        m_source->RegisterConstString(node.node.svalue);
+        if (!node.node.svalue.empty())
+            m_source->RegisterConstString(node.node.svalue);
     }
 }
 
@@ -1790,7 +1858,7 @@ void Validator::ValidateFuncBin(ExpressionModel& expr, ExpressionNode& node)
     if (ivalue < -32768 || ivalue > 32767)
         EXPR_ERROR("Function BIN$ parameter is out of range.");
     if (ivalue < 0)
-        ivalue = 65536 - ivalue;  // 0..65535
+        ivalue = 65536 + ivalue;  // 0..65535
 
     node.vtype = ValueTypeString;
     node.constval = false;
@@ -1803,7 +1871,7 @@ void Validator::ValidateFuncBin(ExpressionModel& expr, ExpressionNode& node)
         std::bitset<16> bits(ivalue);
         ss << bits;
         string svalue = ss.str();
-        while (svalue.length() > 0 && svalue[0] == '0')
+        while (svalue.length() > 1 && svalue[0] == '0')
             svalue.erase(0, 1);
         node.node.svalue = svalue;
     }
@@ -1821,7 +1889,7 @@ void Validator::ValidateFuncOct(ExpressionModel& expr, ExpressionNode& node)
     if (ivalue < -32768 || ivalue > 32767)
         EXPR_ERROR("Function OCT$ parameter is out of range.");
     if (ivalue < 0)
-        ivalue = 65536 - ivalue;  // 0..65535
+        ivalue = 65536 + ivalue;  // 0..65535
 
     node.vtype = ValueTypeString;
     node.constval = false;
@@ -1848,7 +1916,7 @@ void Validator::ValidateFuncHex(ExpressionModel& expr, ExpressionNode& node)
     if (ivalue < -32768 || ivalue > 32767)
         EXPR_ERROR("Function HEX$ parameter is out of range.");
     if (ivalue < 0)
-        ivalue = 65536 - ivalue;  // 0..65535
+        ivalue = 65536 + ivalue;  // 0..65535
 
     node.vtype = ValueTypeString;
     node.constval = false;
