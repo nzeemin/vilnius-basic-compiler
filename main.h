@@ -595,6 +595,7 @@ private:
     void GenerateOperGreaterOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperAnd(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperOr(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperXor(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
 private:
     void GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNode& node);
@@ -602,4 +603,5 @@ private:
     void GenerateFuncInp(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncLen(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node);
 };

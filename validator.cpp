@@ -368,7 +368,7 @@ void Validator::ValidateNothing(StatementModel& statement)
 void Validator::ValidateClear(StatementModel& statement)
 {
     if (statement.args.size() == 0)
-        MODEL_ERROR("Expression expected.");
+        MODEL_ERROR("Parameter expected.");
 
     ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
@@ -381,7 +381,7 @@ void Validator::ValidateClear(StatementModel& statement)
             return;
     }
     if (statement.args.size() > 2)
-        MODEL_ERROR("Too many expressions.");
+        MODEL_ERROR("Too many parameters.");
 }
 
 void Validator::ValidateData(StatementModel& statement)
@@ -407,19 +407,33 @@ void Validator::ValidateRead(StatementModel& statement)
 void Validator::ValidateColor(StatementModel& statement)
 {
     if (statement.args.size() == 0)
-        MODEL_ERROR("Expression expected.");
+        MODEL_ERROR("Parameter expected.");
 
     {
         ExpressionModel& expr1 = statement.args[0];
         if (!expr1.IsEmpty() && !CheckIntegerOrSingleExpression(expr1))
             return;
+        if (expr1.IsConstExpression())
+        {
+            int ivalue = (int)expr1.GetConstExpressionDValue();
+            if (ivalue < 1 || ivalue > 8)
+                MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 1..8.");
+        }
     }
     if (statement.args.size() > 1)
     {
         ExpressionModel& expr2 = statement.args[1];
         if (!expr2.IsEmpty() && !CheckIntegerOrSingleExpression(expr2))
             return;
+        if (expr2.IsConstExpression())
+        {
+            int ivalue = (int)expr2.GetConstExpressionDValue();
+            if (ivalue < 1 || ivalue > 8)
+                MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 1..8.");
+        }
     }
+
+    //NOTE: Documentation tells about optional third parameter for border color, not implemented on UKNC
     if (statement.args.size() > 2)
     {
         ExpressionModel& expr3 = statement.args[2];
@@ -443,11 +457,17 @@ void Validator::ValidateDim(StatementModel& statement)
 void Validator::ValidateKey(StatementModel& statement)
 {
     if (statement.args.size() != 2)
-        MODEL_ERROR("Two expressions expected.");
+        MODEL_ERROR("Two parameters expected.");
 
     ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
+    if (expr1.IsConstExpression())
+    {
+        int ivalue = (int)expr1.GetConstExpressionDValue();
+        if (ivalue < 1 || ivalue > 10)
+            MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 1..10.");
+    }
 
     ExpressionModel& expr2 = statement.args[1];
     if (!CheckStringExpression(expr2))
@@ -457,7 +477,7 @@ void Validator::ValidateKey(StatementModel& statement)
 void Validator::ValidateDraw(StatementModel& statement)
 {
     if (statement.args.size() != 1)
-        MODEL_ERROR("One expression expected.");
+        MODEL_ERROR("One parameter expected.");
 
     ExpressionModel& expr1 = statement.args[0];
     if (!CheckStringExpression(expr1))
@@ -487,7 +507,7 @@ void Validator::ValidateFor(StatementModel& statement)
     m_fornextstack.push_back(forspec);
 
     if (statement.args.size() < 2)
-        MODEL_ERROR("Two expressions expected.");
+        MODEL_ERROR("Two parameters expected.");
 
     ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
@@ -504,7 +524,7 @@ void Validator::ValidateFor(StatementModel& statement)
             return;
 
         if (statement.args.size() > 3)
-            MODEL_ERROR("Too many expressions.");
+            MODEL_ERROR("Too many parameters.");
     }
 }
 
@@ -517,7 +537,7 @@ void Validator::ValidateGotoGosub(StatementModel& statement)
 void Validator::ValidateIf(StatementModel& statement)
 {
     if (statement.args.size() != 1)
-        MODEL_ERROR("One expression expected.");
+        MODEL_ERROR("One parameter expected.");
     ExpressionModel& expr = statement.args[0];
     ValidateExpression(expr);
     if (expr.IsEmpty())
@@ -583,7 +603,7 @@ void Validator::ValidateInput(StatementModel& statement)
 void Validator::ValidateOpen(StatementModel& statement)
 {
     if (statement.args.size() != 1)
-        MODEL_ERROR("One expression expected.");
+        MODEL_ERROR("One parameter expected.");
 
     ExpressionModel& expr1 = statement.args[0];
     if (!CheckStringExpression(expr1))
@@ -617,7 +637,7 @@ void Validator::ValidateLet(StatementModel& statement)
     m_source->RegisterVariable(var);
 
     if (statement.args.size() != 1)
-        MODEL_ERROR("One expression expected.");
+        MODEL_ERROR("One parameter expected.");
 
     ExpressionModel& expr = statement.args[0];
     ValidateExpression(expr);
@@ -628,17 +648,29 @@ void Validator::ValidateLet(StatementModel& statement)
 void Validator::ValidateLocate(StatementModel& statement)
 {
     if (statement.args.size() == 0)
-        MODEL_ERROR("Expression expected.");
+        MODEL_ERROR("Parameter expected.");
 
     ExpressionModel& expr1 = statement.args[0];
     if (!expr1.IsEmpty() && !CheckIntegerOrSingleExpression(expr1))
         return;
+    if (expr1.IsConstExpression())
+    {
+        int ivalue = (int)expr1.GetConstExpressionDValue();
+        if (ivalue < 0 || ivalue > 255)
+            MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 0..255.");
+    }
 
     if (statement.args.size() > 1)
     {
         ExpressionModel& expr2 = statement.args[1];
         if (!expr2.IsEmpty() && !CheckIntegerOrSingleExpression(expr2))
             return;
+        if (expr2.IsConstExpression())
+        {
+            int ivalue2 = (int)expr2.GetConstExpressionDValue();
+            if (ivalue2 < 0 || ivalue2 > 255)
+                MODEL_ERROR("Parameter value (" + std::to_string(ivalue2) + ") is out of range 0..255.");
+        }
     }
     if (statement.args.size() > 2)
     {
@@ -648,12 +680,37 @@ void Validator::ValidateLocate(StatementModel& statement)
     }
 
     if (statement.args.size() > 3)
-        MODEL_ERROR("Too many expressions.");
+        MODEL_ERROR("Too many parameters.");
 }
 
 void Validator::ValidatePset(StatementModel& statement)
 {
-    //TODO
+    if (statement.args.size() < 2)
+        MODEL_ERROR("Parameters expected.");
+
+    ExpressionModel& expr1 = statement.args[0];
+    if (!expr1.IsEmpty() && !CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    ExpressionModel& expr2 = statement.args[1];
+    if (!expr2.IsEmpty() && !CheckIntegerOrSingleExpression(expr2))
+        return;
+
+    if (statement.args.size() > 2)
+    {
+        ExpressionModel& expr3 = statement.args[2];
+        if (!expr3.IsEmpty() && !CheckIntegerOrSingleExpression(expr3))
+            return;
+        if (expr3.IsConstExpression())
+        {
+            int ivalue3 = (int)expr3.GetConstExpressionDValue();
+            if (ivalue3 < 0 || ivalue3 > 8)
+                MODEL_ERROR("Parameter value (" + std::to_string(ivalue3) + ") is out of range 0..8.");
+        }
+    }
+
+    if (statement.args.size() > 3)
+        MODEL_ERROR("Too many parameters.");
 }
 
 void Validator::ValidatePreset(StatementModel& statement)
@@ -713,7 +770,7 @@ void Validator::ValidateNext(StatementModel& statement)
 void Validator::ValidateOn(StatementModel& statement)
 {
     if (statement.args.size() != 1)
-        MODEL_ERROR("One Expression expected.");
+        MODEL_ERROR("One parameter expected.");
 
     ExpressionModel& expr = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr))
@@ -737,7 +794,7 @@ void Validator::ValidateOn(StatementModel& statement)
 void Validator::ValidateOut(StatementModel& statement)
 {
     if (statement.args.size() != 3)
-        MODEL_ERROR("Three expressions expected.");
+        MODEL_ERROR("Three parameters expected.");
 
     ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
@@ -755,7 +812,7 @@ void Validator::ValidateOut(StatementModel& statement)
 void Validator::ValidatePoke(StatementModel& statement)
 {
     if (statement.args.size() != 2)
-        MODEL_ERROR("Two expressions expected.");
+        MODEL_ERROR("Two parameters expected.");
 
     ExpressionModel& expr1 = statement.args[0];
     if (!CheckIntegerOrSingleExpression(expr1))
@@ -874,7 +931,7 @@ void Validator::ValidateDef(StatementModel& statement)
         //TODO
 
         if (statement.args.size() != 1)
-            MODEL_ERROR("One expression expected.");
+            MODEL_ERROR("One parameter expected.");
 
         ExpressionModel& expr1 = statement.args[0];
         ValidateExpression(expr1);
@@ -886,7 +943,7 @@ void Validator::ValidateDef(StatementModel& statement)
             MODEL_ERROR("DEF USR number is out of range 0..9.");
 
         if (statement.args.size() != 1)
-            MODEL_ERROR("One expression expected.");
+            MODEL_ERROR("One parameter expected.");
 
         ExpressionModel& expr1 = statement.args[0];
         if (!CheckIntegerOrSingleExpression(expr1))
@@ -1669,7 +1726,7 @@ void Validator::ValidateFuncChr(ExpressionModel& expr, ExpressionNode& node)
         node.constval = true;
         int ivalue = (int)expr1.GetConstExpressionDValue();
         if (ivalue < 0 || ivalue > 255)
-            EXPR_ERROR("Function CHR$ parameter is out of range.");
+            EXPR_ERROR("Function CHR$ parameter is out of range 0..255.");
 
         node.node.svalue = (char)ivalue;
 
@@ -1842,7 +1899,20 @@ void Validator::ValidateFuncStr(ExpressionModel& expr, ExpressionNode& node)
     {
         node.constval = true;
 
-        //TODO
+        if (expr.GetExpressionValueType() == ValueTypeInteger)
+        {
+            int ivalue = (int)expr1.GetConstExpressionDValue();
+            if (ivalue < -32768 || ivalue > 32767)
+                EXPR_ERROR("Function STR$ parameter is out of Integer range.");
+
+            std::stringstream ss;
+            ss << std::dec << ivalue;
+            node.node.svalue = ss.str();
+        }
+        else  // Single
+        {
+            //TODO
+        }
     }
 }
 
@@ -1856,7 +1926,7 @@ void Validator::ValidateFuncBin(ExpressionModel& expr, ExpressionNode& node)
         return;
     int ivalue = (int)expr1.GetConstExpressionDValue();
     if (ivalue < -32768 || ivalue > 32767)
-        EXPR_ERROR("Function BIN$ parameter is out of range.");
+        EXPR_ERROR("Function BIN$ parameter is out of Integer range.");
     if (ivalue < 0)
         ivalue = 65536 + ivalue;  // 0..65535
 
@@ -1887,7 +1957,7 @@ void Validator::ValidateFuncOct(ExpressionModel& expr, ExpressionNode& node)
         return;
     int ivalue = (int)expr1.GetConstExpressionDValue();
     if (ivalue < -32768 || ivalue > 32767)
-        EXPR_ERROR("Function OCT$ parameter is out of range.");
+        EXPR_ERROR("Function OCT$ parameter is out of Integer range.");
     if (ivalue < 0)
         ivalue = 65536 + ivalue;  // 0..65535
 
@@ -1914,7 +1984,7 @@ void Validator::ValidateFuncHex(ExpressionModel& expr, ExpressionNode& node)
         return;
     int ivalue = (int)expr1.GetConstExpressionDValue();
     if (ivalue < -32768 || ivalue > 32767)
-        EXPR_ERROR("Function HEX$ parameter is out of range.");
+        EXPR_ERROR("Function HEX$ parameter is out of Integer range.");
     if (ivalue < 0)
         ivalue = 65536 + ivalue;  // 0..65535
 
@@ -1941,7 +2011,8 @@ void Validator::ValidateFuncCsrlinPosLpos(ExpressionModel& expr, ExpressionNode&
     if (node.args.size() > 0)
     {
         ExpressionModel& expr1 = node.args[0];
-        ValidateExpression(expr1);
+        if (!CheckIntegerOrSingleExpression(expr1))
+            return;
     }
 
     node.vtype = ValueTypeInteger;

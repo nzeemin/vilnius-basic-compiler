@@ -1,22 +1,88 @@
 -q
 ----------------------------------------------------------------------
 10 CLS
-20 CLS 'comment
-210 CLS 0
-220 CLS A%
-230 CLS .
-240 CLS;
+12 CLS 'comment
+14 CLS 0
+16 CLS A%
+18 CLS .
+20 CLS;
+30 COLOR
+32 COLOR ,,
+33 SCREEN 1
+34 SCREEN
+35 SCREEN 'comment
+36 SCREEN "A"
+37 SCREEN A$
+40 LOCATE 1,2, 1
+41 LOCATE 1,2 'comment
+42 LOCATE
+43 LOCATE .
+44 LOCATE ,
+45 LOCATE ,,
+100 PSET (150, 200), 1
+101 PSET @ (150, 200), 1
+102 PSET STEP (150, 200), 1
+103 PSET (150, 200)
+104 PSET (150, 200) 'comment
+106 PSET @
+107 PSET STEP
+108 PSET 150, 200
+109 PSET A$
+110 PSET (150, 200), 1,
+111 PSET (150, 200), 1,2
 ----------------------------------------------------------------------
-ERROR at 3:9 line 210 - Unexpected text at the end of the statement.
-210 CLS 0
-        ^
-ERROR at 4:9 line 220 - Unexpected text at the end of the statement.
-220 CLS A%
-        ^
-ERROR at 5:9 line 230 - Unexpected text at the end of the statement.
-230 CLS .
-        ^
-ERROR at 6:8 line 240 - Unexpected text at the end of the statement.
-240 CLS;
+ERROR at 3:8 line 14 - Unexpected text at the end of the statement.
+14 CLS 0
        ^
-Parsing ERRORS: 4
+ERROR at 4:8 line 16 - Unexpected text at the end of the statement.
+16 CLS A%
+       ^
+ERROR at 5:8 line 18 - Unexpected text at the end of the statement.
+18 CLS .
+       ^
+ERROR at 6:7 line 20 - Unexpected text at the end of the statement.
+20 CLS;
+      ^
+ERROR at 7:9 line 30 - Arguments expected.
+30 COLOR
+        ^
+ERROR at 8:12 line 32 - Expression should not be empty.
+32 COLOR ,,
+           ^
+ERROR at 10:10 line 34 - Numeric argument expected.
+34 SCREEN
+         ^
+ERROR at 11:11 line 35 - Numeric argument expected.
+35 SCREEN 'comment
+          ^
+ERROR at 12:11 line 36 - Numeric argument expected.
+36 SCREEN "A"
+          ^
+ERROR at 13:11 line 37 - Numeric argument expected.
+37 SCREEN A$
+          ^
+ERROR at 16:10 line 42 - Arguments expected.
+42 LOCATE
+         ^
+ERROR at 19:13 line 45 - Expression should not be empty.
+45 LOCATE ,,
+            ^
+ERROR at 25:11 line 106 - Open bracket expected.
+106 PSET @
+          ^
+ERROR at 26:14 line 107 - Open bracket expected.
+107 PSET STEP
+             ^
+ERROR at 27:10 line 108 - Open bracket expected.
+108 PSET 150, 200
+         ^
+ERROR at 28:10 line 109 - Open bracket expected.
+109 PSET A$
+         ^
+ERROR at 29:23 line 110 - Unexpected text at the end of the statement.
+110 PSET (150, 200), 1,
+                      ^
+ERROR at 30:23 line 111 - Unexpected text at the end of the statement.
+111 PSET (150, 200), 1,2
+                      ^
+Parsing ERRORS: 18

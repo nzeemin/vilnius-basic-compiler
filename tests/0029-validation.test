@@ -1,10 +1,58 @@
 -q
 ----------------------------------------------------------------------
-100 GOTO 65535
-110 POKE 0%, "AAA"
-120 POKE "AAA", 0
+10 CLEAR "A"
+50 COLOR "A",2
+51 COLOR A$,2
+52 COLOR 1,"B"
+53 COLOR 1,B$
+54 COLOR -1,2
+55 COLOR 9,2
+56 COLOR 1,-1
+57 COLOR 1,9
+66 LOCATE "A"
+67 LOCATE A$
+68 LOCATE -1
+69 LOCATE 256
+70 LOCATE ,-1
+71 LOCATE ,256
+72 LOCATE ,, "A"
+73 LOCATE ,, A$
+82 PSET (A$, 200)
+83 PSET (100, B$)
+84 PSET (150, 200), A$
+95 KEY "A", "B"
+96 KEY 1, 2
+97 KEY 11, "AAA"
+100 NEXT
+110 GOTO 65535
+120 POKE 0%, "AAA"
+122 POKE "AAA", 0
 ----------------------------------------------------------------------
-ERROR in line 100 - Invalid line number 65535.
-ERROR in line 110 at 2:14 - Expression should be of type Integer or Single.
-ERROR in line 120 at 3:10 - Expression should be of type Integer or Single.
-Validation ERRORS: 3
+ERROR in line 10 at 1:10 - Expression should be of type Integer or Single.
+ERROR in line 50 at 2:10 - Expression should be of type Integer or Single.
+ERROR in line 51 at 3:10 - Expression should be of type Integer or Single.
+ERROR in line 52 at 4:12 - Expression should be of type Integer or Single.
+ERROR in line 53 at 5:12 - Expression should be of type Integer or Single.
+ERROR in line 54 - Parameter value (-1) is out of range 1..8.
+ERROR in line 55 - Parameter value (9) is out of range 1..8.
+ERROR in line 56 - Parameter value (-1) is out of range 1..8.
+ERROR in line 57 - Parameter value (9) is out of range 1..8.
+ERROR in line 66 at 10:11 - Expression should be of type Integer or Single.
+ERROR in line 67 at 11:11 - Expression should be of type Integer or Single.
+ERROR in line 68 - Parameter value (-1) is out of range 0..255.
+ERROR in line 69 - Parameter value (256) is out of range 0..255.
+ERROR in line 70 - Parameter value (-1) is out of range 0..255.
+ERROR in line 71 - Parameter value (256) is out of range 0..255.
+ERROR in line 72 at 16:14 - Expression should be of type Integer or Single.
+ERROR in line 73 at 17:14 - Expression should be of type Integer or Single.
+ERROR in line 82 at 18:10 - Expression should be of type Integer or Single.
+ERROR in line 83 at 19:15 - Expression should be of type Integer or Single.
+ERROR in line 84 at 20:21 - Expression should be of type Integer or Single.
+ERROR in line 95 at 21:8 - Expression should be of type Integer or Single.
+ERROR in line 96 at 22:11 - Expression should be of type String.
+ERROR in line 97 - Parameter value (11) is out of range 1..10.
+ERROR in line 100 - NEXT without FOR.
+ERROR in line 110 - Invalid line number 65535.
+ERROR in line 120 at 26:14 - Expression should be of type Integer or Single.
+ERROR in line 122 at 27:10 - Expression should be of type Integer or Single.
+Validation ERRORS: 27

@@ -2,6 +2,7 @@
 ----------------------------------------------------------------------
 10 CLS
 100 REM Expressions with strings
+105 PRINT "5", LEN("AAAAA")
 110 PRINT "65", ASC("A")
 111 PRINT "A",  CHR$(65)
 112 PRINT "65", ASC(CHR$(65))
@@ -12,7 +13,11 @@
 126 PRINT "D431", HEX$(-11215)
 130 PRINT "0", OCT$(0)
 131 PRINT "152061", OCT$(-11215)
-140 PRINT "AB", "A" + "B"
+135 PRINT "-12345", STR$(-12345)
+150 PRINT "AB", "A" + "B"
+160 PRINT "..........", STRING$(10, ".")
+162 PRINT "AAAAAAAAAA", STRING$(10, 65)
+170 PRINT "234", MID$("1234567890", 2, 3)
 200 REM Compare strings
 210 PRINT "-1", "A" = "A"
 212 PRINT "0",  "A" = "B"

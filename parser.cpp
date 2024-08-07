@@ -753,6 +753,7 @@ void Parser::ParseColor(StatementModel& statement)
     if (!token.IsComma())
         MODEL_ERROR(MSG_UNEXPECTED);
 
+    //NOTE: Documentation tells about optional third parameter for border color, not implemented on UKNC
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr3 = ParseExpression();
     CHECK_MODEL_ERROR;
@@ -1382,16 +1383,18 @@ void Parser::ParsePoke(StatementModel& statement)
 
 void Parser::ParsePsetPreset(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if ((token.type == TokenTypeSymbol && token.symbol == '@') ||
         (token.IsKeyword(KeywordSTEP)))
     {
+        GetNextToken();
         statement.relative = true;
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
     }
 
     if (!token.IsOpenBracket())
         MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+    GetNextToken();
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr1 = ParseExpression();
@@ -1816,9 +1819,10 @@ void Parser::ParseDefUsr(StatementModel& statement)
 
 void Parser::ParseScreen(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
         MODEL_ERROR("Numeric argument expected.");
+    GetNextToken();
 
     statement.params.push_back(token);
 

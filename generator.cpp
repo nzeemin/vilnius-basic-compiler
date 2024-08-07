@@ -77,7 +77,7 @@ const GeneratorOperSpec Generator::m_operspecs[] =
     { "=>",             &Generator::GenerateOperGreaterOrEqual },
     { "AND",            &Generator::GenerateOperAnd },
     { "OR",             &Generator::GenerateOperOr },
-    //TODO: XOR
+    { "XOR",            &Generator::GenerateOperXor },
     //TODO: EQV
     //TODO: IMP
 };
@@ -90,6 +90,7 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordINP,       &Generator::GenerateFuncInp },
     { KeywordLEN,       &Generator::GenerateFuncLen },
     { KeywordINKEY,     &Generator::GenerateFuncInkey },
+    { KeywordPOS,       &Generator::GenerateFuncPos },
 };
 
 
@@ -1190,6 +1191,14 @@ void Generator::GenerateOperOr(const ExpressionModel& expr, const ExpressionNode
     m_final->AddComment("TODO operation OR");
 }
 
+void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    //const string comment = "\t; Operation \'XOR\'";
+
+    //TODO
+    m_final->AddComment("TODO operation XOR");
+}
+
 
 // Function generation ///////////////////////////////////////////////
 
@@ -1256,14 +1265,30 @@ void Generator::GenerateFuncLen(const ExpressionModel& expr, const ExpressionNod
     const ExpressionModel& expr1 = node.args[0];
     GenerateExpression(expr1);
 
+    m_final->AddLine("\tMOV\tR0, R1\t");
     m_final->AddLine("\tCLR\tR0\t");
-    m_final->AddLine("\tBISB\t(R0), R0\t; LEN");
+    m_final->AddLine("\tBISB\t(R1), R0\t; LEN");  // get byte of the string length
 }
 
 void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node)
 {
     //TODO
     m_final->AddComment("TODO INKEY$");
+}
+
+void Generator::GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() <= 1);
+
+    // If we have non-const expression then calculate it
+    if (node.args.size() > 0)
+    {
+        const ExpressionModel& expr1 = node.args[0];
+        if (!expr.IsConstExpression())
+            GenerateExpression(expr1);
+    }
+
+    m_final->AddComment("TODO POS");
 }
 
 
