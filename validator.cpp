@@ -46,8 +46,8 @@ const ValidatorKeywordSpec Validator::m_keywordspecs[] =
     { KeywordPAINT,     &Validator::ValidatePaint },
     { KeywordPOKE,      &Validator::ValidatePoke },
     { KeywordPRINT,     &Validator::ValidatePrint },
-    { KeywordPSET,      &Validator::ValidatePset },
-    { KeywordPRESET,    &Validator::ValidatePreset },
+    { KeywordPSET,      &Validator::ValidatePsetPreset },
+    { KeywordPRESET,    &Validator::ValidatePsetPreset },
     { KeywordRESTORE,   &Validator::ValidateRestore },
     { KeywordRETURN,    &Validator::ValidateNothing },
     { KeywordSAVE,      &Validator::ValidateNothing },
@@ -612,12 +612,107 @@ void Validator::ValidateOpen(StatementModel& statement)
 
 void Validator::ValidateLine(StatementModel& statement)
 {
-    //TODO
+    if (statement.args.size() < 4 || statement.args.size() > 5)
+        MODEL_ERROR("Four or five parameters expected.");
+
+    ExpressionModel& expr1 = statement.args[0];
+    if (!expr1.IsEmpty())
+    {
+        if (!CheckIntegerOrSingleExpression(expr1))
+            return;
+    }
+
+    ExpressionModel& expr2 = statement.args[1];
+    if (!expr2.IsEmpty())
+    {
+        if (!CheckIntegerOrSingleExpression(expr2))
+            return;
+    }
+
+    ExpressionModel& expr3 = statement.args[2];
+    if (!CheckIntegerOrSingleExpression(expr3))
+        return;
+
+    ExpressionModel& expr4 = statement.args[3];
+    if (!CheckIntegerOrSingleExpression(expr4))
+        return;
+
+    if (statement.args.size() > 4)
+    {
+        ExpressionModel& expr5 = statement.args[4];
+        if (!CheckIntegerOrSingleExpression(expr5))
+            return;
+        if (expr5.IsConstExpression())
+        {
+            int ivalue5 = (int)expr5.GetConstExpressionDValue();
+            if (ivalue5 < 0 || ivalue5 > 8)
+                MODEL_ERROR("Parameter value (" + std::to_string(ivalue5) + ") is out of range 0..8.");
+        }
+    }
 }
 
 void Validator::ValidateCircle(StatementModel& statement)
 {
-    //TODO
+    if (statement.args.size() < 3 || statement.args.size() > 7)
+        MODEL_ERROR("Three to seven parameters expected.");
+
+    ExpressionModel& expr1 = statement.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    ExpressionModel& expr2 = statement.args[1];
+    if (!CheckIntegerOrSingleExpression(expr2))
+        return;
+
+    ExpressionModel& expr3 = statement.args[2];
+    if (!CheckIntegerOrSingleExpression(expr3))
+        return;
+
+    if (statement.args.size() > 3)  // ARG4 = color number
+    {
+        ExpressionModel& expr4 = statement.args[3];
+        if (!expr4.IsEmpty())
+        {
+            if (!CheckIntegerOrSingleExpression(expr4))
+                return;
+            if (expr4.IsConstExpression())
+            {
+                int ivalue = (int)expr4.GetConstExpressionDValue();
+                if (ivalue < 0 || ivalue > 8)
+                    MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 0..8.");
+            }
+        }
+    }
+
+    if (statement.args.size() > 4)  // ARG5 = arc start, radians
+    {
+        ExpressionModel& expr5 = statement.args[4];
+        if (!expr5.IsEmpty())
+        {
+            if (!CheckIntegerOrSingleExpression(expr5))
+                return;
+        }
+    }
+
+    if (statement.args.size() > 5)  // ARG6 = arc end, radians
+    {
+        ExpressionModel& expr6 = statement.args[5];
+        if (!expr6.IsEmpty())
+        {
+            if (!CheckIntegerOrSingleExpression(expr6))
+                return;
+        }
+    }
+
+    if (statement.args.size() > 6)  // ARG7 = aspect ratio
+    {
+        ExpressionModel& expr7 = statement.args[6];
+        if (!expr7.IsEmpty())
+        {
+            if (!CheckIntegerOrSingleExpression(expr7))
+                return;
+        }
+    }
 }
 
 void Validator::ValidatePaint(StatementModel& statement)
@@ -683,7 +778,7 @@ void Validator::ValidateLocate(StatementModel& statement)
         MODEL_ERROR("Too many parameters.");
 }
 
-void Validator::ValidatePset(StatementModel& statement)
+void Validator::ValidatePsetPreset(StatementModel& statement)
 {
     if (statement.args.size() < 2)
         MODEL_ERROR("Parameters expected.");
@@ -711,11 +806,6 @@ void Validator::ValidatePset(StatementModel& statement)
 
     if (statement.args.size() > 3)
         MODEL_ERROR("Too many parameters.");
-}
-
-void Validator::ValidatePreset(StatementModel& statement)
-{
-    //TODO
 }
 
 void Validator::ValidateNext(StatementModel& statement)

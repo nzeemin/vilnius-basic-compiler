@@ -357,12 +357,13 @@ void Parser::SkipTilStatementEnd()
 
 void Parser::SkipComma()
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if (!token.IsComma())
     {
         Error(token, MSG_COMMA_EXPECTED);
         return;
     }
+    GetNextToken();  // comma
 }
 
 ExpressionModel Parser::ParseExpression()
@@ -1459,13 +1460,16 @@ void Parser::ParseLine(StatementModel& statement)
         CHECK_EXPRESSION_NOT_EMPTY(expr2);
         statement.args.push_back(expr2);
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (!token.IsCloseBracket())
             MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+        GetNextToken();  // close bracket
     }
     else
     {
-        //TODO: add two empty expressions
+        // add two empty expressions
+        statement.args.push_back(ExpressionModel());
+        statement.args.push_back(ExpressionModel());
     }
 
     token = PeekNextTokenSkipDivider();
@@ -1482,32 +1486,28 @@ void Parser::ParseLine(StatementModel& statement)
     }
 
     token = PeekNextTokenSkipDivider();
-    if (token.IsOpenBracket())  // we have ARG3, ARG4
-    {
-        GetNextToken();  // open bracket
+    if (!token.IsOpenBracket())
+        MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+    GetNextToken();  // open bracket
 
-        token = PeekNextTokenSkipDivider();
-        ExpressionModel expr3 = ParseExpression();
-        CHECK_MODEL_ERROR;
-        CHECK_EXPRESSION_NOT_EMPTY(expr3);
-        statement.args.push_back(expr3);
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr3 = ParseExpression();
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr3);
+    statement.args.push_back(expr3);
 
-        SKIP_COMMA;
+    SKIP_COMMA;
 
-        token = PeekNextTokenSkipDivider();
-        ExpressionModel expr4 = ParseExpression();
-        CHECK_MODEL_ERROR;
-        CHECK_EXPRESSION_NOT_EMPTY(expr4);
-        statement.args.push_back(expr4);
+    token = PeekNextTokenSkipDivider();
+    ExpressionModel expr4 = ParseExpression();
+    CHECK_MODEL_ERROR;
+    CHECK_EXPRESSION_NOT_EMPTY(expr4);
+    statement.args.push_back(expr4);
 
-        token = GetNextTokenSkipDivider();
-        if (!token.IsCloseBracket())
-            MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
-    }
-    else
-    {
-        //TODO: add two empty expressions
-    }
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsCloseBracket())
+        MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+    GetNextToken();  // close bracket
 
     token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
@@ -1528,9 +1528,10 @@ void Parser::ParseLine(StatementModel& statement)
         {
             GetNextToken();  // comma
 
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (token.type != TokenTypeIdentifier || (token.text != "B" && token.text != "BF"))
-                MODEL_ERROR("\'B\' or \'BR\' expected.");
+                MODEL_ERROR("\'B\' or \'BF\' expected.");
+            GetNextToken();  // B or BF
 
             //TODO: save to model
         }
@@ -1551,9 +1552,10 @@ void Parser::ParseCircle(StatementModel& statement)
         statement.relative = true;
     }
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsOpenBracket())
         MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+    GetNextToken();  // open bracket
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr1 = ParseExpression();
@@ -1569,9 +1571,10 @@ void Parser::ParseCircle(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr2);
     statement.args.push_back(expr2);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsCloseBracket())
         MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+    GetNextToken();  // close bracket
 
     SKIP_COMMA;
 

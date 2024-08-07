@@ -24,12 +24,78 @@
 102 PSET STEP (150, 200), 1
 103 PSET (150, 200)
 104 PSET (150, 200) 'comment
+105 PSET
 106 PSET @
 107 PSET STEP
 108 PSET 150, 200
 109 PSET A$
 110 PSET (150, 200), 1,
 111 PSET (150, 200), 1,2
+120 PRESET (150, 200), 1
+121 PRESET @ (150, 200), 1
+122 PRESET STEP (150, 200), 1
+123 PRESET (150, 200)
+124 PRESET (150, 200) 'comment
+125 PRESET
+126 PRESET @
+127 PRESET STEP
+128 PRESET 150, 200
+129 PRESET A$
+130 PRESET (150, 200), 1,
+131 PRESET (150, 200), 1,2
+140 LINE (20,10)-(40,30)
+141 LINE @(20,10)-@(40,30)
+142 LINE STEP (20, 10) - STEP (40, 30)
+143 LINE (20,10)-(40,30), B
+144 LINE -(40,30)
+145 LINE -(40,30), BF
+146 LINE -@(40,30)
+147 LINE -STEP(40,30)
+148 LINE -STEP ( 40, 30 ), B
+149 LINE -STEP ( A%, B% ), BF
+150 LINE
+151 LINE .
+152 LINE -
+153 LINE -()
+154 LINE (,)-(,)
+155 LINE @
+156 LINE STEP
+157 LINE (20
+158 LINE (20,
+159 LINE (20,)
+160 LINE (20,10
+161 LINE (20,10)
+162 LINE (20,10)-
+163 LINE (20,10)-(
+164 LINE (20,10)-(40
+165 LINE (20,10)-(40,
+166 LINE (20,10)-(40,30
+167 LINE (20,10)-(40,30),
+168 LINE (20,10)-(40,30), 1,
+169 LINE (20,10)-(40,30), 1, BG
+170 LINE -(
+171 LINE -(40
+172 LINE -(40,
+173 LINE -(40,30
+174 LINE -(40,30),
+175 LINE -(40,30), 1,
+176 LINE -(40,30), 1, BG
+180 CIRCLE (200,100), 50
+181 CIRCLE (200,100), 50, 1
+182 CIRCLE (200,100), 50, 1, 0.0
+183 CIRCLE (200,100), 50, 1, 0.0, 1.0
+184 CIRCLE (200,100), 50, 1, 0.0, 1.0, 0.8
+185 CIRCLE @(200,100), 50
+186 CIRCLE STEP (200,100), 50
+190 CIRCLE
+191 CIRCLE @
+192 CIRCLE STEP
+193 CIRCLE (
+194 CIRCLE (200
+195 CIRCLE (200,
+196 CIRCLE (200,100
+197 CIRCLE (200,100)
+198 CIRCLE (200,100),
 ----------------------------------------------------------------------
 ERROR at 3:8 line 14 - Unexpected text at the end of the statement.
 14 CLS 0
@@ -67,22 +133,154 @@ ERROR at 16:10 line 42 - Arguments expected.
 ERROR at 19:13 line 45 - Expression should not be empty.
 45 LOCATE ,,
             ^
-ERROR at 25:11 line 106 - Open bracket expected.
+ERROR at 25:9 line 105 - Open bracket expected.
+105 PSET
+        ^
+ERROR at 26:11 line 106 - Open bracket expected.
 106 PSET @
           ^
-ERROR at 26:14 line 107 - Open bracket expected.
+ERROR at 27:14 line 107 - Open bracket expected.
 107 PSET STEP
              ^
-ERROR at 27:10 line 108 - Open bracket expected.
+ERROR at 28:10 line 108 - Open bracket expected.
 108 PSET 150, 200
          ^
-ERROR at 28:10 line 109 - Open bracket expected.
+ERROR at 29:10 line 109 - Open bracket expected.
 109 PSET A$
          ^
-ERROR at 29:23 line 110 - Unexpected text at the end of the statement.
+ERROR at 30:23 line 110 - Unexpected text at the end of the statement.
 110 PSET (150, 200), 1,
                       ^
-ERROR at 30:23 line 111 - Unexpected text at the end of the statement.
+ERROR at 31:23 line 111 - Unexpected text at the end of the statement.
 111 PSET (150, 200), 1,2
                       ^
-Parsing ERRORS: 18
+ERROR at 37:11 line 125 - Open bracket expected.
+125 PRESET
+          ^
+ERROR at 38:13 line 126 - Open bracket expected.
+126 PRESET @
+            ^
+ERROR at 39:16 line 127 - Open bracket expected.
+127 PRESET STEP
+               ^
+ERROR at 40:12 line 128 - Open bracket expected.
+128 PRESET 150, 200
+           ^
+ERROR at 41:12 line 129 - Open bracket expected.
+129 PRESET A$
+           ^
+ERROR at 42:25 line 130 - Unexpected text at the end of the statement.
+130 PRESET (150, 200), 1,
+                        ^
+ERROR at 43:25 line 131 - Unexpected text at the end of the statement.
+131 PRESET (150, 200), 1,2
+                        ^
+ERROR at 54:9 line 150 - Minus '-' sign expected.
+150 LINE
+        ^
+ERROR at 55:10 line 151 - Minus '-' sign expected.
+151 LINE .
+         ^
+ERROR at 56:11 line 152 - Open bracket expected.
+152 LINE -
+          ^
+ERROR at 57:12 line 153 - Expression should not be empty.
+153 LINE -()
+           ^
+ERROR at 58:11 line 154 - Expression should not be empty.
+154 LINE (,)-(,)
+          ^
+ERROR at 59:11 line 155 - Minus '-' sign expected.
+155 LINE @
+          ^
+ERROR at 60:14 line 156 - Minus '-' sign expected.
+156 LINE STEP
+             ^
+ERROR at 61:13 line 157 - Comma expected.
+157 LINE (20
+            ^
+ERROR at 62:14 line 158 - Expression should not be empty.
+158 LINE (20,
+             ^
+ERROR at 63:14 line 159 - Expression should not be empty.
+159 LINE (20,)
+             ^
+ERROR at 64:16 line 160 - Close bracket expected.
+160 LINE (20,10
+               ^
+ERROR at 65:17 line 161 - Minus '-' sign expected.
+161 LINE (20,10)
+                ^
+ERROR at 66:18 line 162 - Open bracket expected.
+162 LINE (20,10)-
+                 ^
+ERROR at 67:19 line 163 - Expression should not be empty.
+163 LINE (20,10)-(
+                  ^
+ERROR at 68:21 line 164 - Comma expected.
+164 LINE (20,10)-(40
+                    ^
+ERROR at 69:22 line 165 - Expression should not be empty.
+165 LINE (20,10)-(40,
+                     ^
+ERROR at 70:24 line 166 - Close bracket expected.
+166 LINE (20,10)-(40,30
+                       ^
+ERROR at 71:26 line 167 - Expression should not be empty.
+167 LINE (20,10)-(40,30),
+                         ^
+ERROR at 72:29 line 168 - 'B' or 'BF' expected.
+168 LINE (20,10)-(40,30), 1,
+                            ^
+ERROR at 73:30 line 169 - 'B' or 'BF' expected.
+169 LINE (20,10)-(40,30), 1, BG
+                             ^
+ERROR at 74:12 line 170 - Expression should not be empty.
+170 LINE -(
+           ^
+ERROR at 75:14 line 171 - Comma expected.
+171 LINE -(40
+             ^
+ERROR at 76:15 line 172 - Expression should not be empty.
+172 LINE -(40,
+              ^
+ERROR at 77:17 line 173 - Close bracket expected.
+173 LINE -(40,30
+                ^
+ERROR at 78:19 line 174 - Expression should not be empty.
+174 LINE -(40,30),
+                  ^
+ERROR at 79:22 line 175 - 'B' or 'BF' expected.
+175 LINE -(40,30), 1,
+                     ^
+ERROR at 80:23 line 176 - 'B' or 'BF' expected.
+176 LINE -(40,30), 1, BG
+                      ^
+ERROR at 88:11 line 190 - Open bracket expected.
+190 CIRCLE
+          ^
+ERROR at 89:13 line 191 - Open bracket expected.
+191 CIRCLE @
+            ^
+ERROR at 90:16 line 192 - Open bracket expected.
+192 CIRCLE STEP
+               ^
+ERROR at 91:13 line 193 - Expression should not be empty.
+193 CIRCLE (
+            ^
+ERROR at 92:16 line 194 - Comma expected.
+194 CIRCLE (200
+               ^
+ERROR at 93:17 line 195 - Expression should not be empty.
+195 CIRCLE (200,
+                ^
+ERROR at 94:20 line 196 - Close bracket expected.
+196 CIRCLE (200,100
+                   ^
+ERROR at 95:21 line 197 - Comma expected.
+197 CIRCLE (200,100)
+                    ^
+ERROR at 96:22 line 198 - Expression should not be empty.
+198 CIRCLE (200,100),
+                     ^
+Parsing ERRORS: 62

@@ -433,8 +433,7 @@ private:
     void ValidatePaint(StatementModel& statement);
     void ValidatePoke(StatementModel& statement);
     void ValidatePrint(StatementModel& statement);
-    void ValidatePreset(StatementModel& statement);
-    void ValidatePset(StatementModel& statement);
+    void ValidatePsetPreset(StatementModel& statement);
     void ValidateRead(StatementModel& statement);
     void ValidateRestore(StatementModel& statement);
     void ValidateScreen(StatementModel& statement);

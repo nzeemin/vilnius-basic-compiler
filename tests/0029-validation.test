@@ -20,6 +20,9 @@
 82 PSET (A$, 200)
 83 PSET (100, B$)
 84 PSET (150, 200), A$
+86 PRESET (A$, 200)
+87 PRESET (100, B$)
+88 PRESET (150, 200), A$
 95 KEY "A", "B"
 96 KEY 1, 2
 97 KEY 11, "AAA"
@@ -27,6 +30,21 @@
 110 GOTO 65535
 120 POKE 0%, "AAA"
 122 POKE "AAA", 0
+140 LINE (A$,10)-(40,30)
+142 LINE (20,B$)-(40,30)
+144 LINE (20,10)-(C$,30)
+146 LINE (20,10)-(40,D$)
+148 LINE (20,10)-(40,30), E$
+150 LINE (20,10)-(40,30), -1
+151 LINE (20,10)-(40,30), 9
+154 LINE -(A$,30)
+156 LINE -(40,B$)
+158 LINE -(40,30), "A"
+180 CIRCLE (A$,100), 50
+182 CIRCLE (200,B$), 50
+184 CIRCLE (200,100), C$
+186 CIRCLE (200,100), 50, -1
+187 CIRCLE (200,100), 50, 9
 ----------------------------------------------------------------------
 ERROR in line 10 at 1:10 - Expression should be of type Integer or Single.
 ERROR in line 50 at 2:10 - Expression should be of type Integer or Single.
@@ -48,11 +66,29 @@ ERROR in line 73 at 17:14 - Expression should be of type Integer or Single.
 ERROR in line 82 at 18:10 - Expression should be of type Integer or Single.
 ERROR in line 83 at 19:15 - Expression should be of type Integer or Single.
 ERROR in line 84 at 20:21 - Expression should be of type Integer or Single.
-ERROR in line 95 at 21:8 - Expression should be of type Integer or Single.
-ERROR in line 96 at 22:11 - Expression should be of type String.
+ERROR in line 86 at 21:12 - Expression should be of type Integer or Single.
+ERROR in line 87 at 22:17 - Expression should be of type Integer or Single.
+ERROR in line 88 at 23:23 - Expression should be of type Integer or Single.
+ERROR in line 95 at 24:8 - Expression should be of type Integer or Single.
+ERROR in line 96 at 25:11 - Expression should be of type String.
 ERROR in line 97 - Parameter value (11) is out of range 1..10.
 ERROR in line 100 - NEXT without FOR.
 ERROR in line 110 - Invalid line number 65535.
-ERROR in line 120 at 26:14 - Expression should be of type Integer or Single.
-ERROR in line 122 at 27:10 - Expression should be of type Integer or Single.
-Validation ERRORS: 27
+ERROR in line 120 at 29:14 - Expression should be of type Integer or Single.
+ERROR in line 122 at 30:10 - Expression should be of type Integer or Single.
+ERROR in line 140 at 31:11 - Expression should be of type Integer or Single.
+ERROR in line 142 at 32:14 - Expression should be of type Integer or Single.
+ERROR in line 144 at 33:19 - Expression should be of type Integer or Single.
+ERROR in line 146 at 34:22 - Expression should be of type Integer or Single.
+ERROR in line 148 at 35:27 - Expression should be of type Integer or Single.
+ERROR in line 150 - Parameter value (-1) is out of range 0..8.
+ERROR in line 151 - Parameter value (9) is out of range 0..8.
+ERROR in line 154 at 38:12 - Expression should be of type Integer or Single.
+ERROR in line 156 at 39:15 - Expression should be of type Integer or Single.
+ERROR in line 158 at 40:20 - Expression should be of type Integer or Single.
+ERROR in line 180 at 41:13 - Expression should be of type Integer or Single.
+ERROR in line 182 at 42:17 - Expression should be of type Integer or Single.
+ERROR in line 184 at 43:23 - Expression should be of type Integer or Single.
+ERROR in line 186 - Parameter value (-1) is out of range 0..8.
+ERROR in line 187 - Parameter value (9) is out of range 0..8.
+Validation ERRORS: 45
