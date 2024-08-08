@@ -96,6 +96,19 @@
 196 CIRCLE (200,100
 197 CIRCLE (200,100)
 198 CIRCLE (200,100),
+200 PAINT (200,100)
+201 PAINT @(200,100)
+202 PAINT STEP ( 200 , 100 )
+203 PAINT (200,100), 1
+204 PAINT (200,100), 1, 2
+210 PAINT
+211 PAINT @
+212 PAINT A
+213 PAINT STEP
+214 PAINT (
+215 PAINT (200
+216 PAINT (200,
+217 PAINT (200,100
 ----------------------------------------------------------------------
 ERROR at 3:8 line 14 - Unexpected text at the end of the statement.
 14 CLS 0
@@ -283,4 +296,28 @@ ERROR at 95:21 line 197 - Comma expected.
 ERROR at 96:22 line 198 - Expression should not be empty.
 198 CIRCLE (200,100),
                      ^
-Parsing ERRORS: 62
+ERROR at 102:10 line 210 - Open bracket expected.
+210 PAINT
+         ^
+ERROR at 103:12 line 211 - Open bracket expected.
+211 PAINT @
+           ^
+ERROR at 104:11 line 212 - Open bracket expected.
+212 PAINT A
+          ^
+ERROR at 105:15 line 213 - Open bracket expected.
+213 PAINT STEP
+              ^
+ERROR at 106:12 line 214 - Expression should not be empty.
+214 PAINT (
+           ^
+ERROR at 107:15 line 215 - Comma expected.
+215 PAINT (200
+              ^
+ERROR at 108:16 line 216 - Expression should not be empty.
+216 PAINT (200,
+               ^
+ERROR at 109:19 line 217 - Close bracket expected.
+217 PAINT (200,100
+                  ^
+Parsing ERRORS: 70

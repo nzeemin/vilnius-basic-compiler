@@ -717,7 +717,48 @@ void Validator::ValidateCircle(StatementModel& statement)
 
 void Validator::ValidatePaint(StatementModel& statement)
 {
-    //TODO
+    if (statement.args.size() < 2 || statement.args.size() > 4)
+        MODEL_ERROR("Two to four parameters expected.");
+
+    ExpressionModel& expr1 = statement.args[0];  // ARG1 = X
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    ExpressionModel& expr2 = statement.args[1];  // ARG2 = Y
+    if (!CheckIntegerOrSingleExpression(expr2))
+        return;
+
+    if (statement.args.size() > 2)  // ARG3 = color number
+    {
+        ExpressionModel& expr3 = statement.args[2];
+        if (!expr3.IsEmpty())
+        {
+            if (!CheckIntegerOrSingleExpression(expr3))
+                return;
+            if (expr3.IsConstExpression())
+            {
+                int ivalue = (int)expr3.GetConstExpressionDValue();
+                if (ivalue < 0 || ivalue > 8)
+                    MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 0..8.");
+            }
+        }
+    }
+
+    if (statement.args.size() > 3)  // ARG4 = border color number
+    {
+        ExpressionModel& expr4 = statement.args[3];
+        if (!expr4.IsEmpty())
+        {
+            if (!CheckIntegerOrSingleExpression(expr4))
+                return;
+            if (expr4.IsConstExpression())
+            {
+                int ivalue = (int)expr4.GetConstExpressionDValue();
+                if (ivalue < 0 || ivalue > 8)
+                    MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 0..8.");
+            }
+        }
+    }
 }
 
 void Validator::ValidateLet(StatementModel& statement)

@@ -1646,9 +1646,10 @@ void Parser::ParsePaint(StatementModel& statement)
         statement.relative = true;
     }
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsOpenBracket())
         MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+    GetNextToken();  // open bracket
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr1 = ParseExpression();
@@ -1664,9 +1665,10 @@ void Parser::ParsePaint(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr2);
     statement.args.push_back(expr2);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsCloseBracket())
         MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+    GetNextToken();  // close bracket
 
     token = PeekNextTokenSkipDivider();
     if (token.IsComma())
