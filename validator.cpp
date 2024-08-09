@@ -1300,7 +1300,7 @@ void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, c
             EXPR_ERROR("Bad result of power operation in const expression.");
 
         // Allow Integer result if operands are Integer and the result is in the range
-        if (nodeleft.vtype == ValueTypeInteger == ValueTypeInteger && noderight.vtype == ValueTypeInteger &&
+        if (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeInteger &&
             node.node.dvalue >= -32768 && node.node.dvalue <= 32767)
             node.vtype = ValueTypeInteger;
     }
@@ -1512,7 +1512,7 @@ void Validator::ValidateOperEqv(ExpressionModel& expr, ExpressionNode& node, con
         int ivalueleft = (int)nodeleft.node.dvalue;
         int ivalueright = (int)noderight.node.dvalue;
         node.node.dvalue =
-            ((ivalueleft != 0) && (ivalueright != 0) || (ivalueleft == 0) && (ivalueright == 0)) ? -1 : 0;
+            (((ivalueleft != 0) && (ivalueright != 0)) || ((ivalueleft == 0) && (ivalueright == 0))) ? -1 : 0;
     }
 }
 

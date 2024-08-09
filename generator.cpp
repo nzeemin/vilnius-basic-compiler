@@ -710,17 +710,17 @@ void Generator::GenerateOn(StatementModel& statement)
 void Generator::GenerateLocate(StatementModel& statement)
 {
     assert(statement.args.size() > 0);
-    const ExpressionModel& expr1 = statement.args[0];  // column, could be empty
+    //const ExpressionModel& expr1 = statement.args[0];  // column, could be empty
 
     if (statement.args.size() > 1)
     {
-        const ExpressionModel& expr2 = statement.args[1];  // row, could be empty
+        //const ExpressionModel& expr2 = statement.args[1];  // row, could be empty
         //TODO
     }
 
     if (statement.args.size() > 2)
     {
-        const ExpressionModel& expr3 = statement.args[2];  // on/off, could be empty
+        //const ExpressionModel& expr3 = statement.args[2];  // on/off, could be empty
         //TODO
     }
 
@@ -1249,7 +1249,7 @@ void Generator::GenerateFuncInp(const ExpressionModel& expr, const ExpressionNod
     m_final->AddLine("\tMOV\t(R0), R1\t; INP value");
 
     const ExpressionModel& expr2 = node.args[1];
-    GenerateExpression(expr1);
+    GenerateExpression(expr2);
     //TODO: For Single expression, convert to Integer
     //TODO: Invert the mask
 
