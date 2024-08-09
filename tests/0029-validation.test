@@ -57,6 +57,10 @@
 210 PAINT (200,100), , -1
 212 PAINT (200,100), , 9
 214 PAINT (200,100), , A$
+220 DRAW 1%
+222 DRAW 1
+224 DRAW A%
+226 DRAW A
 ----------------------------------------------------------------------
 ERROR in line 10 at 1:10 - Expression should be of type Integer or Single.
 ERROR in line 50 at 2:10 - Expression should be of type Integer or Single.
@@ -115,4 +119,8 @@ ERROR in line 208 at 54:22 - Expression should be of type Integer or Single.
 ERROR in line 210 - Parameter value (-1) is out of range 0..8.
 ERROR in line 212 - Parameter value (9) is out of range 0..8.
 ERROR in line 214 at 57:24 - Expression should be of type Integer or Single.
-Validation ERRORS: 57
+ERROR in line 220 at 58:10 - Expression should be of type String.
+ERROR in line 222 at 59:10 - Expression should be of type String.
+ERROR in line 224 at 60:10 - Expression should be of type String.
+ERROR in line 226 at 61:10 - Expression should be of type String.
+Validation ERRORS: 61

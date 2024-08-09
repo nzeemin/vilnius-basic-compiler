@@ -282,8 +282,6 @@ void Parser::ParseStatement(StatementModel& statement)
         return;
     }
 
-    GetNextToken();  // get after peek
-
     if (token.type != TokenTypeKeyword)
     {
         Error(token, "Statement keyword expected.");
@@ -294,6 +292,8 @@ void Parser::ParseStatement(StatementModel& statement)
         Error(token, "Statement keyword expected, function keyword found.");
         return;
     }
+
+    GetNextToken();  // get after peek
 
     statement.token = token;
 
@@ -649,8 +649,9 @@ VariableExpressionModel Parser::ParseVariableExpression()
     if (!token.IsOpenBracket())  // end of definition
         return var;
 
-    // Parse array indices
     GetNextToken();  // Open bracket
+
+    // Parse array indices
     while (true)
     {
         token = PeekNextTokenSkipDivider();
@@ -664,14 +665,18 @@ VariableExpressionModel Parser::ParseVariableExpression()
         }
         var.args.push_back(expr1);
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (token.IsCloseBracket())
+        {
+            GetNextToken();  // close bracket
             break;
+        }
         if (!token.IsComma())
         {
             Error(token, MSG_COMMA_EXPECTED);
             return var;
         }
+        GetNextToken();  // comma
     }
 
     return var;
@@ -874,9 +879,10 @@ void Parser::ParseFor(StatementModel& statement)
 
 void Parser::ParseGotoGosub(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
         MODEL_ERROR("Line number expected.");
+    token = GetNextToken();  // line number
     statement.paramline = atoi(token.text.c_str());
 
     token = PeekNextTokenSkipDivider();
@@ -893,18 +899,24 @@ void Parser::ParseIf(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr);
     statement.args.push_back(expr);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || (token.keyword != KeywordTHEN && token.keyword != KeywordGOTO))
         MODEL_ERROR("Keyword THEN or GOTO expected.");
+    GetNextToken();  // THEN or GOTO
     bool isthen = (token.keyword == KeywordTHEN);
 
     token = PeekNextTokenSkipDivider();
-    if (token.type == TokenTypeNumber)
+    if (token.type == TokenTypeNumber)  // "THEN <lineno>" or "GOTO <lineno>"
     {
-        GetNextToken();  // Number
+        GetNextToken();  // line number
         if (!token.IsDValueInteger())
             MODEL_ERROR("Line number must be an Integer.");
         statement.params.push_back(token);
+    }
+    else if (!isthen)  // GOTO without line number
+    {
+        MODEL_ERROR("Line number expected after GOTO.");
+        return;
     }
     else if (isthen)  // Statement under THEN
     {
@@ -919,6 +931,7 @@ void Parser::ParseIf(StatementModel& statement)
     token = PeekNextTokenSkipDivider();
     if (token.IsEolOrEof())
         return;
+
     if (token.type != TokenTypeKeyword || token.keyword != KeywordELSE)
         MODEL_ERROR(MSG_UNEXPECTED);
     GetNextToken();  // ELSE
@@ -1049,9 +1062,10 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, StatementModel& statement)
     {
         GetNextToken();  // MID$
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (!token.IsOpenBracket())
             MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+        GetNextToken();  // open bracket
 
         VariableExpressionModel var = ParseVariableExpression();
         CHECK_MODEL_ERROR;
@@ -1063,21 +1077,24 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, StatementModel& statement)
         ExpressionModel expr1 = ParseExpression();
         //TODO: Save to model
 
-        SKIP_COMMA;
+        SKIP_COMMA;  //TODO: Third argument is optional
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (token.type != TokenTypeNumber || !token.IsDValueInteger())
             MODEL_ERROR("Integer argument expected.");
         statement.params.push_back(token);
+        GetNextToken();  // integer
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (!token.IsCloseBracket())
             MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+        GetNextToken();  // close bracket
     }
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsEqualSign())
         MODEL_ERROR("Equal sign (\'=\') expected.");
+    GetNextToken();  // equal sign
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr = ParseExpression();
