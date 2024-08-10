@@ -354,6 +354,8 @@ ValueType ExpressionModel::GetExpressionValueType() const
         return ValueTypeNone;
 
     const ExpressionNode& noderoot = nodes[root];
+    if (noderoot.vtype != ValueTypeNone)
+        return noderoot.vtype;
     return noderoot.node.vtype;
 }
 

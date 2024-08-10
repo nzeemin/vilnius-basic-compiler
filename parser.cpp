@@ -417,7 +417,7 @@ ExpressionModel Parser::ParseExpression()
 
             prev = expression.AddOperationNode(node, prev);
         }
-        else  // Current note should be non-operation
+        else  // Current node should be non-operation
         {
             if (token.IsEndOfExpression())
             {
@@ -425,15 +425,15 @@ ExpressionModel Parser::ParseExpression()
                 return expression;
             }
 
-            //TODO: Check if we have unary plus/minus sign
+            token = GetNextToken();  // get the token we peeked
+
+            //TODO: Process unary plus/minus/NOT here
 
             if (token.IsBinaryOperation())
             {
                 Error(token, "Binary operation is not expected here.");
                 return expression;
             }
-
-            token = GetNextToken();  // get the token we peeked
 
             int index = -1;  // Index of the new node/sub-tree
             if (token.IsOpenBracket())  // Do recursion for expression inside brackets
@@ -525,13 +525,43 @@ ExpressionModel Parser::ParseExpression()
                 index = (int)expression.nodes.size();
                 expression.nodes.push_back(node);
             }
+            else if (token.type == TokenTypeNumber)
+            {
+                if (prev >= 0)
+                {
+                    ExpressionNode& nodeprev = expression.nodes[prev];
+                    if (nodeprev.node.type == TokenTypeOperation &&
+                        (nodeprev.node.text == "+" || nodeprev.node.text == "-"))
+                    {
+                        // Special case: we have unary plus/minus sign before the number
+                        // so in this case we just replace the unary operation in the tree with the number
+                        if (nodeprev.node.text == "-")
+                            token.dvalue = -token.dvalue;
+                        nodeprev.node = token;
+                        nodeprev.vtype = token.vtype;
+                        nodeprev.constval = true;
+
+                        isop = !isop;
+                        continue;
+                    }
+                }
+
+                // Put the token into the list
+                ExpressionNode node;
+                node.node = token;
+                node.vtype = token.vtype;
+                node.constval = true;
+
+                index = (int)expression.nodes.size();
+                expression.nodes.push_back(node);
+            }
             else  // Other token like Ident, Number, String
             {
                 // Put the token into the list
                 ExpressionNode node;
                 node.node = token;
                 node.vtype = token.vtype;
-                node.constval = (token.type == TokenTypeNumber || token.type == TokenTypeString);
+                node.constval = (token.type == TokenTypeString);
 
                 index = (int)expression.nodes.size();
                 expression.nodes.push_back(node);

@@ -67,10 +67,10 @@ ERROR in line 50 at 2:10 - Expression should be of type Integer or Single.
 ERROR in line 51 at 3:10 - Expression should be of type Integer or Single.
 ERROR in line 52 at 4:12 - Expression should be of type Integer or Single.
 ERROR in line 53 at 5:12 - Expression should be of type Integer or Single.
-ERROR in line 54 - Parameter value (-1) is out of range 1..8.
-ERROR in line 55 - Parameter value (9) is out of range 1..8.
-ERROR in line 56 - Parameter value (-1) is out of range 1..8.
-ERROR in line 57 - Parameter value (9) is out of range 1..8.
+ERROR in line 54 - Parameter value (-1) is out of range 0..8.
+ERROR in line 55 - Parameter value (9) is out of range 0..8.
+ERROR in line 56 - Parameter value (-1) is out of range 0..8.
+ERROR in line 57 - Parameter value (9) is out of range 0..8.
 ERROR in line 66 at 10:11 - Expression should be of type Integer or Single.
 ERROR in line 67 at 11:11 - Expression should be of type Integer or Single.
 ERROR in line 68 - Parameter value (-1) is out of range 0..255.

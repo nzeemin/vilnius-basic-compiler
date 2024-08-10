@@ -416,8 +416,8 @@ void Validator::ValidateColor(StatementModel& statement)
         if (expr1.IsConstExpression())
         {
             int ivalue = (int)expr1.GetConstExpressionDValue();
-            if (ivalue < 1 || ivalue > 8)
-                MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 1..8.");
+            if (ivalue < 0 || ivalue > 8)
+                MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 0..8.");
         }
     }
     if (statement.args.size() > 1)
@@ -428,8 +428,8 @@ void Validator::ValidateColor(StatementModel& statement)
         if (expr2.IsConstExpression())
         {
             int ivalue = (int)expr2.GetConstExpressionDValue();
-            if (ivalue < 1 || ivalue > 8)
-                MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 1..8.");
+            if (ivalue < 0 || ivalue > 8)
+                MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 0..8.");
         }
     }
 
@@ -439,10 +439,16 @@ void Validator::ValidateColor(StatementModel& statement)
         ExpressionModel& expr3 = statement.args[2];
         if (!expr3.IsEmpty() && !CheckIntegerOrSingleExpression(expr3))
             return;
+        if (expr3.IsConstExpression())
+        {
+            int ivalue = (int)expr3.GetConstExpressionDValue();
+            if (ivalue < 0 || ivalue > 8)
+                MODEL_ERROR("Parameter value (" + std::to_string(ivalue) + ") is out of range 0..8.");
+        }
     }
 
     if (statement.args.size() > 3)
-        MODEL_ERROR("Too many expressions.");
+        MODEL_ERROR("Too many parameters.");
 }
 
 void Validator::ValidateDim(StatementModel& statement)
@@ -1291,8 +1297,8 @@ void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, c
         EXPR_ERROR("Operation \'^\' not applicable to strings.");
 
     node.vtype = ValueTypeSingle;
-
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         node.node.dvalue = pow(nodeleft.node.dvalue, noderight.node.dvalue);
@@ -1313,6 +1319,7 @@ void Validator::ValidateOperEqual(ExpressionModel& expr, ExpressionNode& node, c
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
@@ -1334,6 +1341,7 @@ void Validator::ValidateOperNotEqual(ExpressionModel& expr, ExpressionNode& node
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
@@ -1355,6 +1363,7 @@ void Validator::ValidateOperLess(ExpressionModel& expr, ExpressionNode& node, co
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
@@ -1376,6 +1385,7 @@ void Validator::ValidateOperLessOrEqual(ExpressionModel& expr, ExpressionNode& n
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
@@ -1397,6 +1407,7 @@ void Validator::ValidateOperGreater(ExpressionModel& expr, ExpressionNode& node,
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
@@ -1418,6 +1429,7 @@ void Validator::ValidateOperGreaterOrEqual(ExpressionModel& expr, ExpressionNode
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
@@ -1441,6 +1453,7 @@ void Validator::ValidateUnaryNot(ExpressionModel& expr, ExpressionNode& node, co
 
     node.vtype = ValueTypeInteger;
     node.constval = noderight.constval;
+
     if (node.constval)
     {
         node.node.dvalue = noderight.node.dvalue == 0 ? -1 : 0;
@@ -1456,6 +1469,7 @@ void Validator::ValidateOperAnd(ExpressionModel& expr, ExpressionNode& node, con
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         int ivalueleft = (int)nodeleft.node.dvalue;
@@ -1473,6 +1487,7 @@ void Validator::ValidateOperOr(ExpressionModel& expr, ExpressionNode& node, cons
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         int ivalueleft = (int)nodeleft.node.dvalue;
@@ -1490,6 +1505,7 @@ void Validator::ValidateOperXor(ExpressionModel& expr, ExpressionNode& node, con
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         int ivalueleft = (int)nodeleft.node.dvalue;
@@ -1525,6 +1541,7 @@ void Validator::ValidateOperImp(ExpressionModel& expr, ExpressionNode& node, con
 
     node.vtype = ValueTypeInteger;
     node.constval = (nodeleft.constval && noderight.constval);
+
     if (node.constval)
     {
         int ivalueleft = (int)nodeleft.node.dvalue;
@@ -1546,11 +1563,10 @@ void Validator::ValidateFuncSin(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeSingle;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = sin(expr1.GetConstExpressionDValue());
     }
 }
@@ -1565,11 +1581,10 @@ void Validator::ValidateFuncCos(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeSingle;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = cos(expr1.GetConstExpressionDValue());
     }
 }
@@ -1584,11 +1599,10 @@ void Validator::ValidateFuncTan(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeSingle;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = tan(expr1.GetConstExpressionDValue());
     }
 }
@@ -1603,11 +1617,10 @@ void Validator::ValidateFuncAtn(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeSingle;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = atan(expr1.GetConstExpressionDValue());
     }
 }
@@ -1632,11 +1645,10 @@ void Validator::ValidateFuncExp(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeSingle;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = exp(expr1.GetConstExpressionDValue());
     }
 }
@@ -1651,11 +1663,10 @@ void Validator::ValidateFuncLog(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeSingle;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = log(expr1.GetConstExpressionDValue());
     }
 }
@@ -1669,13 +1680,11 @@ void Validator::ValidateFuncAbs(ExpressionModel& expr, ExpressionNode& node)
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
-    ValueType vtype = expr1.GetExpressionValueType();
-    node.vtype = vtype;
-    node.constval = false;
+    node.vtype = expr1.GetExpressionValueType();
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = std::abs(expr1.GetConstExpressionDValue());
     }
 }
@@ -1690,11 +1699,10 @@ void Validator::ValidateFuncCintFix(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeInteger;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = (int)(expr1.GetConstExpressionDValue());
         //TODO: check for range -32768..32767
     }
@@ -1710,11 +1718,10 @@ void Validator::ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeInteger;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = std::floor(expr1.GetConstExpressionDValue());
     }
 }
@@ -1729,11 +1736,10 @@ void Validator::ValidateFuncSgn(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeInteger;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         double dvalue = expr1.GetConstExpressionDValue();
         if (dvalue == 0)
             node.node.dvalue = 0;
@@ -1778,11 +1784,10 @@ void Validator::ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeSingle;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = expr1.GetConstExpressionDValue();
     }
 }
@@ -1827,12 +1832,10 @@ void Validator::ValidateFuncAsc(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeInteger;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
-
         string svalue = expr1.GetConstExpressionSValue();
         if (svalue.empty())
             EXPR_ERROR("Function ASC parameter is empty.");
@@ -1850,11 +1853,10 @@ void Validator::ValidateFuncChr(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeString;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         int ivalue = (int)expr1.GetConstExpressionDValue();
         if (ivalue < 0 || ivalue > 255)
             EXPR_ERROR("Function CHR$ parameter is out of range 0..255.");
@@ -1876,11 +1878,10 @@ void Validator::ValidateFuncLen(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeInteger;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
         node.node.dvalue = expr1.GetConstExpressionSValue().length();
     }
 }
@@ -1951,12 +1952,10 @@ void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
     //NOTE: Integer/Single OR String expression
 
     node.vtype = ValueTypeString;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression() && expr2.IsConstExpression();
 
-    if (expr1.IsConstExpression() && expr2.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
-
         int ivalue1 = (int)expr1.GetConstExpressionDValue();
         if (ivalue1 < 0 || ivalue1 > 255)
             EXPR_ERROR("Function STRING$ first parameter is not in range 0..255.");
@@ -1995,12 +1994,10 @@ void Validator::ValidateFuncVal(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeString;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
-
         //TODO
     }
 }
@@ -2024,12 +2021,10 @@ void Validator::ValidateFuncStr(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeString;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
-
         if (expr.GetExpressionValueType() == ValueTypeInteger)
         {
             int ivalue = (int)expr1.GetConstExpressionDValue();
@@ -2062,12 +2057,10 @@ void Validator::ValidateFuncBin(ExpressionModel& expr, ExpressionNode& node)
         ivalue = 65536 + ivalue;  // 0..65535
 
     node.vtype = ValueTypeString;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
-
         std::stringstream ss;
         std::bitset<16> bits(ivalue);
         ss << bits;
@@ -2093,12 +2086,10 @@ void Validator::ValidateFuncOct(ExpressionModel& expr, ExpressionNode& node)
         ivalue = 65536 + ivalue;  // 0..65535
 
     node.vtype = ValueTypeString;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
-
         std::stringstream ss;
         ss << std::oct << ivalue;
         node.node.svalue = ss.str();
@@ -2120,12 +2111,10 @@ void Validator::ValidateFuncHex(ExpressionModel& expr, ExpressionNode& node)
         ivalue = 65536 + ivalue;  // 0..65535
 
     node.vtype = ValueTypeString;
-    node.constval = false;
+    node.constval = expr1.IsConstExpression();
 
-    if (expr1.IsConstExpression())
+    if (node.constval)
     {
-        node.constval = true;
-
         std::stringstream ss;
         ss << std::hex << ivalue;
         string svalue = ss.str();
