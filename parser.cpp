@@ -253,9 +253,8 @@ void Parser::ParseStatement(StatementModel& statement)
         statement.token = tokenprint;
 
         ParsePrint(statement);
-        if (m_line->error)
-            SkipTilEnd();
-        return;
+
+        goto skiptilend;
     }
     if (token.type == TokenTypeIdentifier)  // LET without the keyword
     {
@@ -265,9 +264,8 @@ void Parser::ParseStatement(StatementModel& statement)
         statement.token = tokenlet;
 
         ParseLetShort(token, statement);
-        if (m_line->error)
-            SkipTilEnd();
-        return;
+
+        goto skiptilend;
     }
     if (token.IsKeyword(KeywordMID))
     {
@@ -277,9 +275,8 @@ void Parser::ParseStatement(StatementModel& statement)
         statement.token = tokenlet;
 
         ParseLetShort(token, statement);
-        if (m_line->error)
-            SkipTilEnd();
-        return;
+
+        goto skiptilend;
     }
 
     if (token.type != TokenTypeKeyword)
@@ -293,31 +290,39 @@ void Parser::ParseStatement(StatementModel& statement)
         return;
     }
 
-    GetNextToken();  // get after peek
+    GetNextToken();  // keyword
 
     statement.token = token;
 
-    // Find keyword parser implementation
-    ParseMethodRef methodref = nullptr;
-    for (auto it = std::begin(m_keywordspecs); it != std::end(m_keywordspecs); ++it)
     {
-        if (token.keyword == it->keyword)
+        // Find keyword parser implementation
+        ParseMethodRef methodref = nullptr;
+        for (auto it = std::begin(m_keywordspecs); it != std::end(m_keywordspecs); ++it)
         {
-            methodref = it->methodref;
-            break;
+            if (token.keyword == it->keyword)
+            {
+                methodref = it->methodref;
+                break;
+            }
         }
-    }
-    if (methodref == nullptr)
-    {
-        Error(token, "Parser not found for keyword " + token.text + ".");
-        SkipTilEnd();
-        return;
+        if (methodref == nullptr)
+        {
+            Error(token, "Parser not found for keyword " + token.text + ".");
+            SkipTilEnd();
+            return;
+        }
+
+        (this->*methodref)(statement);
     }
 
-    (this->*methodref)(statement);
-
+skiptilend:
     if (m_line->error)
-        SkipTilEnd();
+    {
+        if (statement.inner)
+            SkipTilStatementEnd();
+        else
+            SkipTilEnd();
+    }
 }
 
 void Parser::Error(const Token& token, const string& message)
@@ -601,9 +606,9 @@ VariableModel Parser::ParseVariable()
     token = PeekNextTokenSkipDivider();
     if (!token.IsOpenBracket())  // end of definition
         return var;
+    GetNextToken();  // Open bracket
 
     // Parse array indices
-    GetNextToken();  // Open bracket
     while (true)
     {
         token = GetNextTokenSkipDivider();
@@ -690,6 +695,10 @@ VariableExpressionModel Parser::ParseVariableExpression()
     { if (expr.IsEmpty()) { Error(token, MSG_EXPRESSION_SHOULDNOT_BE_EMPTY); return; } }
 #define SKIP_COMMA \
     { SkipComma(); if (m_line->error) return; }
+#define SKIP_OPEN_BRACKET \
+    { token = PeekNextTokenSkipDivider(); \
+      if (!token.IsOpenBracket()) { Error(token, MSG_OPEN_BRACKET_EXPECTED); return; } \
+      GetNextToken(); }
 
 void Parser::ParseIgnoredStatement(StatementModel& statement)
 {
@@ -833,15 +842,17 @@ void Parser::ParseDraw(StatementModel& statement)
 
 void Parser::ParseFor(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeIdentifier)
         MODEL_ERROR("Identifier expected.");
+    GetNextToken();  // identifier
 
     statement.ident = token;
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsEqualSign())
         MODEL_ERROR("Equal sign (\'=\') expected.");
+    GetNextToken();  // equal sign
 
     token = PeekNextToken();
     ExpressionModel expr1 = ParseExpression();
@@ -849,9 +860,10 @@ void Parser::ParseFor(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr1);
     statement.args.push_back(expr1);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || token.keyword != KeywordTO)
         MODEL_ERROR("TO keyword expected.");
+    GetNextToken();  // TO keyword
 
     token = PeekNextToken();
     ExpressionModel expr2 = ParseExpression();
@@ -918,11 +930,14 @@ void Parser::ParseIf(StatementModel& statement)
         MODEL_ERROR("Line number expected after GOTO.");
         return;
     }
-    else if (isthen)  // Statement under THEN
+    else if (isthen)  // statement under THEN
     {
         assert(statement.stthen == nullptr);
         statement.stthen = new StatementModel();
+        statement.stthen->inner = true;
         ParseStatement(*statement.stthen);
+        if (m_line->error)  // if error during the inner statement parsing
+            return;
 
         Token token0;
         statement.params.push_back(token0);  // stub for THEN line number
@@ -944,10 +959,11 @@ void Parser::ParseIf(StatementModel& statement)
             MODEL_ERROR("Line number must be an Integer.");
         statement.params.push_back(token);
     }
-    else
+    else  // statement under ELSE
     {
         assert(statement.stelse == nullptr);
         statement.stelse = new StatementModel();
+        statement.stelse->inner = true;
         ParseStatement(*statement.stelse);
     }
 
@@ -1062,10 +1078,7 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, StatementModel& statement)
     {
         GetNextToken();  // MID$
 
-        token = PeekNextTokenSkipDivider();
-        if (!token.IsOpenBracket())
-            MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
-        GetNextToken();  // open bracket
+        SKIP_OPEN_BRACKET;
 
         VariableExpressionModel var = ParseVariableExpression();
         CHECK_MODEL_ERROR;
@@ -1274,9 +1287,10 @@ void Parser::ParsePrint(StatementModel& statement)
             CHECK_MODEL_ERROR;
             CHECK_EXPRESSION_NOT_EMPTY(expr2);
 
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (!token.IsCloseBracket())
                 MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+            GetNextToken();  // close bracket
 
             node0.args.push_back(expr1);
             node0.args.push_back(expr2);
@@ -1502,10 +1516,7 @@ void Parser::ParseLine(StatementModel& statement)
         //model.relative = true;//TODO
     }
 
-    token = PeekNextTokenSkipDivider();
-    if (!token.IsOpenBracket())
-        MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
-    GetNextToken();  // open bracket
+    SKIP_OPEN_BRACKET;
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr3 = ParseExpression();
@@ -1569,10 +1580,7 @@ void Parser::ParseCircle(StatementModel& statement)
         statement.relative = true;
     }
 
-    token = PeekNextTokenSkipDivider();
-    if (!token.IsOpenBracket())
-        MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
-    GetNextToken();  // open bracket
+    SKIP_OPEN_BRACKET;
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr1 = ParseExpression();
@@ -1663,10 +1671,7 @@ void Parser::ParsePaint(StatementModel& statement)
         statement.relative = true;
     }
 
-    token = PeekNextTokenSkipDivider();
-    if (!token.IsOpenBracket())
-        MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
-    GetNextToken();  // open bracket
+    SKIP_OPEN_BRACKET;
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr1 = ParseExpression();

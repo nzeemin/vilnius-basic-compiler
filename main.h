@@ -198,6 +198,7 @@ struct StatementModel
     Token	token;      // Token for the statement keyword
     Token	ident;	    // LET identifier at left, FOR variable
     int		paramline;	// Line number parameter for GOTO, GOSUB, RESTORE
+    bool    inner;      // Is it inner statement under THEN or ELSE
     bool    relative;   // PSET, PRESET, LINE, CIRCLE, PAINT with '@' sign
     bool    fileoper;   // File operation, for INPUT
     bool    gotogosub;  // true for ON GOTO, false for ON GOSUB
@@ -212,7 +213,7 @@ struct StatementModel
     StatementModel* stelse;
 public:
     StatementModel() :
-        paramline(0), relative(false), fileoper(false), gotogosub(false), deffnorusr(false), nocrlf(false),
+        paramline(0), inner(false), relative(false), fileoper(false), gotogosub(false), deffnorusr(false), nocrlf(false),
         filemode(FileModeAny), stthen(nullptr), stelse(nullptr) { }
 };
 
