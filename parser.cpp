@@ -44,6 +44,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordCIRCLE,    &Parser::ParseCircle },
     { KeywordPAINT,     &Parser::ParsePaint },
     { KeywordPRINT,     &Parser::ParsePrint },
+    { KeywordLPRINT,    &Parser::ParsePrint },
     { KeywordREAD,      &Parser::ParseRead },
     { KeywordREM,       &Parser::ParseRem },
     { KeywordRESTORE,   &Parser::ParseRestore },
@@ -611,7 +612,7 @@ VariableModel Parser::ParseVariable()
     // Parse array indices
     while (true)
     {
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (token.type != TokenTypeNumber)
         {
             Error(token, "Array index expected.");
@@ -622,17 +623,21 @@ VariableModel Parser::ParseVariable()
             Error(token, "Array index should be an integer.");
             return var;
         }
-        //TODO: Check for limits
+        GetNextToken();  // array index
         var.indices.push_back((int)token.dvalue);
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (token.IsCloseBracket())
+        {
+            GetNextToken();  // close bracket
             break;
+        }
         if (!token.IsComma())
         {
             Error(token, MSG_COMMA_EXPECTED);
             return var;
         }
+        GetNextToken();  // comma
     }
 
     return var;
@@ -716,7 +721,7 @@ void Parser::ParseClear(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
-        MODEL_ERROR("Argument expected.");
+        return;
 
     ExpressionModel expr1 = ParseExpression();
     CHECK_MODEL_ERROR;
@@ -1249,7 +1254,7 @@ void Parser::ParseOut(StatementModel& statement)
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
-//TODO: LPRINT
+// PRINT and LPRINT
 void Parser::ParsePrint(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
@@ -1819,18 +1824,18 @@ void Parser::ParseDefUsr(StatementModel& statement)
     statement.deffnorusr = false;
 
     int usrnumber = 0;
-    Token token = GetNextToken();
+    Token token = PeekNextToken();
     if (token.type == TokenTypeNumber)
     {
+        GetNextToken();  // number
         usrnumber = atoi(token.text.c_str());
     }
-    else if (token.type != TokenTypeDivider)
-        MODEL_ERROR(MSG_UNEXPECTED);
     statement.paramline = usrnumber;
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsEqualSign())
         MODEL_ERROR("Equal sign expected.");
+    GetNextToken();  // equal sign
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr = ParseExpression();
