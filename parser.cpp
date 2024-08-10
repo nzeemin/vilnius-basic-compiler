@@ -1160,26 +1160,25 @@ void Parser::ParseLocate(StatementModel& statement)
 
 void Parser::ParseNext(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
         return;
 
     while (true)
     {
+        token = PeekNextTokenSkipDivider();
         if (token.type != TokenTypeIdentifier)
             MODEL_ERROR("Identifier expected.");
+        GetNextToken();  // identifier
 
         statement.params.push_back(token);
 
         token = PeekNextTokenSkipDivider();
         if (token.IsEndOfStatement())
             break;
-        GetNextToken();
-
         if (!token.IsComma())
             MODEL_ERROR("Comma or end of statement expected.");
-
-        token = GetNextTokenSkipDivider();
+        GetNextToken();  // comma
     }
 }
 
@@ -1194,9 +1193,10 @@ void Parser::ParseOn(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr);
     statement.args.push_back(expr);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeKeyword || (token.keyword != KeywordGOTO && token.keyword != KeywordGOSUB))
         MODEL_ERROR("GOTO or GOSUB expected.");
+    GetNextToken();  // GOTO or GOSUB
     statement.gotogosub = (token.keyword == KeywordGOTO);
 
     // Loop for line numbers, comma separated
@@ -1205,16 +1205,15 @@ void Parser::ParseOn(StatementModel& statement)
         token = PeekNextTokenSkipDivider();
         if (token.type != TokenTypeNumber)
             MODEL_ERROR("Line number expected.");
-        token = GetNextToken();
+        token = GetNextToken();  // line number
         statement.params.push_back(token);
 
         token = PeekNextTokenSkipDivider();
         if (token.IsEndOfStatement())
             break;
-        GetNextToken();
-
         if (!token.IsComma())
             MODEL_ERROR(MSG_UNEXPECTED);
+        GetNextToken();  // comma
     }
 }
 
