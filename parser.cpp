@@ -497,7 +497,7 @@ ExpressionModel Parser::ParseExpression()
                         token = PeekNextTokenSkipDivider();
                         if (token.IsCloseBracket())
                         {
-                            GetNextToken();
+                            GetNextToken();  // close bracket
                             break;
                         }
                         if (!token.IsComma())
@@ -511,6 +511,14 @@ ExpressionModel Parser::ParseExpression()
                 }
 
                 // Validate number of params for this function
+                if (node.args.size() == 0 && funcspec->minparams > 0)
+                {
+                    if (funcspec->minparams == 1)
+                        Error(token, "Expected parameter for this function.");
+                    else
+                        Error(token, "Expected parameters for this function.");
+                    return expression;
+                }
                 if ((int)node.args.size() < funcspec->minparams)
                 {
                     Error(token, "Specified too few parameters for this function.");
