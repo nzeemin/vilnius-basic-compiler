@@ -1,0 +1,9 @@
+-q
+----------------------------------------------------------------------
+1 STOP
+20   STOP
+30 STOP'comment
+40 STOP ' comment
+50 IF A%=1 THEN STOP
+60 IF A%=1 THEN ? ELSE STOP
+65535 STOP
