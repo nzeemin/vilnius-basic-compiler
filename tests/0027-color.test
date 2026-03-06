@@ -1,0 +1,24 @@
+-q
+----------------------------------------------------------------------
+20 COLOR 1
+22 COLOR A%
+24 COLOR 1'comment
+26 COLOR A%'comment
+40 COLOR 1,2
+42 COLOR 8,0'comment
+44 COLOR 3, 4 ' comment
+60 COLOR 1,2,3
+62 COLOR 8,8,8'comment
+64 COLOR 3,2,1 'comment
+80 COLOR ,2
+90 COLOR ,2,3
+100 COLOR 1,,3
+110 COLOR ,,4
+120 COLOR 1+1
+130 COLOR A%,B%
+140 COLOR 2*2,3+1
+150 COLOR (1+2),(3+4),(5+1)
+160 COLOR    1
+170 COLOR 1 ,2
+180 COLOR 1, 2
+190 COLOR 1 , 2 , 3
