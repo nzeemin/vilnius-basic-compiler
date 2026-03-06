@@ -570,14 +570,14 @@ void Generator::GenerateFor(StatementModel& statement)
 
 void Generator::GenerateGosub(StatementModel& statement)
 {
-    string calllinenum = "\tCALL\tL" + std::to_string(statement.paramline);
-    m_final->AddLine(calllinenum);
+    string linenum = "\tCALL\tL" + std::to_string(statement.paramline);
+    m_final->AddLine(linenum);
 }
 
 void Generator::GenerateGoto(StatementModel& statement)
 {
-    string jmplinenum = "\tJMP\tL" + std::to_string(statement.paramline);
-    m_final->AddLine(jmplinenum);
+    string linenum = "\tJMP\tL" + std::to_string(statement.paramline);
+    m_final->AddLine(linenum);
 }
 
 void Generator::GenerateIf(StatementModel& statement)
@@ -590,19 +590,52 @@ void Generator::GenerateIf(StatementModel& statement)
         int ivalue = (int)expr.GetConstExpressionDValue();
         if (ivalue != 0)  // TRUE - generate THEN only
         {
-            //TODO: Statement under THEN
-            int linenum = (int)statement.params[0].dvalue;
-            m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN");
+            if (statement.stthen == nullptr)  // THEN linenum
+            {
+                int linenum = (int)statement.params[0].dvalue;
+                m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN");
+            }
+            else  // Statement under THEN
+            {
+                StatementModel* pstthen = statement.stthen;
+                if (pstthen->token.keyword == KeywordGOTO)  // THEN GOTO linenum
+                {
+                    int linenum = (int)pstthen->paramline;
+                    m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN GOTO");
+                }
+                else
+                {
+                    //TODO
+                    m_final->AddComment("TODO statement under THEN");
+                }
+            }
         }
         else  // FALSE - generate ELSE only
         {
-            //TODO: Statement under ELSE
-            if (statement.params.size() == 1)
-                m_final->AddLine("\t\t\t; ELSE do nothing");
-            else
+            if (statement.stelse == nullptr)  // ELSE linenum
             {
-                int linenum2 = (int)statement.params[1].dvalue;
-                m_final->AddLine("\tJMP\tL" + std::to_string(linenum2) + "\t; ELSE");
+                if (statement.params.size() == 1)
+                    m_final->AddLine("\t\t\t; ELSE do nothing");
+                else
+                {
+                    int linenum2 = (int)statement.params[1].dvalue;
+                    m_final->AddLine("\tJMP\tL" + std::to_string(linenum2) + "\t; ELSE");
+                }
+                //TODO
+            }
+            else  // Statement under ELSE
+            {
+                StatementModel* pstelse = statement.stelse;
+                if (pstelse->token.keyword == KeywordGOTO)  // THEN GOTO linenum
+                {
+                    int linenum = (int)pstelse->paramline;
+                    m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; ELSE GOTO");
+                }
+                else
+                {
+                    //TODO
+                    m_final->AddComment("TODO statement under ELSE");
+                }
             }
         }
         return;

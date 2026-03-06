@@ -216,6 +216,12 @@ SourceLineModel Parser::ParseNextLine()
         SkipTilEnd();
         return model;
     }
+    if (model.number == m_prevlinenum)
+    {
+        Error(token, "Line number duplicated.");
+        SkipTilEnd();
+        return model;
+    }
     if (model.number <= m_prevlinenum)
     {
         Error(token, "Line number is incorrect.");
