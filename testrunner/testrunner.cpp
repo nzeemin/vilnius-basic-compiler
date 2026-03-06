@@ -39,10 +39,12 @@ HANDLE g_hConsole;
 
 #ifdef _MSC_VER
 const char* TESTS_SUB_DIR = "tests";
+const char* TESTS_TEMP_SUB_DIR = "tests.temp";  // Temporary folder for all the fenerated files
 const char* COMPILER_PATH = "Debug\\vibasc.exe";
 const char* PATH_SEPARATOR = "\\";
 #else
 const char* TESTS_SUB_DIR = "tests/";
+const char* TESTS_TEMP_SUB_DIR = "tests.temp";  // Temporary folder for all the fenerated files
 const char* COMPILER_PATH = "../../vibasc";
 const char* PATH_SEPARATOR = "/";
 #endif
@@ -242,7 +244,7 @@ void process_test(const string& testfilename)
     SetTextAttribute(TEXTATTRIBUTES_WARNING);
     
     // make test directory
-    string testdirpath = string(TESTS_SUB_DIR) + PATH_SEPARATOR + testname + ".tmp";
+    string testdirpath = string(TESTS_TEMP_SUB_DIR) + PATH_SEPARATOR + testname;
     mkdir(testdirpath.c_str());
 
     string basicfilename = testname + ".ASC";

@@ -19,5 +19,5 @@
 /*.ASC
 /*.MAC
 /*.OBJ
-/tests/*.tmp
+/tests.temp
 /x-*

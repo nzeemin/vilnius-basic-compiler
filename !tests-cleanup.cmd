@@ -1,4 +1,7 @@
 @echo off
-FOR /d /r %%F IN (tests\\*.tmp) DO (
-	RMDIR /S /Q %%F
+if exist tests.temp (
+  FOR /d /r %%F IN (tests.temp\\*) DO (
+    RMDIR /S /Q %%F
+  )
+  RMDIR /S /Q tests.temp
 )
