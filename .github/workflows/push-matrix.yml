@@ -32,5 +32,5 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         make
-	mkdir tests.temp
+        mkdir tests.temp
         testrunner/testrunner
