@@ -30,7 +30,7 @@ HANDLE g_hConsole;
 #define TEXTATTRIBUTES_TITLE (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY)
 #define TEXTATTRIBUTES_NORMAL (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
 #define TEXTATTRIBUTES_WARNING (FOREGROUND_RED | FOREGROUND_GREEN)
-#define TEXTATTRIBUTES_DIFF (FOREGROUND_RED | FOREGROUND_GREEN)
+#define TEXTATTRIBUTES_GOOD (FOREGROUND_GREEN)
 #define SetTextAttribute(ta) SetConsoleTextAttribute(g_hConsole, ta)
 #define mkdir(dir) _mkdir(dir)
 #else
@@ -252,6 +252,8 @@ void process_test(const string& testfilename)
     remove_file_if_exists(testdirpath, basicfilename);
     string macfilename = testname + ".MAC";
     remove_file_if_exists(testdirpath, macfilename);
+    string macetalonfilename = testname + ".MAC.etalon";
+    remove_file_if_exists(testdirpath, macetalonfilename);
     string outfilename = testname + ".out";
     remove_file_if_exists(testdirpath, outfilename);
 
@@ -277,15 +279,47 @@ void process_test(const string& testfilename)
     }
     ofs.flush();
     ofs.close();
-    // rest of the test file is expected errors
+    // next section of the test file is expected errors
     std::vector<string> errorlines;
     while (!fs.eof())
     {
         fs.getline(buffer, sizeof(buffer));
+        if (buffer[0] == '-')
+            break;
         if (*buffer != 0)
             errorlines.push_back(buffer);
     }
+    // next section is optional, it is etalon program text for MACRO
+    std::vector<string> macetalontext;
+    if (buffer[0] == '-')
+    {
+        while (!fs.eof())
+        {
+            fs.getline(buffer, sizeof(buffer));
+            if (*buffer == 0 || *buffer == ';')  // skipp all empty lines and comment lines
+                continue;
+            string line(buffer);
+            size_t commentpos = line.find(";");
+            if (commentpos != string::npos)  // remove end-of-line comment
+                line.erase(commentpos);
+            while (line.size() > 0 && (line.back() == ' ' || line.back() == '\t'))  // trim end
+                line.pop_back();
+            macetalontext.push_back(line);
+        }
+    }
     fs.close();
+
+    // save etalon .MAC file if we have one
+    if (macetalontext.size() > 0)
+    {
+        std::ofstream ofsetalon(testdirpath + PATH_SEPARATOR + macetalonfilename);
+        //TODO: check for error
+        for (const auto& line : macetalontext)
+        {
+            ofsetalon << line << std::endl;
+        }
+        ofsetalon.close();
+    }
 
     // run the compiler
     string compilerpath(COMPILER_PATH);
@@ -326,11 +360,12 @@ void process_test(const string& testfilename)
         return;
     }
 
-    if (!errorlines.empty())  // have errors, no need to check anything else
+    if (!errorlines.empty())  // have errors, so will be no .MAC file, test passed
     {
+        SetTextAttribute(TEXTATTRIBUTES_GOOD);
+        std::cout << "OK (compared output)";
         SetTextAttribute(TEXTATTRIBUTES_NORMAL);
-        std::cout << "OK" << std::endl;
-        //std::cout << "\r";
+        std::cout << std::endl;
         return;
     }
 
@@ -347,15 +382,23 @@ void process_test(const string& testfilename)
     bool machastodos = false;
     std::ifstream fsmac(testdirpath + PATH_SEPARATOR + macfilename);
     //TODO: check for error
+    std::vector<string> mactext;
     while (!fsmac.eof())
     {
         fsmac.getline(buffer, sizeof(buffer));
+        if (*buffer == 0)  // skip empty lines
+            continue;
         string line(buffer);
         if (line.find("TODO") != string::npos)
-        {
             machastodos = true;
-            break;
-        }
+        if (*buffer == ';')
+            continue;  // skip comment lines
+        size_t commentpos = line.find(";");
+        if (commentpos != string::npos)  // remove end-of-line comment
+            line.erase(commentpos);
+        while (line.size() > 0 && (line.back() == ' ' || line.back() == '\t'))  // trim end
+            line.pop_back();
+        mactext.push_back(line);
     }
     fsmac.close();
     if (machastodos)
@@ -365,9 +408,39 @@ void process_test(const string& testfilename)
         return;
     }
 
+    // compare mactext to macetalontext
+    if (macetalontext.size() > 0)
+    {
+        for (size_t linenum = 0; linenum < mactext.size(); linenum++)
+        {
+            if (linenum >= macetalontext.size())
+            {
+                std::cout << "  FAILED: .MAC file longer (" << mactext.size() << " lines) than etalon .MAC (" << macetalontext.size() << " lines)" << std::endl;
+                g_failedtests++;
+                return;
+            }
+
+            string line = mactext[linenum];
+
+            if (line != macetalontext[linenum])
+            {
+                std::cout << "  FAILED: .MAC etalon file is different on line " << linenum + 1 << std::endl;
+                g_failedtests++;
+                return;
+            }
+        }
+        if (mactext.size() < macetalontext.size())
+        {
+            std::cout << "  FAILED: .MAC file shorter (" << mactext.size() << " lines) than etalon .MAC (" << macetalontext.size() << " lines)" << std::endl;
+            g_failedtests++;
+            return;
+        }
+    }
+
+    SetTextAttribute(TEXTATTRIBUTES_GOOD);
+    std::cout << "OK";
     SetTextAttribute(TEXTATTRIBUTES_NORMAL);
-    std::cout << "OK" << std::endl;
-    //std::cout << "\r";
+    std::cout << std::endl;
 }
 
 void parse_commandline(int argc, char* argv[])
@@ -413,8 +486,11 @@ int main(int argc, char* argv[])
         process_test(testfilename);
     }
 
+    int passedtests = testfilenames.size() - g_failedtests;
+
     SetTextAttribute(TEXTATTRIBUTES_TITLE);
     std::cout << "TOTAL tests executed: " << testfilenames.size();
+    std::cout << ", passed: " << passedtests;
     if (g_failedtests > 0)
         std::cout << ", failed: " << g_failedtests;
     std::cout << std::endl;
