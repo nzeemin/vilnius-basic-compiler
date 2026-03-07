@@ -26,3 +26,10 @@
 135 PRINT "25", G%
 140 H% = G% - (E% + 2%) MOD F%
 145 PRINT "19", G%
+149 REM Test unary/binary minus
+150 A% = -1%
+155 PRINT "-1", A%
+160 A% = 10-1
+165 PRINT "9", A%
+170 A% = -10-1
+175 PRINT "-11", A%

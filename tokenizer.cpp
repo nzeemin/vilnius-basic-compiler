@@ -238,13 +238,14 @@ Token Tokenizer::GetNextToken()
         return token;
     }
 
+    // Number constant detection
     char next = PeekNextChar();
-    if ((ch >= '0' && ch <= '9') || ch == '.')  // Number
+    if ((ch >= '0' && ch <= '9') || ch == '.')
     {
         TokenizeNumber(ch, next, token);
         return token;
     }
-    if (ch == '&')	// Hex, Octal, Binary
+    if (ch == '&')	// Hex, Octal, Binary constant
     {
         if (next == 'H' || next == 'O' || next == 'B')
         {
@@ -354,7 +355,7 @@ void Tokenizer::TokenizeNumber(char ch, char ch2, Token& token)
     token.text = ch;
     token.vtype = ValueTypeSingle;  // by default
     bool hasdot = (ch == '.');
-    bool hasDorE = false;
+    bool hasDorE = false;  // has exponential part, starts with 'D' or 'E'
     while (true)
     {
         ch = PeekNextChar();

@@ -17,6 +17,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include <algorithm>
 #include <assert.h>
 
 typedef std::string string;
@@ -403,6 +404,9 @@ int main(int argc, char* argv[])
     // Collect list of test cases
     std::vector<string> testfilenames;
     findallfiles_bymask(TESTS_SUB_DIR, ".test", testfilenames);
+
+    std::sort(testfilenames.begin(), testfilenames.end());
+
     // Run all the test cases
     for (string& testfilename : testfilenames)
     {

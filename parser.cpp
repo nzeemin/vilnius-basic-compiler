@@ -395,11 +395,44 @@ ExpressionModel Parser::ParseExpression()
     {
         token = GetNextToken();  // get the token we peeked
 
-        ExpressionNode nodeun;
-        nodeun.node = token;
-        expression.nodes.push_back(nodeun);
-        expression.root = 0;
-        prev = 0;
+        if (token.type == TokenTypeOperation && (token.text == "+" || token.text == "-"))
+        {
+            Token tokenNext = PeekNextToken();
+            if (tokenNext.type == TokenTypeNumber)  // Sign '+'/'-' before the number
+            {
+                tokenNext = GetNextToken();  // get the token we peeked
+                if (token.text == "-")  // apply the negative sign
+                {
+                    tokenNext.dvalue = -tokenNext.dvalue;
+                    tokenNext.text.insert(tokenNext.text.begin(), '-');
+                }
+                // Put number node into the tree
+                ExpressionNode nodeNumber;
+                nodeNumber.node = tokenNext;
+                nodeNumber.vtype = tokenNext.vtype;
+                nodeNumber.constval = true;
+                expression.nodes.push_back(nodeNumber);
+                expression.root = 0;
+                prev = 0;
+                isop = true;  // next thing should be a binary operation
+            }
+            else  // Unary '+'/'-'
+            {
+                ExpressionNode nodeUnary;
+                nodeUnary.node = token;
+                expression.nodes.push_back(nodeUnary);
+                expression.root = 0;
+                prev = 0;
+            }
+        }
+        else
+        {
+            ExpressionNode nodeun;
+            nodeun.node = token;
+            expression.nodes.push_back(nodeun);
+            expression.root = 0;
+            prev = 0;
+        }
     }
 
     // Loop parse expression tokens into list
@@ -433,9 +466,30 @@ ExpressionModel Parser::ParseExpression()
 
             token = GetNextToken();  // get the token we peeked
 
-            //TODO: Process unary plus/minus/NOT here
-
-            if (token.IsBinaryOperation())
+            // Process unary plus/minus/NOT here
+            if (token.type == TokenTypeOperation && token.text == "-")
+            {
+                Token tokenNext = PeekNextToken();
+                if (tokenNext.type == TokenTypeNumber)  // Sign '-' before the number
+                {
+                    token = GetNextToken();  // get the token we peeked
+                    token.dvalue = -token.dvalue;  // apply the negative sign
+                    // Put number into the tree
+                    ExpressionNode nodeNumber;
+                    nodeNumber.node = token;
+                    nodeNumber.vtype = token.vtype;
+                    nodeNumber.constval = true;
+                    expression.nodes.push_back(nodeNumber);
+                }
+                else  // Unary '-'
+                {
+                    // Put unary '-' into the tree
+                    ExpressionNode nodeUnary;
+                    nodeUnary.node = token;
+                    expression.nodes.push_back(nodeUnary);
+                }
+            }
+            else if (token.IsBinaryOperation())
             {
                 Error(token, "Binary operation is not expected here.");
                 return expression;
@@ -541,25 +595,6 @@ ExpressionModel Parser::ParseExpression()
             }
             else if (token.type == TokenTypeNumber)
             {
-                if (prev >= 0)
-                {
-                    ExpressionNode& nodeprev = expression.nodes[prev];
-                    if (nodeprev.node.type == TokenTypeOperation &&
-                        (nodeprev.node.text == "+" || nodeprev.node.text == "-"))
-                    {
-                        // Special case: we have unary plus/minus sign before the number
-                        // so in this case we just replace the unary operation in the tree with the number
-                        if (nodeprev.node.text == "-")
-                            token.dvalue = -token.dvalue;
-                        nodeprev.node = token;
-                        nodeprev.vtype = token.vtype;
-                        nodeprev.constval = true;
-
-                        isop = !isop;
-                        continue;
-                    }
-                }
-
                 // Put the token into the list
                 ExpressionNode node;
                 node.node = token;
