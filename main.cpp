@@ -7,7 +7,8 @@
 #include "main.h"
 
 string g_infilename;    // Input file name
-string g_outfilename;   // Output file name
+string g_outfilename;   // Output .MAC file name
+string g_rtfilename;    // Runtime .MAC file name
 
 bool g_quiet = false;   // Be quiet
 bool g_tokenizeonly = false;  // Show tokenization and quit
@@ -233,6 +234,7 @@ void ProcessFiles()
         return;
     }
 
+    // Validation
     g_errorcount = 0;
     while (validator.ProcessLine())
         ;
@@ -252,6 +254,7 @@ void ProcessFiles()
     outstream << "; Generated with vibasc [" << __DATE__ << "] on " << g_infilename << std::endl;
     outstream << ";" << std::endl;
 
+    // Generation
     Generator generator(&g_source, &g_final);
     g_errorcount = 0;
     while (generator.ProcessLine())
@@ -268,6 +271,30 @@ void ProcessFiles()
         std::cerr << "Generation ERRORS: " << g_errorcount << std::endl;
         exit(EXIT_FAILURE);
     }
+    outstream.close();
+
+    // Stream for runtime
+    std::ofstream outrtstream;
+    outrtstream.open(g_rtfilename, std::ofstream::out | std::ofstream::trunc);
+    if (!outrtstream.is_open())
+    {
+        std::cerr << "Failed to open the output file " << g_rtfilename << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    outrtstream << "; Runtime file" << std::endl;
+    outrtstream << "; Generated with vibasc [" << __DATE__ << "] on " << g_infilename << std::endl;
+    outrtstream << ";" << std::endl;
+
+    // Generate runtime
+    const std::set<RuntimeSymbol> runtimeneeds = generator.GetRuntimeNeeds();
+    RuntimeGenerator runtimegen(runtimeneeds, &g_final);
+
+    runtimegen.GenerateRuntime();
+    for (string line : g_final.runtimelines)
+    {
+        outrtstream << line << std::endl;
+    }
+    outrtstream.close();
 }
 
 void ParseCommandLine(int argc, char** argv)
@@ -322,6 +349,12 @@ int main(int argc, char* argv[])
         g_outfilename = g_infilename + ".MAC";
     else
         g_outfilename = g_infilename.substr(0, dotpos) + ".MAC";
+
+    size_t seppos = g_infilename.find_last_of(PATH_SEPARATOR);
+    if (seppos == string::npos)
+        g_rtfilename = "VIBAS.MAC";
+    else
+        g_rtfilename = g_infilename.substr(0, seppos) + "VIBAS.MAC";
 
     if (!g_quiet)
         std::cout << "vibasc  " << __DATE__ << std::endl;

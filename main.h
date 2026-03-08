@@ -13,6 +13,12 @@
 #define PATH_MAX    _MAX_PATH
 #endif
 
+#ifdef _MSC_VER
+const char PATH_SEPARATOR = '\\';
+#else
+const char PATH_SEPARATOR = '/';
+#endif
+
 #ifdef __GNUC__
 #define _stricmp    strcasecmp
 #endif
@@ -105,6 +111,8 @@ enum RuntimeSymbol
     RuntimeREADI           = 10,
     RuntimeRND             = 11,
 };
+
+string GetRuntimeSymbolName(RuntimeSymbol rtsymbol);
 
 extern void RegisterError();
 
@@ -264,9 +272,12 @@ public:
 struct FinalModel
 {
     std::vector<string> lines;
+    std::vector<string> runtimelines;
 public:
     void AddLine(const string& str);
     void AddComment(const string& str);
+public:
+    void AddRuntimeLine(const string& str);
 };
 
 
@@ -548,6 +559,7 @@ public:
     void GenerateStrings();
     void GenerateVariables();
     void GenerateRuntimeNeeds();
+    const std::set<RuntimeSymbol> GetRuntimeNeeds() const { return m_runtimeneeds; }
 private:
     static const GeneratorKeywordSpec m_keywordspecs[];
     static const GeneratorOperSpec m_operspecs[];
@@ -555,6 +567,7 @@ private:
 private:
     void Error(const string& message);
     void AddLine(const string& str) { m_final->AddLine(str); }
+    void AddComment(const string& str) { m_final->AddComment(str); }
     void AddRuntimeCall(RuntimeSymbol need, string comment = "");
     void GenerateExpression(const ExpressionModel& expr);
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
@@ -626,3 +639,29 @@ private:
     void GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node);
 };
+
+class RuntimeGenerator;
+typedef void (RuntimeGenerator::* RuntimeGeneratorMethodRef)();
+struct RuntimeGeneratorSymbolSpec
+{
+    RuntimeSymbol rtsymbol;
+    RuntimeGeneratorMethodRef methodref;
+};
+
+class RuntimeGenerator
+{
+    std::set<RuntimeSymbol> m_needs;
+    FinalModel* m_final;
+public:
+    RuntimeGenerator(const std::set<RuntimeSymbol>& needs, FinalModel* intermed);
+public:
+    void GenerateRuntime();
+private:
+    static const RuntimeGeneratorSymbolSpec m_symbolspecs[];
+private:
+    void AddLine(const string& str) { m_final->AddRuntimeLine(str); }
+    void NeedRuntime(RuntimeSymbol rtsymbol);
+    void GenerateWRCHR();
+    void GenerateWREOL();
+};
+

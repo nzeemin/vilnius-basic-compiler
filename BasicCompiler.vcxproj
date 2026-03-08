@@ -151,6 +151,7 @@
     <ClCompile Include="generator.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="parser.cpp" />
+    <ClCompile Include="runtime.cpp" />
     <ClCompile Include="tokenizer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="validator.cpp" />

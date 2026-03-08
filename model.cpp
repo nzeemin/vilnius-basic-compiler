@@ -531,5 +531,35 @@ void FinalModel::AddComment(const string& str)
         lines.push_back("; " + str);
 }
 
+void FinalModel::AddRuntimeLine(const string& str)
+{
+    runtimelines.push_back(str);
+
+    if (str.length() > 93)
+        std::cerr << "WARN: Line #" << runtimelines.size() << " in runtime .MAC file too long: " << str.length() << " chars." << std::endl;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// Runtime
+
+// The table has the same procedures in the same order as RuntimeSymbol enum
+const char* RuntimeSymbolNames[] = {
+    "", // None
+    "WRCHR", "WREOL", "WRAT", "WRINT", "WRSPC", "WRSNG", "WRSTR", "WRTAB",
+    "STRCP",
+    "READI",
+    "RND",
+};
+
+string GetRuntimeSymbolName(RuntimeSymbol rtsymbol)
+{
+    if (rtsymbol < sizeof(RuntimeSymbolNames) / sizeof(const char*))
+        return RuntimeSymbolNames[rtsymbol];
+
+    return "UNKNOWN";
+}
+
+
 
 //////////////////////////////////////////////////////////////////////

@@ -44,19 +44,19 @@ Current state of the project: **prototype**
 ```
 Результат компиляции:
 ```assembler
-	.MCALL	.EXIT
 START:
 ; 10 A%=23.42
 L10:
-	MOV	#23., VARA.I	; assignment
+	MOV	#23., VARIA	; assignment
 ; 20 PRINT A%
 L20:
 	MOV	VARIA, R0
 	CALL	WRINT
-	CALL	WRCRLF
+	CALL	WREOL
 L65536:
-	.EXIT
+	EMT	350	; .EXIT
 ; VARIABLES
+	.EVEN
 VARIA:	.WORD	0	; A%
 	.END	START
 ```

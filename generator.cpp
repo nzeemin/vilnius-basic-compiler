@@ -93,15 +93,6 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordPOS,       &Generator::GenerateFuncPos },
 };
 
-// The table has the same procedures in the same order as RuntimeSymbol enum
-const char* RuntimeSymbolNames[] = {
-    "", // None
-    "WRCHR", "WREOL", "WRAT", "WRINT", "WRSPC", "WRSNG", "WRSTR", "WRTAB",
-    "STRCP",
-    "READI",
-    "RND",
-};
-
 
 // Comparison function to sort variables by decorated names
 bool CompareVariables(const VariableModel& a, const VariableModel& b)
@@ -110,6 +101,9 @@ bool CompareVariables(const VariableModel& a, const VariableModel& b)
     string deconameb = b.GetVariableDecoratedName();
     return deconamea < deconameb;
 }
+
+
+//////////////////////////////////////////////////////////////////////
 
 
 Generator::Generator(SourceModel* source, FinalModel* final)
@@ -121,7 +115,7 @@ Generator::Generator(SourceModel* source, FinalModel* final)
 
 void Generator::AddRuntimeCall(RuntimeSymbol rtsymbol, string comment)
 {
-    string rtsymbolname = RuntimeSymbolNames[rtsymbol];
+    string rtsymbolname = GetRuntimeSymbolName(rtsymbol);
 
     if (comment.empty())
         m_final->AddLine("\tCALL\t" + rtsymbolname);
@@ -134,14 +128,14 @@ void Generator::AddRuntimeCall(RuntimeSymbol rtsymbol, string comment)
 void Generator::ProcessBegin()
 {
     //TODO: TITLE
-    AddLine("\t.MCALL\t.EXIT");
+    //AddLine("\t.MCALL\t.EXIT");
     AddLine("START:");
 }
 
 void Generator::ProcessEnd()
 {
     AddLine("L" + std::to_string(MAX_LINE_NUMBER + 1) + ":");
-    AddLine("\t.EXIT");  // In case we run after last line
+    AddLine("\tEMT\t350\t; .EXIT");  // In case we run after last line
 
     GenerateStrings();
 
@@ -157,7 +151,7 @@ void Generator::GenerateStrings()
     if (m_source->conststrings.empty())
         return;
 
-    m_final->AddComment("STRINGS");
+    AddComment("STRINGS");
     AddLine("\t.EVEN");
     for (size_t i = 0; i < m_source->conststrings.size(); ++i)
     {
@@ -219,7 +213,7 @@ void Generator::GenerateVariables()
     if (m_source->vars.empty())
         return;
 
-    m_final->AddComment("VARIABLES");
+    AddComment("VARIABLES");
     AddLine("\t.EVEN");
 
     std::sort(m_source->vars.begin(), m_source->vars.end(), CompareVariables);
@@ -246,11 +240,11 @@ void Generator::GenerateVariables()
 
 void Generator::GenerateRuntimeNeeds()
 {
-    m_final->AddComment("RUNTIME NEEDS");
+    AddComment("RUNTIME NEEDS");
 
     for (RuntimeSymbol need : m_runtimeneeds)
     {
-        string rtsymbolname = RuntimeSymbolNames[need];
+        string rtsymbolname = GetRuntimeSymbolName(need);
         AddLine(";\t" + rtsymbolname);
     }
 }
@@ -274,7 +268,7 @@ bool Generator::ProcessLine()
     }
 
     m_line = &(m_source->lines[m_lineindex]);
-    m_final->AddComment(m_line->text);
+    AddComment(m_line->text);
     string linenumlabel = "L" + std::to_string(m_line->number) + ":";//TODO function GetLineNumberLabel
     AddLine(linenumlabel);
 
@@ -324,7 +318,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
 
     if (node.vtype != ValueTypeInteger && node.vtype != ValueTypeSingle)
     {
-        m_final->AddComment("TODO calculate non-integer expression");
+        AddComment("TODO calculate non-integer expression");
         return;
     }
 
@@ -364,7 +358,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
 
     if (node.left != -1 || node.right != -1)
     {
-        m_final->AddComment("TODO generate complex expression");
+        AddComment("TODO generate complex expression");
         return;
     }
 }
@@ -425,7 +419,7 @@ void Generator::GenerateExprFunction(const ExpressionModel& expr, const Expressi
 
     if (methodref == nullptr)
     {
-        m_final->AddComment("TODO generate function expression for " + GetKeywordString(keyword));
+        AddComment("TODO generate function expression for " + GetKeywordString(keyword));
         return;
     }
 
@@ -504,7 +498,7 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
 
 void Generator::GenerateIgnoredStatement(StatementModel& statement)
 {
-    m_final->AddComment(statement.token.text + " statement is ignored");
+    AddComment(statement.token.text + " statement is ignored");
 }
 
 void Generator::GenerateBeep(StatementModel& statement)
@@ -515,7 +509,7 @@ void Generator::GenerateBeep(StatementModel& statement)
 
 void Generator::GenerateClear(StatementModel& statement)
 {
-    m_final->AddComment("CLEAR statement is ignored");
+    AddComment("CLEAR statement is ignored");
 }
 
 void Generator::GenerateCls(StatementModel& statement)
@@ -527,13 +521,13 @@ void Generator::GenerateCls(StatementModel& statement)
 void Generator::GenerateColor(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO COLOR");
+    AddComment("TODO COLOR");
 }
 
 void Generator::GenerateData(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO DATA");
+    AddComment("TODO DATA");
 }
 
 void Generator::GenerateDim(StatementModel& statement)
@@ -544,7 +538,7 @@ void Generator::GenerateDim(StatementModel& statement)
 void Generator::GenerateDraw(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO DRAW");
+    AddComment("TODO DRAW");
 }
 
 void Generator::GenerateEnd(StatementModel& statement)
@@ -640,7 +634,7 @@ void Generator::GenerateIf(StatementModel& statement)
                 else
                 {
                     //TODO
-                    m_final->AddComment("TODO statement under THEN");
+                    AddComment("TODO statement under THEN");
                 }
             }
         }
@@ -668,7 +662,7 @@ void Generator::GenerateIf(StatementModel& statement)
                 else
                 {
                     //TODO
-                    m_final->AddComment("TODO statement under ELSE");
+                    AddComment("TODO statement under ELSE");
                 }
             }
         }
@@ -720,7 +714,7 @@ void Generator::GenerateInput(StatementModel& statement)
         }
         else
         {
-            m_final->AddComment("TODO INPUT " + it->name);  //TODO
+            AddComment("TODO INPUT " + it->name);  //TODO
         }
     }
 }
@@ -728,13 +722,13 @@ void Generator::GenerateInput(StatementModel& statement)
 void Generator::GenerateOpen(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO OPEN");
+    AddComment("TODO OPEN");
 }
 
 void Generator::GenerateClose(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO CLOSE");
+    AddComment("TODO CLOSE");
 }
 
 void Generator::GenerateLet(StatementModel& statement)
@@ -792,19 +786,19 @@ void Generator::GenerateLocate(StatementModel& statement)
     }
 
     //TODO
-    m_final->AddComment("TODO LOCATE");
+    AddComment("TODO LOCATE");
 }
 
 void Generator::GeneratePset(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO PSET");
+    AddComment("TODO PSET");
 }
 
 void Generator::GeneratePreset(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO PRESET");
+    AddComment("TODO PRESET");
 }
 
 void Generator::GenerateNext(StatementModel& statement)
@@ -851,25 +845,25 @@ void Generator::GenerateOut(StatementModel& statement)
     assert(statement.args.size() == 3);
 
     //TODO
-    m_final->AddComment("TODO OUT");  //TODO
+    AddComment("TODO OUT");  //TODO
 }
 
 void Generator::GenerateLine(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO LINE");  //TODO
+    AddComment("TODO LINE");  //TODO
 }
 
 void Generator::GenerateCircle(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO CIRCLE");  //TODO
+    AddComment("TODO CIRCLE");  //TODO
 }
 
 void Generator::GeneratePaint(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO PAINT");  //TODO
+    AddComment("TODO PAINT");  //TODO
 }
 
 void Generator::GeneratePrint(StatementModel& statement)
@@ -976,13 +970,13 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
     }
 
     //TODO
-    m_final->AddComment("TODO PRINT string expression");
+    AddComment("TODO PRINT string expression");
 }
 
 void Generator::GenerateRead(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO READ");
+    AddComment("TODO READ");
 }
 
 void Generator::GenerateRem(StatementModel& statement)
@@ -993,7 +987,7 @@ void Generator::GenerateRem(StatementModel& statement)
 void Generator::GenerateRestore(StatementModel& statement)
 {
     //TODO
-    m_final->AddComment("TODO RESTORE");
+    AddComment("TODO RESTORE");
 }
 
 void Generator::GenerateReturn(StatementModel& statement)
@@ -1003,7 +997,7 @@ void Generator::GenerateReturn(StatementModel& statement)
 
 void Generator::GenerateScreen(StatementModel& statement)
 {
-    m_final->AddComment("SCREEN statement is ignored");
+    AddComment("SCREEN statement is ignored");
 }
 
 void Generator::GenerateStop(StatementModel& statement)
@@ -1013,7 +1007,7 @@ void Generator::GenerateStop(StatementModel& statement)
 
 void Generator::GenerateWidth(StatementModel& statement)
 {
-    m_final->AddComment("WIDTH statement is ignored");
+    AddComment("WIDTH statement is ignored");
 }
 
 
@@ -1097,7 +1091,7 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
     GenerateExpression(expr, nodeleft);
 
     //TODO
-    m_final->AddComment("TODO operation multiply");
+    AddComment("TODO operation multiply");
 }
 
 void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1108,7 +1102,7 @@ void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNod
     GenerateExpression(expr, nodeleft);
 
     //TODO
-    m_final->AddComment("TODO operation division");
+    AddComment("TODO operation division");
 }
 
 void Generator::GenerateOperDivInt(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1119,7 +1113,7 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
     GenerateExpression(expr, nodeleft);
 
     //TODO
-    m_final->AddComment("TODO operation divint");
+    AddComment("TODO operation divint");
 }
 
 void Generator::GenerateOperMod(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1130,7 +1124,7 @@ void Generator::GenerateOperMod(const ExpressionModel& expr, const ExpressionNod
     GenerateExpression(expr, nodeleft);
 
     //TODO
-    m_final->AddComment("TODO operation MOD");
+    AddComment("TODO operation MOD");
 }
 
 void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1141,7 +1135,7 @@ void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionN
     GenerateExpression(expr, nodeleft);
 
     //TODO
-    m_final->AddComment("TODO operation power");
+    AddComment("TODO operation power");
 }
 
 void Generator::GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment)
@@ -1179,7 +1173,7 @@ void Generator::GenerateOperEqual(const ExpressionModel& expr, const ExpressionN
     //AddLine("\tBEQ\t");
 
     //TODO
-    m_final->AddComment("TODO operation equal");
+    AddComment("TODO operation equal");
 }
 
 void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1191,7 +1185,7 @@ void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const Expressi
     //AddLine("\tBNE\t");
 
     //TODO
-    m_final->AddComment("TODO operation not-equal");
+    AddComment("TODO operation not-equal");
 }
 
 void Generator::GenerateOperLess(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1203,7 +1197,7 @@ void Generator::GenerateOperLess(const ExpressionModel& expr, const ExpressionNo
     //AddLine("\tBLO\t");
 
     //TODO
-    m_final->AddComment("TODO operation less");
+    AddComment("TODO operation less");
 }
 
 void Generator::GenerateOperGreater(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1215,7 +1209,7 @@ void Generator::GenerateOperGreater(const ExpressionModel& expr, const Expressio
     //AddLine("\tBHI\t");
 
     //TODO
-    m_final->AddComment("TODO operation greater");
+    AddComment("TODO operation greater");
 }
 
 void Generator::GenerateOperLessOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1227,7 +1221,7 @@ void Generator::GenerateOperLessOrEqual(const ExpressionModel& expr, const Expre
     //AddLine("\tBLO\t");
 
     //TODO
-    m_final->AddComment("TODO operation less or equal");
+    AddComment("TODO operation less or equal");
 }
 
 void Generator::GenerateOperGreaterOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1239,7 +1233,7 @@ void Generator::GenerateOperGreaterOrEqual(const ExpressionModel& expr, const Ex
     //AddLine("\tBHI\t");
 
     //TODO
-    m_final->AddComment("TODO operation greater or equal");
+    AddComment("TODO operation greater or equal");
 }
 
 void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1247,7 +1241,7 @@ void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNod
     //const string comment = "\t; Operation \'AND\'";
 
     //TODO
-    m_final->AddComment("TODO operation AND");
+    AddComment("TODO operation AND");
 }
 
 void Generator::GenerateOperOr(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1255,7 +1249,7 @@ void Generator::GenerateOperOr(const ExpressionModel& expr, const ExpressionNode
     //const string comment = "\t; Operation \'OR\'";
 
     //TODO
-    m_final->AddComment("TODO operation OR");
+    AddComment("TODO operation OR");
 }
 
 void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1263,7 +1257,7 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
     //const string comment = "\t; Operation \'XOR\'";
 
     //TODO
-    m_final->AddComment("TODO operation XOR");
+    AddComment("TODO operation XOR");
 }
 
 
@@ -1340,7 +1334,7 @@ void Generator::GenerateFuncLen(const ExpressionModel& expr, const ExpressionNod
 void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node)
 {
     //TODO
-    m_final->AddComment("TODO INKEY$");
+    AddComment("TODO INKEY$");
 }
 
 void Generator::GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node)
@@ -1355,7 +1349,7 @@ void Generator::GenerateFuncPos(const ExpressionModel& expr, const ExpressionNod
             GenerateExpression(expr1);
     }
 
-    m_final->AddComment("TODO POS");
+    AddComment("TODO POS");
 }
 
 
