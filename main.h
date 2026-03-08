@@ -4,6 +4,7 @@
 #include <iostream>
 #include <limits.h>
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <iterator>
 #include <cmath>
@@ -87,6 +88,22 @@ enum FileMode
     FileModeAny         = 0,
     FileModeInput       = 1,
     FileModeOutput      = 2,
+};
+
+enum RuntimeSymbol
+{
+    RuntimeNone            = 0,
+    RuntimeWRCHR           = 1,
+    RuntimeWREOL           = 2,
+    RuntimeWRAT            = 3,
+    RuntimeWRINT           = 4,
+    RuntimeWRSPC           = 5,
+    RuntimeWRSNG           = 6,
+    RuntimeWRSTR           = 7,
+    RuntimeWRTAB           = 8,
+    RuntimeSTRCP           = 9,
+    RuntimeREADI           = 10,
+    RuntimeRND             = 11,
 };
 
 extern void RegisterError();
@@ -521,6 +538,7 @@ class Generator
     FinalModel*     m_final;
     int             m_lineindex;
     SourceLineModel* m_line;  // Curent line being generated
+    std::set<RuntimeSymbol> m_runtimeneeds;
 public:
     Generator(SourceModel* source, FinalModel* intermed);
 public:
@@ -529,12 +547,15 @@ public:
     void ProcessEnd();
     void GenerateStrings();
     void GenerateVariables();
+    void GenerateRuntimeNeeds();
 private:
     static const GeneratorKeywordSpec m_keywordspecs[];
     static const GeneratorOperSpec m_operspecs[];
     static const GeneratorFuncSpec m_funcspecs[];
 private:
     void Error(const string& message);
+    void AddLine(const string& str) { m_final->AddLine(str); }
+    void AddRuntimeCall(RuntimeSymbol need, string comment = "");
     void GenerateExpression(const ExpressionModel& expr);
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);

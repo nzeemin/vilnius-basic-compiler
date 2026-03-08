@@ -93,6 +93,15 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordPOS,       &Generator::GenerateFuncPos },
 };
 
+// The table has the same procedures in the same order as RuntimeSymbol enum
+const char* RuntimeSymbolNames[] = {
+    "", // None
+    "WRCHR", "WREOL", "WRAT", "WRINT", "WRSPC", "WRSNG", "WRSTR", "WRTAB",
+    "STRCP",
+    "READI",
+    "RND",
+};
+
 
 // Comparison function to sort variables by decorated names
 bool CompareVariables(const VariableModel& a, const VariableModel& b)
@@ -104,32 +113,43 @@ bool CompareVariables(const VariableModel& a, const VariableModel& b)
 
 
 Generator::Generator(SourceModel* source, FinalModel* final)
-    : m_source(source), m_final(final)
+    : m_source(source), m_final(final), m_lineindex(-1), m_line(nullptr), m_runtimeneeds()
 {
     assert(source != nullptr);
     assert(final != nullptr);
+}
 
-    m_lineindex = -1;
-    m_line = nullptr;
+void Generator::AddRuntimeCall(RuntimeSymbol rtsymbol, string comment)
+{
+    string rtsymbolname = RuntimeSymbolNames[rtsymbol];
+
+    if (comment.empty())
+        m_final->AddLine("\tCALL\t" + rtsymbolname);
+    else
+        m_final->AddLine("\tCALL\t" + rtsymbolname + "\t;" + comment);
+    
+    m_runtimeneeds.insert(rtsymbol);
 }
 
 void Generator::ProcessBegin()
 {
     //TODO: TITLE
-    m_final->AddLine("\t.MCALL\t.EXIT");
-    m_final->AddLine("START:");
+    AddLine("\t.MCALL\t.EXIT");
+    AddLine("START:");
 }
 
 void Generator::ProcessEnd()
 {
-    m_final->AddLine("L" + std::to_string(MAX_LINE_NUMBER + 1) + ":");
-    m_final->AddLine("\t.EXIT");  // In case we run after last line
+    AddLine("L" + std::to_string(MAX_LINE_NUMBER + 1) + ":");
+    AddLine("\t.EXIT");  // In case we run after last line
 
     GenerateStrings();
 
     GenerateVariables();
 
-    m_final->AddLine("\t.END\tSTART");
+    GenerateRuntimeNeeds();
+
+    AddLine("\t.END\tSTART");
 }
 
 void Generator::GenerateStrings()
@@ -138,7 +158,7 @@ void Generator::GenerateStrings()
         return;
 
     m_final->AddComment("STRINGS");
-    m_final->AddLine("\t.EVEN");
+    AddLine("\t.EVEN");
     for (size_t i = 0; i < m_source->conststrings.size(); ++i)
     {
         string strdeco = "ST" + std::to_string(i + 1);
@@ -178,7 +198,7 @@ void Generator::GenerateStrings()
                     oss << "/";
                     mode = false;
                 }
-                m_final->AddLine(oss.str());
+                AddLine(oss.str());
                 oss.str("");
                 oss.clear();
                 if (i < str.length() - 1)
@@ -189,7 +209,7 @@ void Generator::GenerateStrings()
         {
             if (mode)
                 oss << "/";
-            m_final->AddLine(oss.str());
+            AddLine(oss.str());
         }
     }
 }
@@ -200,6 +220,7 @@ void Generator::GenerateVariables()
         return;
 
     m_final->AddComment("VARIABLES");
+    AddLine("\t.EVEN");
 
     std::sort(m_source->vars.begin(), m_source->vars.end(), CompareVariables);
 
@@ -211,15 +232,26 @@ void Generator::GenerateVariables()
         switch (vtype)
         {
         case ValueTypeInteger:
-            m_final->AddLine(deconame + ":\t.WORD\t0\t; " + it->name);
+            AddLine(deconame + ":\t.WORD\t0\t; " + it->name);
             break;
         case ValueTypeString:
-            m_final->AddLine(deconame + ":\t.BLKB\t256.\t; " + it->name);
+            AddLine(deconame + ":\t.BLKB\t256.\t; " + it->name);
             break;
         default:  // Single
-            m_final->AddLine(deconame + ":\t.WORD\t0,0\t; " + it->name);
+            AddLine(deconame + ":\t.WORD\t0,0\t; " + it->name);
             break;
         }
+    }
+}
+
+void Generator::GenerateRuntimeNeeds()
+{
+    m_final->AddComment("RUNTIME NEEDS");
+
+    for (RuntimeSymbol need : m_runtimeneeds)
+    {
+        string rtsymbolname = RuntimeSymbolNames[need];
+        AddLine(";\t" + rtsymbolname);
     }
 }
 
@@ -244,7 +276,7 @@ bool Generator::ProcessLine()
     m_line = &(m_source->lines[m_lineindex]);
     m_final->AddComment(m_line->text);
     string linenumlabel = "L" + std::to_string(m_line->number) + ":";//TODO function GetLineNumberLabel
-    m_final->AddLine(linenumlabel);
+    AddLine(linenumlabel);
 
     // Find keyword generator implementation
     KeywordIndex keyword = m_line->statement.token.keyword;
@@ -301,12 +333,12 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
         int ivalue = (int)std::floor(node.node.dvalue);
         if (ivalue == 0)
         {
-            m_final->AddLine("\tCLR\tR0");
+            AddLine("\tCLR\tR0");
         }
         else
         {
             string svalue = "#" + std::to_string(ivalue) + ".";
-            m_final->AddLine("\tMOV\t" + svalue + ", R0");
+            AddLine("\tMOV\t" + svalue + ", R0");
         }
         return;
     }
@@ -320,7 +352,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
     if (node.node.type == TokenTypeIdentifier)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(node.node.text));
-        m_final->AddLine("\tMOV\t" + deconame + ", R0");
+        AddLine("\tMOV\t" + deconame + ", R0");
         return;
     }
 
@@ -416,11 +448,11 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             int ivalue = (int)std::floor(expr.GetConstExpressionDValue());
             if (ivalue == 0)
             {
-                m_final->AddLine("\tCLR\t" + deconame + comment);
+                AddLine("\tCLR\t" + deconame + comment);
             }
             else {
                 string svalue = "#" + std::to_string(ivalue) + ".";
-                m_final->AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
+                AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
             }
         }
         //TODO: version for Single type
@@ -429,15 +461,15 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             string svalue = expr.GetConstExpressionSValue();
             int sindex = m_source->GetConstStringIndex(svalue);
             //TODO: Special case for one-char string
-            m_final->AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
-            m_final->AddLine("\tMOV\t#" + deconame + ", R1");
-            m_final->AddLine("\tCALL\tSTRCPY" + comment);
+            AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
+            AddLine("\tMOV\t#" + deconame + ", R1");
+            AddRuntimeCall(RuntimeSTRCP, comment);
         }
     }
     else if (expr.IsVariableExpression())
     {
         string svalue = expr.GetVariableExpressionDecoratedName();
-        m_final->AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
+        AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
     }
     else
     {
@@ -454,18 +486,18 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             bool plusminus = (root.node.text == "+");
             int ivalue = (int)std::floor(expr.nodes[root.right].node.dvalue);
             if (plusminus && ivalue == 1)
-                m_final->AddLine("\tINC\t" + deconame + comment);
+                AddLine("\tINC\t" + deconame + comment);
             else if (!plusminus && ivalue == 1)
-                m_final->AddLine("\tDEC\t" + deconame + comment);
+                AddLine("\tDEC\t" + deconame + comment);
             else if (plusminus && ivalue != 1)
-                m_final->AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame + comment);
+                AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame + comment);
             else //if (!plusminus && ivalue != 1)
-                m_final->AddLine("\tSUB\t#" + std::to_string(ivalue) + "., " + deconame + comment);
+                AddLine("\tSUB\t#" + std::to_string(ivalue) + "., " + deconame + comment);
         }
         else
         {
             GenerateExpression(expr);
-            m_final->AddLine("\tMOV\tR0, " + deconame + comment);
+            AddLine("\tMOV\tR0, " + deconame + comment);
         }
     }
 }
@@ -477,9 +509,8 @@ void Generator::GenerateIgnoredStatement(StatementModel& statement)
 
 void Generator::GenerateBeep(StatementModel& statement)
 {
-    //m_final->AddLine("\tCALL\tBEEP");
-    m_final->AddLine("\tMOV\t#7, R0");
-    m_final->AddLine("\tCALL\tWRCHR");
+    AddLine("\tMOV\t#7, R0");
+    AddRuntimeCall(RuntimeWRCHR);
 }
 
 void Generator::GenerateClear(StatementModel& statement)
@@ -489,9 +520,8 @@ void Generator::GenerateClear(StatementModel& statement)
 
 void Generator::GenerateCls(StatementModel& statement)
 {
-    //m_final->AddLine("\tCALL\tCLS");
-    m_final->AddLine("\tMOV\t#12, R0");
-    m_final->AddLine("\tCALL\tWRCHR");
+    AddLine("\tMOV\t#12, R0");
+    AddRuntimeCall(RuntimeWRCHR);
 }
 
 void Generator::GenerateColor(StatementModel& statement)
@@ -522,7 +552,7 @@ void Generator::GenerateEnd(StatementModel& statement)
     // END generates JMP 65536, but only if END is not on the last line
     int nextlinenum = m_source->GetNextLineNumber(m_line->number);
     if (nextlinenum != MAX_LINE_NUMBER + 1)
-        m_final->AddLine("\tJMP\tL" + std::to_string(MAX_LINE_NUMBER + 1));
+        AddLine("\tJMP\tL" + std::to_string(MAX_LINE_NUMBER + 1));
 }
 
 void Generator::GenerateFor(StatementModel& statement)
@@ -549,12 +579,12 @@ void Generator::GenerateFor(StatementModel& statement)
     else if (expr2.IsVariableExpression())
     {
         string svalue = expr2.GetVariableExpressionDecoratedName();
-        m_final->AddLine("\tMOV\t" + svalue + ", @#<N" + std::to_string(m_line->number) + "+2>");
+        AddLine("\tMOV\t" + svalue + ", @#<N" + std::to_string(m_line->number) + "+2>");
     }
     else
     {
         GenerateExpression(expr2);
-        m_final->AddLine("\tMOV\tR0, @#<N" + std::to_string(m_line->number) + "+2>");  //  Save "to" value
+        AddLine("\tMOV\tR0, @#<N" + std::to_string(m_line->number) + "+2>");  //  Save "to" value
     }
 
     if (statement.args.size() > 2)  // has STEP expression
@@ -563,25 +593,25 @@ void Generator::GenerateFor(StatementModel& statement)
         ExpressionModel& expr3 = statement.args[2];
         GenerateExpression(expr3);
         // Save "step" value
-        m_final->AddLine("\tMOV\tR0, @#<L" + std::to_string(statement.paramline) + "+2>");
+        AddLine("\tMOV\tR0, @#<L" + std::to_string(statement.paramline) + "+2>");
     }
 
     int nextlinenum = m_source->GetNextLineNumber(m_line->number);
-    m_final->AddLine("N" + std::to_string(m_line->number) + ":\tCMP\t" + tovalue + ", " + deconame);
-    m_final->AddLine("\tBHIS\tL" + std::to_string(nextlinenum));
-    m_final->AddLine("\tJMP\tX" + std::to_string(m_line->number));  // label after NEXT
+    AddLine("N" + std::to_string(m_line->number) + ":\tCMP\t" + tovalue + ", " + deconame);
+    AddLine("\tBHIS\tL" + std::to_string(nextlinenum));
+    AddLine("\tJMP\tX" + std::to_string(m_line->number));  // label after NEXT
 }
 
 void Generator::GenerateGosub(StatementModel& statement)
 {
     string linenum = "\tCALL\tL" + std::to_string(statement.paramline);
-    m_final->AddLine(linenum);
+    AddLine(linenum);
 }
 
 void Generator::GenerateGoto(StatementModel& statement)
 {
     string linenum = "\tJMP\tL" + std::to_string(statement.paramline);
-    m_final->AddLine(linenum);
+    AddLine(linenum);
 }
 
 void Generator::GenerateIf(StatementModel& statement)
@@ -597,7 +627,7 @@ void Generator::GenerateIf(StatementModel& statement)
             if (statement.stthen == nullptr)  // THEN linenum
             {
                 int linenum = (int)statement.params[0].dvalue;
-                m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN");
+                AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN");
             }
             else  // Statement under THEN
             {
@@ -605,7 +635,7 @@ void Generator::GenerateIf(StatementModel& statement)
                 if (pstthen->token.keyword == KeywordGOTO)  // THEN GOTO linenum
                 {
                     int linenum = (int)pstthen->paramline;
-                    m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN GOTO");
+                    AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN GOTO");
                 }
                 else
                 {
@@ -619,11 +649,11 @@ void Generator::GenerateIf(StatementModel& statement)
             if (statement.stelse == nullptr)  // ELSE linenum
             {
                 if (statement.params.size() == 1)
-                    m_final->AddLine("\t\t\t; ELSE do nothing");
+                    AddLine("\t\t\t; ELSE do nothing");
                 else
                 {
                     int linenum2 = (int)statement.params[1].dvalue;
-                    m_final->AddLine("\tJMP\tL" + std::to_string(linenum2) + "\t; ELSE");
+                    AddLine("\tJMP\tL" + std::to_string(linenum2) + "\t; ELSE");
                 }
                 //TODO
             }
@@ -633,7 +663,7 @@ void Generator::GenerateIf(StatementModel& statement)
                 if (pstelse->token.keyword == KeywordGOTO)  // THEN GOTO linenum
                 {
                     int linenum = (int)pstelse->paramline;
-                    m_final->AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; ELSE GOTO");
+                    AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; ELSE GOTO");
                 }
                 else
                 {
@@ -654,17 +684,17 @@ void Generator::GenerateIf(StatementModel& statement)
     if (statement.params.size() == 1)  // IF expr THEN linenum
     {
         int linenumnext = m_source->GetNextLineNumber(m_line->number);
-        m_final->AddLine("\tBEQ\tL" + std::to_string(linenumnext));
+        AddLine("\tBEQ\tL" + std::to_string(linenumnext));
         int linenum = (int)statement.params[0].dvalue;
-        m_final->AddLine("\tJMP\tL" + std::to_string(linenum));
+        AddLine("\tJMP\tL" + std::to_string(linenum));
     }
     else  // IF expr THEN linenum ELSE linenum
     {
-        m_final->AddLine("\tBEQ\t10$");
+        AddLine("\tBEQ\t10$");
         int linenum1 = (int)statement.params[0].dvalue;
-        m_final->AddLine("\tJMP\tL" + std::to_string(linenum1));
+        AddLine("\tJMP\tL" + std::to_string(linenum1));
         int linenum2 = (int)statement.params[1].dvalue;
-        m_final->AddLine("10$:\tJMP\tL" + std::to_string(linenum2));
+        AddLine("10$:\tJMP\tL" + std::to_string(linenum2));
     }
 }
 
@@ -675,8 +705,8 @@ void Generator::GenerateInput(StatementModel& statement)
         Token& param = statement.params[0];
         int strindex = m_source->GetConstStringIndex(param.text);
         string strdeco = "ST" + std::to_string(strindex);
-        m_final->AddLine("\tMOV\t" + strdeco + ", R0");
-        m_final->AddLine("\tCALL\tWRSTR\t; print the prompt");
+        AddLine("\tMOV\t" + strdeco + ", R0");
+        AddRuntimeCall(RuntimeWRSTR, "print the prompt");
     }
 
     for (auto it = std::begin(statement.variables); it != std::end(statement.variables); ++it)
@@ -685,8 +715,8 @@ void Generator::GenerateInput(StatementModel& statement)
         string vardeco = it->GetVariableDecoratedName();
         if (vtype == ValueTypeInteger)
         {
-            m_final->AddLine("\tCALL\tREADI");
-            m_final->AddLine("\tMOV\tR0, " + vardeco);
+            AddRuntimeCall(RuntimeREADI);
+            AddLine("\tMOV\tR0, " + vardeco);
         }
         else
         {
@@ -723,24 +753,24 @@ void Generator::GenerateOn(StatementModel& statement)
     GenerateExpression(expr);
     int numofcases = statement.params.size();
     string nextline = "L" + std::to_string(m_source->GetNextLineNumber(m_line->number));
-    m_final->AddLine("\tDEC\tR0");
-    m_final->AddLine("\tBLO\t" + nextline);
-    m_final->AddLine("\tCMP\t#" + std::to_string(numofcases) + ", R0");
-    m_final->AddLine("\tBGE\t" + nextline);
-    m_final->AddLine("\tASL\tR0");
+    AddLine("\tDEC\tR0");
+    AddLine("\tBLO\t" + nextline);
+    AddLine("\tCMP\t#" + std::to_string(numofcases) + ", R0");
+    AddLine("\tBGE\t" + nextline);
+    AddLine("\tASL\tR0");
     if (statement.gotogosub)
-        m_final->AddLine("\tJMP\t@10$(R0)");
+        AddLine("\tJMP\t@10$(R0)");
     else
     {
-        m_final->AddLine("\tCALL\t@10$(R0)");
-        m_final->AddLine("\tBR\t" + nextline);
+        AddLine("\tCALL\t@10$(R0)");
+        AddLine("\tBR\t" + nextline);
     }
     int linenum = (int)statement.params[0].dvalue;
-    m_final->AddLine("10$:\t.WORD\tL" + std::to_string(linenum));
+    AddLine("10$:\t.WORD\tL" + std::to_string(linenum));
     for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
     {
         linenum = (int)it->dvalue;
-        m_final->AddLine("\t.WORD\tL" + std::to_string(linenum));
+        AddLine("\t.WORD\tL" + std::to_string(linenum));
     }
 }
 
@@ -787,14 +817,14 @@ void Generator::GenerateNext(StatementModel& statement)
     int forlinenum = statement.paramline;
 
     if (linefor.statement.args.size() < 3)
-        m_final->AddLine("\tINC\t" + deconame);
+        AddLine("\tINC\t" + deconame);
     else
-        m_final->AddLine("\tADD\t#1, " + deconame);
+        AddLine("\tADD\t#1, " + deconame);
 
     // JMP to continue loop
-    m_final->AddLine("\tJMP\tN" + std::to_string(forlinenum));
+    AddLine("\tJMP\tN" + std::to_string(forlinenum));
     // Label after NEXT
-    m_final->AddLine("X" + std::to_string(forlinenum) + ":");
+    AddLine("X" + std::to_string(forlinenum) + ":");
 }
 
 void Generator::GeneratePoke(StatementModel& statement)
@@ -805,15 +835,15 @@ void Generator::GeneratePoke(StatementModel& statement)
     //TODO: Simplified version for const/var expression
     GenerateExpression(expr1);
     // Save value
-    m_final->AddLine("\tMOV\tR0, @#<10$+2>");
+    AddLine("\tMOV\tR0, @#<10$+2>");
 
     ExpressionModel& expr2 = statement.args[1];
     //TODO: Simplified version for const/var expression
     GenerateExpression(expr2);
     // Save value
-    m_final->AddLine("\tMOV\tR0, @#<10$+4>");
+    AddLine("\tMOV\tR0, @#<10$+4>");
 
-    m_final->AddLine("10$:\tMOV\t#0, #0");
+    AddLine("10$:\tMOV\t#0, #0");
 }
 
 void Generator::GenerateOut(StatementModel& statement)
@@ -858,7 +888,7 @@ void Generator::GeneratePrint(StatementModel& statement)
             assert(root.args.size() == 1);
             const ExpressionModel& expr1 = root.args[0];
             GenerateExpression(expr1);
-            m_final->AddLine("\tCALL\tWRTAB");
+            AddRuntimeCall(RuntimeWRTAB);
         }
         else if (root.node.IsKeyword(KeywordSPC))
         {
@@ -867,7 +897,7 @@ void Generator::GeneratePrint(StatementModel& statement)
             if (!expr1.IsConstExpression() || (int)expr1.GetConstExpressionDValue() > 0)  // skip SPC(0)
             {
                 GenerateExpression(expr1);
-                m_final->AddLine("\tCALL\tWRSPC");
+                AddRuntimeCall(RuntimeWRSPC);
             }
         }
         else if (root.vtype == ValueTypeString)
@@ -877,19 +907,19 @@ void Generator::GeneratePrint(StatementModel& statement)
         else if (root.vtype == ValueTypeInteger)
         {
             GenerateExpression(expr);
-            m_final->AddLine("\tCALL\tWRINT");
+            AddRuntimeCall(RuntimeWRINT);
         }
         else if (root.vtype == ValueTypeSingle)
         {
             GenerateExpression(expr);
-            m_final->AddLine("\tCALL\tWRSNG");
+            AddRuntimeCall(RuntimeWRSNG);
         }
         //TODO: Comma
     }
  
     // CR/LF at end of PRINT
     if (!statement.nocrlf)
-        m_final->AddLine("\tCALL\tWRCRLF");
+        AddRuntimeCall(RuntimeWREOL);
 }
 
 void Generator::GeneratePrintAt(const ExpressionModel& expr)
@@ -902,7 +932,7 @@ void Generator::GeneratePrintAt(const ExpressionModel& expr)
     const ExpressionModel& expr2 = root.args[1];
     GenerateExpression(expr2);//TODO: should be in R1
 
-    m_final->AddLine("\tCALL\tPRAT");
+    AddRuntimeCall(RuntimeWRAT);
 }
 
 void Generator::GeneratePrintString(const ExpressionModel& expr)
@@ -920,8 +950,8 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
         if (svalue.length() == 1)  // one-char string, no use of const string
         {
             //TODO: char to int conversion depends on encoding
-            m_final->AddLine("\tMOV\t#" + std::to_string((unsigned int)svalue[0]) + "., R0");
-            m_final->AddLine("\tCALL\tWRCHR");
+            AddLine("\tMOV\t#" + std::to_string((unsigned int)svalue[0]) + "., R0");
+            AddRuntimeCall(RuntimeWREOL);
             return;
         }
 
@@ -932,16 +962,16 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
             return;
         }
 
-        m_final->AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
-        m_final->AddLine("\tCALL\tWRSTR");
+        AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
+        AddRuntimeCall(RuntimeWRSTR);
         return;
     }
 
     if (root.node.type == TokenTypeIdentifier)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(root.node.text));
-        m_final->AddLine("\tMOV\t#" + deconame + ", R0");
-        m_final->AddLine("\tCALL\tWRSTR");
+        AddLine("\tMOV\t#" + deconame + ", R0");
+        AddRuntimeCall(RuntimeWRSTR);
         return;
     }
 
@@ -968,7 +998,7 @@ void Generator::GenerateRestore(StatementModel& statement)
 
 void Generator::GenerateReturn(StatementModel& statement)
 {
-    m_final->AddLine("\tRETURN");
+    AddLine("\tRETURN");
 }
 
 void Generator::GenerateScreen(StatementModel& statement)
@@ -978,7 +1008,7 @@ void Generator::GenerateScreen(StatementModel& statement)
 
 void Generator::GenerateStop(StatementModel& statement)
 {
-    m_final->AddLine("\tHALT");
+    AddLine("\tHALT");
 }
 
 void Generator::GenerateWidth(StatementModel& statement)
@@ -1004,9 +1034,9 @@ void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNo
         if (ivalue == 0)
             ;  // Do nothing
         else if (ivalue == 1)
-            m_final->AddLine("\tINC\tR0" + comment);
+            AddLine("\tINC\tR0" + comment);
         else  // ivalue != 1
-            m_final->AddLine("\tADD\t#" + std::to_string(ivalue) + "., R0" + comment);
+            AddLine("\tADD\t#" + std::to_string(ivalue) + "., R0" + comment);
         return;
     }
 
@@ -1014,13 +1044,13 @@ void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNo
     if (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeInteger && noderight.node.type == TokenTypeIdentifier)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName( noderight.node.text));
-        m_final->AddLine("\tADD\t" + deconame + ", R0" + comment);
+        AddLine("\tADD\t" + deconame + ", R0" + comment);
         return;
     }
 
-    m_final->AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
+    AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
     GenerateExpression(expr, noderight);
-    m_final->AddLine("\tADD\t(SP)+, R0" + comment);  // POP & ADD
+    AddLine("\tADD\t(SP)+, R0" + comment);  // POP & ADD
 }
 
 void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1038,9 +1068,9 @@ void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionN
         if (ivalue == 0)
             ;  // Do nothing
         else if (ivalue == 1)
-            m_final->AddLine("\tDEC\tR0" + comment);
+            AddLine("\tDEC\tR0" + comment);
         else  // ivalue != 1
-            m_final->AddLine("\tSUB\t#" + std::to_string(ivalue) + "., R0" + comment);
+            AddLine("\tSUB\t#" + std::to_string(ivalue) + "., R0" + comment);
         return;
     }
 
@@ -1048,15 +1078,15 @@ void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionN
     if (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeInteger && noderight.node.type == TokenTypeIdentifier)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(noderight.node.text));
-        m_final->AddLine("\tSUB\t" + deconame + ", R0" + comment);
+        AddLine("\tSUB\t" + deconame + ", R0" + comment);
         return;
     }
 
-    m_final->AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
+    AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
     GenerateExpression(expr, noderight);
-    m_final->AddLine("\tMOV\tR0, R1");
-    m_final->AddLine("\tMOV\t(SP)+, R0");  // POP R0
-    m_final->AddLine("\tSUB\tR1, R0" + comment);
+    AddLine("\tMOV\tR0, R1");
+    AddLine("\tMOV\t(SP)+, R0");  // POP R0
+    AddLine("\tSUB\tR1, R0" + comment);
 }
 
 void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1124,19 +1154,19 @@ void Generator::GenerateLogicOperIntegerArguments(const ExpressionModel& expr, c
         noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
         int ivalue = (int)std::floor(noderight.node.dvalue);
-        m_final->AddLine("\tCMP\t#" + std::to_string(ivalue) + "., R0" + comment);
+        AddLine("\tCMP\t#" + std::to_string(ivalue) + "., R0" + comment);
     }
     else if (noderight.node.type == TokenTypeIdentifier && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(noderight.node.text));
-        m_final->AddLine("\tCMP\t" + deconame + "., R0" + comment);
+        AddLine("\tCMP\t" + deconame + "., R0" + comment);
     }
     else
     {
-        m_final->AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
+        AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
         GenerateExpression(expr, noderight);
-        m_final->AddLine("\tMOV\t(SP)+, R0");  // POP R0
-        m_final->AddLine("\tCMP\tR1, R0" + comment);
+        AddLine("\tMOV\t(SP)+, R0");  // POP R0
+        AddLine("\tCMP\tR1, R0" + comment);
     }
 }
 
@@ -1146,7 +1176,7 @@ void Generator::GenerateOperEqual(const ExpressionModel& expr, const ExpressionN
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //m_final->AddLine("\tBEQ\t");
+    //AddLine("\tBEQ\t");
 
     //TODO
     m_final->AddComment("TODO operation equal");
@@ -1158,7 +1188,7 @@ void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const Expressi
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //m_final->AddLine("\tBNE\t");
+    //AddLine("\tBNE\t");
 
     //TODO
     m_final->AddComment("TODO operation not-equal");
@@ -1170,7 +1200,7 @@ void Generator::GenerateOperLess(const ExpressionModel& expr, const ExpressionNo
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //m_final->AddLine("\tBLO\t");
+    //AddLine("\tBLO\t");
 
     //TODO
     m_final->AddComment("TODO operation less");
@@ -1182,7 +1212,7 @@ void Generator::GenerateOperGreater(const ExpressionModel& expr, const Expressio
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //m_final->AddLine("\tBHI\t");
+    //AddLine("\tBHI\t");
 
     //TODO
     m_final->AddComment("TODO operation greater");
@@ -1194,7 +1224,7 @@ void Generator::GenerateOperLessOrEqual(const ExpressionModel& expr, const Expre
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //m_final->AddLine("\tBLO\t");
+    //AddLine("\tBLO\t");
 
     //TODO
     m_final->AddComment("TODO operation less or equal");
@@ -1206,7 +1236,7 @@ void Generator::GenerateOperGreaterOrEqual(const ExpressionModel& expr, const Ex
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //m_final->AddLine("\tBHI\t");
+    //AddLine("\tBHI\t");
 
     //TODO
     m_final->AddComment("TODO operation greater or equal");
@@ -1246,9 +1276,9 @@ void Generator::GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNod
     const ExpressionModel& expr1 = node.args[0];
     GenerateExpression(expr1);
 
-    m_final->AddLine("\tBPL\t1$");
-    m_final->AddLine("\tNEG\tR0");
-    m_final->AddLine("1$:");
+    AddLine("\tBPL\t1$");
+    AddLine("\tNEG\tR0");
+    AddLine("1$:");
 }
 
 void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNode& node)
@@ -1259,7 +1289,7 @@ void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNod
     GenerateExpression(expr1);
     //TODO: For Single expression, convert to Integer
 
-    m_final->AddLine("\tCALL\tRND");
+    AddRuntimeCall(RuntimeRND);
 }
 
 void Generator::GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNode& node)
@@ -1271,7 +1301,7 @@ void Generator::GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNo
     GenerateExpression(expr1);
     //TODO: For Single expression, convert to Integer
 
-    m_final->AddLine("\tMOV\t(R0), R0\t; PEEK");
+    AddLine("\tMOV\t(R0), R0\t; PEEK");
 }
 
 void Generator::GenerateFuncInp(const ExpressionModel& expr, const ExpressionNode& node)
@@ -1283,15 +1313,15 @@ void Generator::GenerateFuncInp(const ExpressionModel& expr, const ExpressionNod
     GenerateExpression(expr1);
     //TODO: For Single expression, convert to Integer
 
-    m_final->AddLine("\tMOV\t(R0), R1\t; INP value");
+    AddLine("\tMOV\t(R0), R1\t; INP value");
 
     const ExpressionModel& expr2 = node.args[1];
     GenerateExpression(expr2);
     //TODO: For Single expression, convert to Integer
     //TODO: Invert the mask
 
-    m_final->AddLine("\tBIC\tR0, R1\t; INP mask");
-    m_final->AddLine("\tMOV\tR1, R0\t; INP");
+    AddLine("\tBIC\tR0, R1\t; INP mask");
+    AddLine("\tMOV\tR1, R0\t; INP");
 }
 
 void Generator::GenerateFuncLen(const ExpressionModel& expr, const ExpressionNode& node)
@@ -1302,9 +1332,9 @@ void Generator::GenerateFuncLen(const ExpressionModel& expr, const ExpressionNod
     const ExpressionModel& expr1 = node.args[0];
     GenerateExpression(expr1);
 
-    m_final->AddLine("\tMOV\tR0, R1\t");
-    m_final->AddLine("\tCLR\tR0\t");
-    m_final->AddLine("\tBISB\t(R1), R0\t; LEN");  // get byte of the string length
+    AddLine("\tMOV\tR0, R1\t");
+    AddLine("\tCLR\tR0\t");
+    AddLine("\tBISB\t(R1), R0\t; LEN");  // get byte of the string length
 }
 
 void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node)
