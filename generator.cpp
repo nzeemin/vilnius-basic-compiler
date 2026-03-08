@@ -477,7 +477,9 @@ void Generator::GenerateIgnoredStatement(StatementModel& statement)
 
 void Generator::GenerateBeep(StatementModel& statement)
 {
-    m_final->AddLine("\tCALL\tBEEP");
+    //m_final->AddLine("\tCALL\tBEEP");
+    m_final->AddLine("\tMOV\t#7, R0");
+    m_final->AddLine("\tCALL\tWRCHR");
 }
 
 void Generator::GenerateClear(StatementModel& statement)
@@ -487,7 +489,9 @@ void Generator::GenerateClear(StatementModel& statement)
 
 void Generator::GenerateCls(StatementModel& statement)
 {
-    m_final->AddLine("\tCALL\tCLS");
+    //m_final->AddLine("\tCALL\tCLS");
+    m_final->AddLine("\tMOV\t#12, R0");
+    m_final->AddLine("\tCALL\tWRCHR");
 }
 
 void Generator::GenerateColor(StatementModel& statement)

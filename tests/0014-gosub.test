@@ -4,3 +4,22 @@
 800 GOSUB 700
 810 GOSUB 700 'comment
 820 GOSUB 700'comment
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+	.MCALL	.EXIT
+START:
+; 700 RETURN
+L700:
+	RETURN
+; 800 GOSUB 700
+L800:
+	CALL	L700
+; 810 GOSUB 700 'comment
+L810:
+	CALL	L700
+; 820 GOSUB 700'comment
+L820:
+	CALL	L700
+L65536:
+	.EXIT
+	.END	START

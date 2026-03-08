@@ -3,3 +3,19 @@
 200 RETURN
 210 RETURN
 300 RETURN'with comment
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+	.MCALL	.EXIT
+START:
+; 200 RETURN
+L200:
+	RETURN
+; 210 RETURN
+L210:
+	RETURN
+; 300 RETURN'with comment
+L300:
+	RETURN
+L65536:
+	.EXIT
+	.END	START
