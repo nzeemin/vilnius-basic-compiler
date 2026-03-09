@@ -102,11 +102,11 @@ enum RuntimeSymbol
     RuntimeWRCHR           = 1,
     RuntimeWREOL           = 2,
     RuntimeWRAT            = 3,
-    RuntimeWRINT           = 4,
-    RuntimeWRSPC           = 5,
-    RuntimeWRSNG           = 6,
-    RuntimeWRSTR           = 7,
-    RuntimeWRTAB           = 8,
+    RuntimeWRSPC           = 4,
+    RuntimeWRTAB           = 5,
+    RuntimeWRINT           = 6,
+    RuntimeWRSNG           = 7,
+    RuntimeWRSTR           = 8,
     RuntimeSTRCP           = 9,
     RuntimeREADI           = 10,
     RuntimeRND             = 11,
@@ -666,6 +666,10 @@ private:
     void GenerateWRCHR();
     void GenerateWREOL();
     void GenerateWRAT();
+    void GenerateWRSPC();
+    void GenerateWRTAB();
+    void GenerateWRINT();
+    void GenerateWRSNG();
     void GenerateWRSTR();
 };
 

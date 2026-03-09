@@ -19,5 +19,7 @@
 /*.ASC
 /*.MAC
 /*.OBJ
+/*.LST
+/*.MAP
 /tests.temp
 /x-*

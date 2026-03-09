@@ -151,8 +151,9 @@ void Generator::ProcessEnd()
 
     GenerateVariables();
 
-    //GenerateRuntimeNeeds();
+    GenerateRuntimeNeeds();
 
+    AddLine(";");
     AddLine("\t.END\tSTART");
 }
 
@@ -250,13 +251,27 @@ void Generator::GenerateVariables()
 
 void Generator::GenerateRuntimeNeeds()
 {
-    AddComment("RUNTIME NEEDS");
+    AddComment("RUNTIME CALLS");
 
+    int countinline = 0;
+    string line;
     for (RuntimeSymbol need : m_runtimeneeds)
     {
-        string rtsymbolname = GetRuntimeSymbolName(need);
-        AddLine(";\t" + rtsymbolname);
+        if (line.empty())
+            line = "\t.GLOBL\t";
+        if (countinline > 0)
+            line += ", ";
+        line += GetRuntimeSymbolName(need);
+        countinline++;
+        if (countinline >= 4)
+        {
+            AddLine(line);
+            line.clear();
+            countinline = 0;
+        }
     }
+    if (!line.empty())
+        AddLine(line);
 }
 
 bool Generator::ProcessLine()
@@ -1282,7 +1297,10 @@ void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNod
 
     const ExpressionModel& expr1 = node.args[0];
     GenerateExpression(expr1);
-    //TODO: For Single expression, convert to Integer
+    if (expr1.GetExpressionValueType() == ValueTypeSingle)
+    {
+        //TODO: For Single expression, convert to Integer
+    }
 
     AddRuntimeCall(RuntimeRND);
 }

@@ -13,6 +13,10 @@ const RuntimeGeneratorSymbolSpec RuntimeGenerator::m_symbolspecs[] =
     { RuntimeWRCHR, &RuntimeGenerator::GenerateWRCHR },
     { RuntimeWREOL, &RuntimeGenerator::GenerateWREOL },
     { RuntimeWRAT,  &RuntimeGenerator::GenerateWRAT },
+    { RuntimeWRSPC, &RuntimeGenerator::GenerateWRSPC },
+    { RuntimeWRTAB, &RuntimeGenerator::GenerateWRTAB },
+    { RuntimeWRINT, &RuntimeGenerator::GenerateWRINT },
+    { RuntimeWRSNG, &RuntimeGenerator::GenerateWRSNG },
     { RuntimeWRSTR, &RuntimeGenerator::GenerateWRSTR },
 };
 
@@ -116,6 +120,48 @@ void RuntimeGenerator::GenerateWRAT()
     //TODO: Нормировать R1
     //TODO
     AddLine(";TODO");
+    AddLine("RETURN");
+}
+
+void RuntimeGenerator::GenerateWRSPC()
+{
+    AddLine("; Подпрограмма: PRINT SPC(N), печать пробелов");
+    AddLine("; R0 = количество пробелов, 1..255");
+    AddLine("WRSPC::");
+    AddLine("\tMOV\tR0, R1");
+    AddLine("\tMOV\t#040, R0\t; пробел");
+    AddLine("1$:\tCALL\tWRCHR");
+    AddLine("\tSOB\tR1, 1$");
+    AddLine("RETURN");
+    NeedRuntime(RuntimeWRCHR);
+}
+
+void RuntimeGenerator::GenerateWRINT()
+{
+    AddLine("; Печать целого числа");
+    AddLine("WRINT::");
+    //TODO
+    AddLine(";TODO");
+    AddLine("RETURN");
+    NeedRuntime(RuntimeWRCHR);
+}
+
+void RuntimeGenerator::GenerateWRTAB()
+{
+    AddLine("; Подпрограмма: PRINT TAB(N), вывод пробелов пока не достигнем колонки N");
+    AddLine("WRTAB::");
+    //TODO
+    AddLine(";TODO");
+    AddLine("RETURN");
+}
+
+void RuntimeGenerator::GenerateWRSNG()
+{
+    AddLine("; Печать Single числа");
+    AddLine("WRSNG::");
+    //TODO
+    AddLine(";TODO");
+    AddLine("RETURN");
 }
 
 void RuntimeGenerator::GenerateWRSTR()
