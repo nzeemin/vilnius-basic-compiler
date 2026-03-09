@@ -410,7 +410,7 @@ ExpressionModel Parser::ParseExpression()
                 }
                 // Put number node into the tree
                 ExpressionNode nodeNumber;
-                nodeNumber.node = tokenNext;
+                nodeNumber.token = tokenNext;
                 nodeNumber.vtype = tokenNext.vtype;
                 nodeNumber.constval = true;
                 expression.nodes.push_back(nodeNumber);
@@ -421,7 +421,7 @@ ExpressionModel Parser::ParseExpression()
             else  // Unary '+'/'-'
             {
                 ExpressionNode nodeUnary;
-                nodeUnary.node = token;
+                nodeUnary.token = token;
                 expression.nodes.push_back(nodeUnary);
                 expression.root = 0;
                 prev = 0;
@@ -430,7 +430,7 @@ ExpressionModel Parser::ParseExpression()
         else
         {
             ExpressionNode nodeun;
-            nodeun.node = token;
+            nodeun.token = token;
             expression.nodes.push_back(nodeun);
             expression.root = 0;
             prev = 0;
@@ -454,7 +454,7 @@ ExpressionModel Parser::ParseExpression()
 
             // Put the token into the list
             ExpressionNode node;
-            node.node = token;
+            node.token = token;
 
             prev = expression.AddOperationNode(node, prev);
         }
@@ -478,7 +478,7 @@ ExpressionModel Parser::ParseExpression()
                     token.dvalue = -token.dvalue;  // apply the negative sign
                     // Put number into the tree
                     ExpressionNode nodeNumber;
-                    nodeNumber.node = token;
+                    nodeNumber.token = token;
                     nodeNumber.vtype = token.vtype;
                     nodeNumber.constval = true;
                     expression.nodes.push_back(nodeNumber);
@@ -487,7 +487,7 @@ ExpressionModel Parser::ParseExpression()
                 {
                     // Put unary '-' into the tree
                     ExpressionNode nodeUnary;
-                    nodeUnary.node = token;
+                    nodeUnary.token = token;
                     expression.nodes.push_back(nodeUnary);
                 }
             }
@@ -537,7 +537,7 @@ ExpressionModel Parser::ParseExpression()
                 assert(funcspec != nullptr);
 
                 ExpressionNode node;
-                node.node = token;
+                node.token = token;
                 node.vtype = funcspec->resulttype;
 
                 token = PeekNextTokenSkipDivider();
@@ -599,7 +599,7 @@ ExpressionModel Parser::ParseExpression()
             {
                 // Put the token into the list
                 ExpressionNode node;
-                node.node = token;
+                node.token = token;
                 node.vtype = token.vtype;
                 node.constval = true;
 
@@ -610,7 +610,7 @@ ExpressionModel Parser::ParseExpression()
             {
                 // Put the token into the list
                 ExpressionNode node;
-                node.node = token;
+                node.token = token;
                 node.vtype = token.vtype;
                 node.constval = (token.type == TokenTypeString);
 
@@ -1354,7 +1354,7 @@ void Parser::ParsePrint(StatementModel& statement)
         if (token.IsKeyword(KeywordAT))
         {
             ExpressionNode node0;
-            node0.node = GetNextToken();  // AT keyword
+            node0.token = GetNextToken();  // AT keyword
 
             token = GetNextTokenSkipDivider();
             if (!token.IsOpenBracket())
@@ -1391,7 +1391,7 @@ void Parser::ParsePrint(StatementModel& statement)
         if (token.IsKeyword(KeywordTAB))
         {
             ExpressionNode node0;
-            node0.node = GetNextToken();  // TAB keyword
+            node0.token = GetNextToken();  // TAB keyword
 
             token = GetNextTokenSkipDivider();
             if (!token.IsOpenBracket())
@@ -1418,7 +1418,7 @@ void Parser::ParsePrint(StatementModel& statement)
         if (token.IsKeyword(KeywordSPC))
         {
             ExpressionNode node0;
-            node0.node = GetNextToken();  // SPC keyword
+            node0.token = GetNextToken();  // SPC keyword
             
             token = GetNextTokenSkipDivider();
             if (!token.IsOpenBracket())
@@ -1468,7 +1468,7 @@ void Parser::ParsePrint(StatementModel& statement)
 
             // Add special expression with Comma as root
             ExpressionNode node0;
-            node0.node = token;  // Comma
+            node0.token = token;  // Comma
             ExpressionModel expr0;
             expr0.nodes.push_back(node0);
             expr0.root = 0;

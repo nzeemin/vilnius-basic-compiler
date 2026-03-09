@@ -12,7 +12,19 @@ const RuntimeGeneratorSymbolSpec RuntimeGenerator::m_symbolspecs[] =
 {
     { RuntimeWRCHR, &RuntimeGenerator::GenerateWRCHR },
     { RuntimeWREOL, &RuntimeGenerator::GenerateWREOL },
+    { RuntimeWRAT,  &RuntimeGenerator::GenerateWRAT },
+    { RuntimeWRSTR, &RuntimeGenerator::GenerateWRSTR },
 };
+
+RuntimeGeneratorMethodRef RuntimeGenerator::FindRuntimeGeneratorMethodRef(RuntimeSymbol rtsymbol)
+{
+    for (auto it = std::begin(m_symbolspecs); it != std::end(m_symbolspecs); ++it)
+    {
+        if (rtsymbol == it->rtsymbol)
+            return it->methodref;
+    }
+    return nullptr;
+}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -35,16 +47,7 @@ void RuntimeGenerator::GenerateRuntime()
         string rtsymbolname = GetRuntimeSymbolName(rtsymbol);
 
         // Find symbol generator implementation
-        RuntimeGeneratorMethodRef methodref = nullptr;
-        for (auto it = std::begin(m_symbolspecs); it != std::end(m_symbolspecs); ++it)
-        {
-            if (rtsymbol == it->rtsymbol)
-            {
-                methodref = it->methodref;
-                break;
-            }
-        }
-
+        RuntimeGeneratorMethodRef methodref = FindRuntimeGeneratorMethodRef(rtsymbol);
         if (methodref != nullptr)
             (this->*methodref)();
     }
@@ -64,21 +67,13 @@ void RuntimeGenerator::GenerateRuntime()
         //AddLine("; " + rtsymbolname);
 
         // Find symbol generator implementation
-        RuntimeGeneratorMethodRef methodref = nullptr;
-        for (auto it = std::begin(m_symbolspecs); it != std::end(m_symbolspecs); ++it)
-        {
-            if (rtsymbol == it->rtsymbol)
-            {
-                methodref = it->methodref;
-                break;
-            }
-        }
-
+        RuntimeGeneratorMethodRef methodref = FindRuntimeGeneratorMethodRef(rtsymbol);
         if (methodref == nullptr)
         {
             //Error("Runtime generator for symbol " + rtsymbolname + " not found.");
             AddLine(rtsymbolname + "::");
             AddLine("; TODO: Runtime generator for symbol " + rtsymbolname + " not found.");
+            AddLine("\tRETURN ;STUB");
             continue;
         }
 
@@ -110,6 +105,33 @@ void RuntimeGenerator::GenerateWREOL()
     AddLine("CRLF:\t.ASCIZ\t<2><015><012>");
     AddLine("\t.EVEN");
     NeedRuntime(RuntimeWRSTR);
+}
+
+void RuntimeGenerator::GenerateWRAT()
+{
+    AddLine("; Подпрограмма PRINT AT(C,R), перемещение курсора");
+    AddLine("; R0 = колонка 0..255, R1 = строка 0..255");
+    AddLine("WRAT::");
+    //TODO: Нормировать R0
+    //TODO: Нормировать R1
+    //TODO
+    AddLine(";TODO");
+}
+
+void RuntimeGenerator::GenerateWRSTR()
+{
+    AddLine("; Печать строки");
+    AddLine("; R0 = адрес строки, первый байт строки содержит длину строки");
+    AddLine("WRSTR::");
+    AddLine("\tCLR\tR2");
+    AddLine("\tBIS\t(R0)+, R2\t; берём длину строки");
+    AddLine("\tBEQ\t9$\t\t; пустая строка => выходим");
+    AddLine("1$:\tMOVB\t(R0)+, R1");
+    AddLine("2$:\tTSTB\t@#177564\t; Источник канала 0 готов?");
+    AddLine("\tBPL\t2$\t\t; нет => ждём");
+    AddLine("\tMOV\tR1, @#177566\t; передаём символ в канал 0");
+    AddLine("SOB\tR2, 1$");
+    AddLine("9$:\tRETURN");
 }
 
 

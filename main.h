@@ -182,7 +182,7 @@ struct ExpressionModel;
 
 struct ExpressionNode
 {
-    Token	    node;//TODO: rename to token
+    Token       token;
     int         left;
     int         right;
     std::vector<ExpressionModel> args;  // Function argument list
@@ -562,6 +562,7 @@ public:
     const std::set<RuntimeSymbol> GetRuntimeNeeds() const { return m_runtimeneeds; }
 private:
     static const GeneratorKeywordSpec m_keywordspecs[];
+    static GeneratorMethodRef FindGeneratorMethodRef(KeywordIndex keyword);
     static const GeneratorOperSpec m_operspecs[];
     static const GeneratorFuncSpec m_funcspecs[];
 private:
@@ -658,10 +659,13 @@ public:
     void GenerateRuntime();
 private:
     static const RuntimeGeneratorSymbolSpec m_symbolspecs[];
+    static RuntimeGeneratorMethodRef FindRuntimeGeneratorMethodRef(RuntimeSymbol rtsymbol);
 private:
     void AddLine(const string& str) { m_final->AddRuntimeLine(str); }
     void NeedRuntime(RuntimeSymbol rtsymbol);
     void GenerateWRCHR();
     void GenerateWREOL();
+    void GenerateWRAT();
+    void GenerateWRSTR();
 };
 

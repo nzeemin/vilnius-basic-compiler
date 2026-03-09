@@ -192,7 +192,7 @@ void Validator::Error(ExpressionModel& expr, const string& message)
 
 void Validator::Error(ExpressionModel& expr, const ExpressionNode& node, const string& message)
 {
-    std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - " << message << std::endl;
     m_line->error = true;
     RegisterError();
 }
@@ -224,46 +224,46 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
     if (node.right >= 0)
         ValidateExpression(expr, node.right);
 
-    if (node.node.type == TokenTypeIdentifier)
+    if (node.token.type == TokenTypeIdentifier)
     {
         VariableModel var;
-        var.name = GetCanonicVariableName(node.node.text);
+        var.name = GetCanonicVariableName(node.token.text);
         m_source->RegisterVariable(var);
     }
 
-    if (node.node.type == TokenTypeOperation && node.left < 0 && node.right >= 0)  // Unary operation, one operand
+    if (node.token.type == TokenTypeOperation && node.left < 0 && node.right >= 0)  // Unary operation, one operand
     {
         const ExpressionNode& noderight = expr.nodes[node.right];
 
-        if (node.node.text == "+")
+        if (node.token.text == "+")
             ValidateUnaryPlus(expr, node, noderight);
-        else if (node.node.text == "-")
+        else if (node.token.text == "-")
             ValidateUnaryMinus(expr, node, noderight);
-        else if (node.node.text == "NOT")
+        else if (node.token.text == "NOT")
             ValidateUnaryNot(expr, node, noderight);
         else
         {
-            std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - TODO validate unary operator " << node.node.text << std::endl;
+            std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - TODO validate unary operator " << node.token.text << std::endl;
             m_line->error = true;
             RegisterError();
             return;
         }
     }
-    else if (node.node.type == TokenTypeOperation && node.left >= 0 && node.right >= 0)
+    else if (node.token.type == TokenTypeOperation && node.left >= 0 && node.right >= 0)
     {
         const ExpressionNode& nodeleft = expr.nodes[node.left];
         const ExpressionNode& noderight = expr.nodes[node.right];
 
         if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
         {
-            std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - Cannot calculate value type for the node." << std::endl;
+            std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - Cannot calculate value type for the node." << std::endl;
             m_line->error = true;
             RegisterError();
             return;
         }
 
         // Find validator implementation
-        string text = node.node.text;
+        string text = node.token.text;
         ValidatorOperMethodRef methodref = nullptr;
         for (auto it = std::begin(m_operspecs); it != std::end(m_operspecs); ++it)
         {
@@ -278,17 +278,17 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
             (this->*methodref)(expr, node, nodeleft, noderight);
         else
         {
-            std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - TODO validate operator \'" + text + "\'." << std::endl;
+            std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - TODO validate operator \'" + text + "\'." << std::endl;
             m_line->error = true;
             RegisterError();
             return;
         }
     }
 
-    if (node.node.type == TokenTypeKeyword)  // Check is it function, validate function
+    if (node.token.type == TokenTypeKeyword)  // Check is it function, validate function
     {
         // Find validator implementation
-        KeywordIndex keyword = node.node.keyword;
+        KeywordIndex keyword = node.token.keyword;
         ValidatorFuncMethodRef methodref = nullptr;
         for (auto it = std::begin(m_funcspecs); it != std::end(m_funcspecs); ++it)
         {
@@ -301,7 +301,7 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
 
         if (methodref == nullptr)
         {
-            std::cerr << "ERROR in line " << m_line->number << " at " << node.node.line << ":" << node.node.pos << " - TODO validate function " + GetKeywordString(keyword) << std::endl;
+            std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - TODO validate function " + GetKeywordString(keyword) << std::endl;
             m_line->error = true;
             RegisterError();
             return;
@@ -978,12 +978,12 @@ void Validator::ValidatePrint(StatementModel& statement)
                 // New node used to concatenate two strings
                 size_t shift = expr1.nodes.size() + 1;
                 ExpressionNode nodeplus;
-                nodeplus.node.type = TokenTypeOperation;
-                nodeplus.node.text = "+";
+                nodeplus.token.type = TokenTypeOperation;
+                nodeplus.token.text = "+";
                 nodeplus.left = expr1.root;
                 nodeplus.right = shift + expr2.root;
                 nodeplus.constval = true;
-                nodeplus.node.svalue = expr1.GetConstExpressionSValue() + expr2.GetConstExpressionSValue();
+                nodeplus.token.svalue = expr1.GetConstExpressionSValue() + expr2.GetConstExpressionSValue();
                 expr1.root = expr1.nodes.size();
                 expr1.nodes.push_back(nodeplus);
 
@@ -1008,11 +1008,11 @@ void Validator::ValidatePrint(StatementModel& statement)
         if (expr.IsEmpty())
             MODEL_ERROR("Expressions should not be empty.");
         ExpressionNode& root = expr.nodes[expr.root];
-        if (root.node.IsComma())
+        if (root.token.IsComma())
         {
             // Don't validate Comma
         }
-        else if (root.node.IsKeyword(KeywordAT))
+        else if (root.token.IsKeyword(KeywordAT))
         {
             if (root.args.size() != 2)
                 MODEL_ERROR("Two expressions expected for AT function.");
@@ -1023,7 +1023,7 @@ void Validator::ValidatePrint(StatementModel& statement)
             if (!CheckIntegerOrSingleExpression(expr2))
                 return;
         }
-        else if (root.node.IsKeyword(KeywordTAB))
+        else if (root.token.IsKeyword(KeywordTAB))
         {
             if (root.args.size() != 1)
                 MODEL_ERROR("One expressions expected for TAB function.");
@@ -1031,7 +1031,7 @@ void Validator::ValidatePrint(StatementModel& statement)
             if (!CheckIntegerOrSingleExpression(expr1))
                 return;
         }
-        else if (root.node.IsKeyword(KeywordSPC))
+        else if (root.token.IsKeyword(KeywordSPC))
         {
             if (root.args.size() != 1)
                 MODEL_ERROR("One expressions expected for SPC function.");
@@ -1140,7 +1140,7 @@ void Validator::ValidateUnaryPlus(ExpressionModel& expr, ExpressionNode& node, c
     node.constval = noderight.constval;
     if (node.constval)
     {
-        node.node.dvalue = noderight.node.dvalue;
+        node.token.dvalue = noderight.token.dvalue;
     }
 }
 
@@ -1155,7 +1155,7 @@ void Validator::ValidateUnaryMinus(ExpressionModel& expr, ExpressionNode& node, 
     node.constval = noderight.constval;
     if (node.constval)
     {
-        node.node.dvalue = -noderight.node.dvalue;  // invert sign
+        node.token.dvalue = -noderight.token.dvalue;  // invert sign
     }
 }
 
@@ -1174,14 +1174,14 @@ void Validator::ValidateOperPlus(ExpressionModel& expr, ExpressionNode& node, co
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        node.node.vtype = node.vtype;
+        node.token.vtype = node.vtype;
         if (node.vtype == ValueTypeInteger || node.vtype == ValueTypeSingle)
-            node.node.dvalue = nodeleft.node.dvalue + noderight.node.dvalue;
+            node.token.dvalue = nodeleft.token.dvalue + noderight.token.dvalue;
         else if (node.vtype == ValueTypeString)
         {
-            node.node.svalue = nodeleft.node.svalue + noderight.node.svalue;
-            if (node.node.svalue.length() > 255)
-                node.node.svalue.resize(255);
+            node.token.svalue = nodeleft.token.svalue + noderight.token.svalue;
+            if (node.token.svalue.length() > 255)
+                node.token.svalue.resize(255);
         }
     }
 }
@@ -1203,7 +1203,7 @@ void Validator::ValidateOperMinus(ExpressionModel& expr, ExpressionNode& node, c
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        node.node.dvalue = nodeleft.node.dvalue - noderight.node.dvalue;
+        node.token.dvalue = nodeleft.token.dvalue - noderight.token.dvalue;
     }
 }
 
@@ -1224,7 +1224,7 @@ void Validator::ValidateOperMul(ExpressionModel& expr, ExpressionNode& node, con
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        node.node.dvalue = nodeleft.node.dvalue * noderight.node.dvalue;
+        node.token.dvalue = nodeleft.token.dvalue * noderight.token.dvalue;
     }
 }
 
@@ -1245,10 +1245,10 @@ void Validator::ValidateOperDiv(ExpressionModel& expr, ExpressionNode& node, con
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        if (noderight.node.dvalue == 0)
+        if (noderight.token.dvalue == 0)
             EXPR_ERROR("Division by zero.");
 
-        node.node.dvalue = nodeleft.node.dvalue / noderight.node.dvalue;
+        node.token.dvalue = nodeleft.token.dvalue / noderight.token.dvalue;
     }
 }
 
@@ -1263,10 +1263,10 @@ void Validator::ValidateOperDivInt(ExpressionModel& expr, ExpressionNode& node, 
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        if (((int)noderight.node.dvalue) == 0)
+        if (((int)noderight.token.dvalue) == 0)
             EXPR_ERROR("Division by zero.");
 
-        node.node.dvalue = ((int)nodeleft.node.dvalue) / ((int)noderight.node.dvalue);
+        node.token.dvalue = ((int)nodeleft.token.dvalue) / ((int)noderight.token.dvalue);
     }
 }
 
@@ -1281,11 +1281,11 @@ void Validator::ValidateOperMod(ExpressionModel& expr, ExpressionNode& node, con
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        int ivalueright = (int)noderight.node.dvalue;
+        int ivalueright = (int)noderight.token.dvalue;
         if (ivalueright == 0)
-            node.node.dvalue = 0;
+            node.token.dvalue = 0;
         else
-            node.node.dvalue = ((int)nodeleft.node.dvalue) % ivalueright;
+            node.token.dvalue = ((int)nodeleft.token.dvalue) % ivalueright;
     }
 }
 
@@ -1301,13 +1301,13 @@ void Validator::ValidateOperPower(ExpressionModel& expr, ExpressionNode& node, c
 
     if (node.constval)
     {
-        node.node.dvalue = pow(nodeleft.node.dvalue, noderight.node.dvalue);
-        if (!std::isfinite(node.node.dvalue))
+        node.token.dvalue = pow(nodeleft.token.dvalue, noderight.token.dvalue);
+        if (!std::isfinite(node.token.dvalue))
             EXPR_ERROR("Bad result of power operation in const expression.");
 
         // Allow Integer result if operands are Integer and the result is in the range
         if (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeInteger &&
-            node.node.dvalue >= -32768 && node.node.dvalue <= 32767)
+            node.token.dvalue >= -32768 && node.token.dvalue <= 32767)
             node.vtype = ValueTypeInteger;
     }
 }
@@ -1325,11 +1325,11 @@ void Validator::ValidateOperEqual(ExpressionModel& expr, ExpressionNode& node, c
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
             (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
         {
-            node.node.dvalue = (nodeleft.node.dvalue == noderight.node.dvalue) ? -1 : 0;
+            node.token.dvalue = (nodeleft.token.dvalue == noderight.token.dvalue) ? -1 : 0;
         }
         else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
         {
-            node.node.dvalue = (nodeleft.node.svalue == noderight.node.svalue) ? -1 : 0;
+            node.token.dvalue = (nodeleft.token.svalue == noderight.token.svalue) ? -1 : 0;
         }
     }
 }
@@ -1347,11 +1347,11 @@ void Validator::ValidateOperNotEqual(ExpressionModel& expr, ExpressionNode& node
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
             (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
         {
-            node.node.dvalue = (nodeleft.node.dvalue != noderight.node.dvalue) ? -1 : 0;
+            node.token.dvalue = (nodeleft.token.dvalue != noderight.token.dvalue) ? -1 : 0;
         }
         else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
         {
-            node.node.dvalue = (nodeleft.node.svalue == noderight.node.svalue) ? 0 : -1;
+            node.token.dvalue = (nodeleft.token.svalue == noderight.token.svalue) ? 0 : -1;
         }
     }
 }
@@ -1369,7 +1369,7 @@ void Validator::ValidateOperLess(ExpressionModel& expr, ExpressionNode& node, co
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
             (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
         {
-            node.node.dvalue = (nodeleft.node.dvalue < noderight.node.dvalue) ? -1 : 0;
+            node.token.dvalue = (nodeleft.token.dvalue < noderight.token.dvalue) ? -1 : 0;
         }
         else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
         {
@@ -1391,7 +1391,7 @@ void Validator::ValidateOperLessOrEqual(ExpressionModel& expr, ExpressionNode& n
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
             (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
         {
-            node.node.dvalue = (nodeleft.node.dvalue <= noderight.node.dvalue) ? -1 : 0;
+            node.token.dvalue = (nodeleft.token.dvalue <= noderight.token.dvalue) ? -1 : 0;
         }
         else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
         {
@@ -1413,7 +1413,7 @@ void Validator::ValidateOperGreater(ExpressionModel& expr, ExpressionNode& node,
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
             (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
         {
-            node.node.dvalue = (nodeleft.node.dvalue > noderight.node.dvalue) ? -1 : 0;
+            node.token.dvalue = (nodeleft.token.dvalue > noderight.token.dvalue) ? -1 : 0;
         }
         else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
         {
@@ -1435,7 +1435,7 @@ void Validator::ValidateOperGreaterOrEqual(ExpressionModel& expr, ExpressionNode
         if ((nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
             (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
         {
-            node.node.dvalue = (nodeleft.node.dvalue >= noderight.node.dvalue) ? -1 : 0;
+            node.token.dvalue = (nodeleft.token.dvalue >= noderight.token.dvalue) ? -1 : 0;
         }
         else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
         {
@@ -1456,7 +1456,7 @@ void Validator::ValidateUnaryNot(ExpressionModel& expr, ExpressionNode& node, co
 
     if (node.constval)
     {
-        node.node.dvalue = noderight.node.dvalue == 0 ? -1 : 0;
+        node.token.dvalue = noderight.token.dvalue == 0 ? -1 : 0;
     }
 }
 
@@ -1472,9 +1472,9 @@ void Validator::ValidateOperAnd(ExpressionModel& expr, ExpressionNode& node, con
 
     if (node.constval)
     {
-        int ivalueleft = (int)nodeleft.node.dvalue;
-        int ivalueright = (int)noderight.node.dvalue;
-        node.node.dvalue = ivalueleft & ivalueright;
+        int ivalueleft = (int)nodeleft.token.dvalue;
+        int ivalueright = (int)noderight.token.dvalue;
+        node.token.dvalue = ivalueleft & ivalueright;
     }
 }
 
@@ -1490,9 +1490,9 @@ void Validator::ValidateOperOr(ExpressionModel& expr, ExpressionNode& node, cons
 
     if (node.constval)
     {
-        int ivalueleft = (int)nodeleft.node.dvalue;
-        int ivalueright = (int)noderight.node.dvalue;
-        node.node.dvalue = ivalueleft | ivalueright;
+        int ivalueleft = (int)nodeleft.token.dvalue;
+        int ivalueright = (int)noderight.token.dvalue;
+        node.token.dvalue = ivalueleft | ivalueright;
     }
 }
 
@@ -1508,9 +1508,9 @@ void Validator::ValidateOperXor(ExpressionModel& expr, ExpressionNode& node, con
 
     if (node.constval)
     {
-        int ivalueleft = (int)nodeleft.node.dvalue;
-        int ivalueright = (int)noderight.node.dvalue;
-        node.node.dvalue = ivalueleft ^ ivalueright;
+        int ivalueleft = (int)nodeleft.token.dvalue;
+        int ivalueright = (int)noderight.token.dvalue;
+        node.token.dvalue = ivalueleft ^ ivalueright;
     }
 }
 
@@ -1525,9 +1525,9 @@ void Validator::ValidateOperEqv(ExpressionModel& expr, ExpressionNode& node, con
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
-        int ivalueleft = (int)nodeleft.node.dvalue;
-        int ivalueright = (int)noderight.node.dvalue;
-        node.node.dvalue =
+        int ivalueleft = (int)nodeleft.token.dvalue;
+        int ivalueright = (int)noderight.token.dvalue;
+        node.token.dvalue =
             (((ivalueleft != 0) && (ivalueright != 0)) || ((ivalueleft == 0) && (ivalueright == 0))) ? -1 : 0;
     }
 }
@@ -1544,9 +1544,9 @@ void Validator::ValidateOperImp(ExpressionModel& expr, ExpressionNode& node, con
 
     if (node.constval)
     {
-        int ivalueleft = (int)nodeleft.node.dvalue;
-        int ivalueright = (int)noderight.node.dvalue;
-        node.node.dvalue = ((ivalueleft != 0) && (ivalueright == 0)) ? 0 : -1;
+        int ivalueleft = (int)nodeleft.token.dvalue;
+        int ivalueright = (int)noderight.token.dvalue;
+        node.token.dvalue = ((ivalueleft != 0) && (ivalueright == 0)) ? 0 : -1;
     }
 }
 
@@ -1567,7 +1567,7 @@ void Validator::ValidateFuncSin(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = sin(expr1.GetConstExpressionDValue());
+        node.token.dvalue = sin(expr1.GetConstExpressionDValue());
     }
 }
 
@@ -1585,7 +1585,7 @@ void Validator::ValidateFuncCos(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = cos(expr1.GetConstExpressionDValue());
+        node.token.dvalue = cos(expr1.GetConstExpressionDValue());
     }
 }
 
@@ -1603,7 +1603,7 @@ void Validator::ValidateFuncTan(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = tan(expr1.GetConstExpressionDValue());
+        node.token.dvalue = tan(expr1.GetConstExpressionDValue());
     }
 }
 
@@ -1621,7 +1621,7 @@ void Validator::ValidateFuncAtn(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = atan(expr1.GetConstExpressionDValue());
+        node.token.dvalue = atan(expr1.GetConstExpressionDValue());
     }
 }
 
@@ -1632,7 +1632,7 @@ void Validator::ValidateFuncPi(ExpressionModel& expr, ExpressionNode& node)
 
     node.vtype = ValueTypeSingle;
     node.constval = true;
-    node.node.dvalue = 3.141593;
+    node.token.dvalue = 3.141593;
 }
 
 void Validator::ValidateFuncExp(ExpressionModel& expr, ExpressionNode& node)
@@ -1649,7 +1649,7 @@ void Validator::ValidateFuncExp(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = exp(expr1.GetConstExpressionDValue());
+        node.token.dvalue = exp(expr1.GetConstExpressionDValue());
     }
 }
 
@@ -1667,7 +1667,7 @@ void Validator::ValidateFuncLog(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = log(expr1.GetConstExpressionDValue());
+        node.token.dvalue = log(expr1.GetConstExpressionDValue());
     }
 }
 
@@ -1685,7 +1685,7 @@ void Validator::ValidateFuncAbs(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = std::abs(expr1.GetConstExpressionDValue());
+        node.token.dvalue = std::abs(expr1.GetConstExpressionDValue());
     }
 }
 
@@ -1703,7 +1703,7 @@ void Validator::ValidateFuncCintFix(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = (int)(expr1.GetConstExpressionDValue());
+        node.token.dvalue = (int)(expr1.GetConstExpressionDValue());
         //TODO: check for range -32768..32767
     }
 }
@@ -1722,7 +1722,7 @@ void Validator::ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = std::floor(expr1.GetConstExpressionDValue());
+        node.token.dvalue = std::floor(expr1.GetConstExpressionDValue());
     }
 }
 
@@ -1742,9 +1742,9 @@ void Validator::ValidateFuncSgn(ExpressionModel& expr, ExpressionNode& node)
     {
         double dvalue = expr1.GetConstExpressionDValue();
         if (dvalue == 0)
-            node.node.dvalue = 0;
+            node.token.dvalue = 0;
         else
-            node.node.dvalue = dvalue > 0 ? 1 : -1;
+            node.token.dvalue = dvalue > 0 ? 1 : -1;
     }
 }
 
@@ -1788,7 +1788,7 @@ void Validator::ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = expr1.GetConstExpressionDValue();
+        node.token.dvalue = expr1.GetConstExpressionDValue();
     }
 }
 
@@ -1839,7 +1839,7 @@ void Validator::ValidateFuncAsc(ExpressionModel& expr, ExpressionNode& node)
         string svalue = expr1.GetConstExpressionSValue();
         if (svalue.empty())
             EXPR_ERROR("Function ASC parameter is empty.");
-        node.node.dvalue = (int)svalue[0];  //TODO: depends on charset
+        node.token.dvalue = (int)svalue[0];  //TODO: depends on charset
     }
 }
 
@@ -1861,10 +1861,10 @@ void Validator::ValidateFuncChr(ExpressionModel& expr, ExpressionNode& node)
         if (ivalue < 0 || ivalue > 255)
             EXPR_ERROR("Function CHR$ parameter is out of range 0..255.");
 
-        node.node.svalue = (char)ivalue;
+        node.token.svalue = (char)ivalue;
 
-        if (!node.node.svalue.empty())
-            m_source->RegisterConstString(node.node.svalue);
+        if (!node.token.svalue.empty())
+            m_source->RegisterConstString(node.token.svalue);
     }
 }
 
@@ -1882,7 +1882,7 @@ void Validator::ValidateFuncLen(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.node.dvalue = expr1.GetConstExpressionSValue().length();
+        node.token.dvalue = expr1.GetConstExpressionSValue().length();
     }
 }
 
@@ -1921,20 +1921,20 @@ void Validator::ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node)
             EXPR_ERROR("Function MID$ second parameter out of range 1..255.");
 
         if (svalue1.empty() || ivalue2 - 1 >= (int)svalue1.length())
-            node.node.svalue.clear();
+            node.token.svalue.clear();
         else if (node.args.size() < 3)
-            node.node.svalue = svalue1.substr(ivalue2 - 1);
+            node.token.svalue = svalue1.substr(ivalue2 - 1);
         else
         {
             ExpressionModel& expr3 = node.args[2];
             int ivalue3 = (int)expr3.GetConstExpressionDValue();
             if (ivalue3 < 0)
                 EXPR_ERROR("Function MID$ third parameter should not be negative.");
-            node.node.svalue = svalue1.substr(ivalue2 - 1, ivalue3);
+            node.token.svalue = svalue1.substr(ivalue2 - 1, ivalue3);
         }
 
-        if (!node.node.svalue.empty())
-            m_source->RegisterConstString(node.node.svalue);
+        if (!node.token.svalue.empty())
+            m_source->RegisterConstString(node.token.svalue);
     }
 }
 
@@ -1961,14 +1961,14 @@ void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
             EXPR_ERROR("Function STRING$ first parameter is not in range 0..255.");
 
         if (ivalue1 == 0)
-            node.node.svalue.clear();
+            node.token.svalue.clear();
         if (expr2.GetExpressionValueType() == ValueTypeString)
         {
             string svalue2 = expr2.GetConstExpressionSValue();
             if (svalue2.empty())
                 EXPR_ERROR("Function STRING$ second parameter is empty string.");
             char filler = svalue2[0];
-            node.node.svalue = string(ivalue1, filler);
+            node.token.svalue = string(ivalue1, filler);
         }
         else  // Integer/Single
         {
@@ -1976,11 +1976,11 @@ void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
             if (ivalue2 < 0 || ivalue2 > 255)
                 EXPR_ERROR("Function STRING$ second parameter is not in range 0..255.");
             char filler = (char)ivalue2;  //TODO: depends on charset
-            node.node.svalue = string(ivalue1, filler);
+            node.token.svalue = string(ivalue1, filler);
         }
 
-        if (!node.node.svalue.empty())
-            m_source->RegisterConstString(node.node.svalue);
+        if (!node.token.svalue.empty())
+            m_source->RegisterConstString(node.token.svalue);
     }
 }
 
@@ -2033,7 +2033,7 @@ void Validator::ValidateFuncStr(ExpressionModel& expr, ExpressionNode& node)
 
             std::stringstream ss;
             ss << std::dec << ivalue;
-            node.node.svalue = ss.str();
+            node.token.svalue = ss.str();
         }
         else  // Single
         {
@@ -2067,7 +2067,7 @@ void Validator::ValidateFuncBin(ExpressionModel& expr, ExpressionNode& node)
         string svalue = ss.str();
         while (svalue.length() > 1 && svalue[0] == '0')
             svalue.erase(0, 1);
-        node.node.svalue = svalue;
+        node.token.svalue = svalue;
     }
 }
 
@@ -2092,7 +2092,7 @@ void Validator::ValidateFuncOct(ExpressionModel& expr, ExpressionNode& node)
     {
         std::stringstream ss;
         ss << std::oct << ivalue;
-        node.node.svalue = ss.str();
+        node.token.svalue = ss.str();
     }
 }
 
@@ -2119,7 +2119,7 @@ void Validator::ValidateFuncHex(ExpressionModel& expr, ExpressionNode& node)
         ss << std::hex << ivalue;
         string svalue = ss.str();
         std::transform(svalue.begin(), svalue.end(), svalue.begin(), ::toupper);
-        node.node.svalue = svalue;
+        node.token.svalue = svalue;
     }
 }
 

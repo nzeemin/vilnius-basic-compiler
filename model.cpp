@@ -212,26 +212,26 @@ int ExpressionNode::GetOperationPriority() const
     if (brackets)
         return 1;
 
-    if (node.type == TokenTypeOperation)
+    if (token.type == TokenTypeOperation)
     {
-        if (node.text == "^")
+        if (token.text == "^")
             return 2;
-        if (node.text == "*" || node.text == "/")
+        if (token.text == "*" || token.text == "/")
             return 3;
-        if (node.text == "\\")
+        if (token.text == "\\")
             return 4;
-        if (node.text == "+" || node.text == "-")
+        if (token.text == "+" || token.text == "-")
             return 6;
-        if (node.text == "=" || node.text == "<>" || node.text == "><" ||
-            node.text == ">=" || node.text == "<=" || node.text == "=>" || node.text == "=<")
+        if (token.text == "=" || token.text == "<>" || token.text == "><" ||
+            token.text == ">=" || token.text == "<=" || token.text == "=>" || token.text == "=<")
             return 7;
-        if ((node.text == "AND" || node.text == "OR" || node.text == "XOR" ||
-            node.text == "EQV" || node.text == "IMP"))
+        if ((token.text == "AND" || token.text == "OR" || token.text == "XOR" ||
+            token.text == "EQV" || token.text == "IMP"))
             return 8;
         return 0;
     }
 
-    if (node.type == TokenTypeKeyword && node.keyword == KeywordMOD)
+    if (token.type == TokenTypeKeyword && token.keyword == KeywordMOD)
         return 5;
 
     return 0;
@@ -257,7 +257,7 @@ void ExpressionNode::Dump(std::ostream& out) const
         out << "   ";
     out << " ";
 
-    node.Dump(out);
+    token.Dump(out);
 
     if (vtype != ValueTypeNone)
         std::cout << " " << GetNodeVTypeStr();
@@ -315,7 +315,7 @@ double ExpressionModel::GetConstExpressionDValue() const
         return 0;
 
     const ExpressionNode& noderoot = nodes[root];
-    return noderoot.node.dvalue;
+    return noderoot.token.dvalue;
 }
 
 string ExpressionModel::GetConstExpressionSValue() const
@@ -324,7 +324,7 @@ string ExpressionModel::GetConstExpressionSValue() const
         return "";
 
     const ExpressionNode& noderoot = nodes[root];
-    return noderoot.node.svalue;
+    return noderoot.token.svalue;
 }
 
 bool ExpressionModel::IsVariableExpression() const
@@ -333,7 +333,7 @@ bool ExpressionModel::IsVariableExpression() const
         return false;
 
     const ExpressionNode& noderoot = nodes[root];
-    return noderoot.node.type == TokenTypeIdentifier;
+    return noderoot.token.type == TokenTypeIdentifier;
 }
 
 string ExpressionModel::GetVariableExpressionDecoratedName() const
@@ -342,10 +342,10 @@ string ExpressionModel::GetVariableExpressionDecoratedName() const
         return string();
 
     const ExpressionNode& noderoot = nodes[root];
-    if (noderoot.node.type != TokenTypeIdentifier)
+    if (noderoot.token.type != TokenTypeIdentifier)
         return string();
 
-    return DecorateVariableName(GetCanonicVariableName(noderoot.node.text));
+    return DecorateVariableName(GetCanonicVariableName(noderoot.token.text));
 }
 
 ValueType ExpressionModel::GetExpressionValueType() const
@@ -356,7 +356,7 @@ ValueType ExpressionModel::GetExpressionValueType() const
     const ExpressionNode& noderoot = nodes[root];
     if (noderoot.vtype != ValueTypeNone)
         return noderoot.vtype;
-    return noderoot.node.vtype;
+    return noderoot.token.vtype;
 }
 
 int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
@@ -366,7 +366,7 @@ int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
 
     {
         ExpressionNode& nodepred = nodes[pred];
-        if (!nodepred.node.IsBinaryOperation() || nodepred.brackets)
+        if (!nodepred.token.IsBinaryOperation() || nodepred.brackets)
         {
             node.left = pred;
             root = index;

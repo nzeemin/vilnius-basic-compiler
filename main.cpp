@@ -41,10 +41,10 @@ void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
     {
         ExpressionNode& node = expr.nodes[j];
         std::cout << std::endl << std::setw(indent * 2 + 2) << "  " << j << ": ";
-        if (!node.node.text.empty())
-            std::cout << std::left << std::setw(6) << node.node.text;
-        if (node.node.type == TokenTypeSymbol)
-            std::cout << std::left << std::setw(6) << node.node.symbol;
+        if (!node.token.text.empty())
+            std::cout << std::left << std::setw(6) << node.token.text;
+        if (node.token.type == TokenTypeSymbol)
+            std::cout << std::left << std::setw(6) << node.token.symbol;
         std::cout << " ";
 
         node.Dump(std::cout);
