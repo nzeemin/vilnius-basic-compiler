@@ -437,6 +437,26 @@ void process_test(const string& testfilename)
         }
     }
 
+    // Read VIBAS.MAC and check for TODOs
+    std::ifstream fsrt(testdirpath + PATH_SEPARATOR + "VIBAS.MAC");
+    bool rthastodos = false;
+    while (!fsrt.eof())
+    {
+        fsrt.getline(buffer, sizeof(buffer));
+        if (*buffer == 0)  // skip empty lines
+            continue;
+        string line(buffer);
+        if (line.find("TODO") != string::npos)
+            rthastodos = true;
+    }
+    fsrt.close();
+    if (rthastodos)
+    {
+        std::cout << "  FAILED: Runtime .MAC file contains TODOs" << std::endl;
+        g_failedtests++;
+        return;
+    }
+
     SetTextAttribute(TEXTATTRIBUTES_GOOD);
     std::cout << "OK";
     SetTextAttribute(TEXTATTRIBUTES_NORMAL);

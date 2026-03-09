@@ -8,71 +8,127 @@
 //////////////////////////////////////////////////////////////////////
 
 
-const RuntimeGeneratorSymbolSpec RuntimeGenerator::m_symbolspecs[] =
-{
-    { RuntimeWRCHR, &RuntimeGenerator::GenerateWRCHR },
-    { RuntimeWREOL, &RuntimeGenerator::GenerateWREOL },
-    { RuntimeWRAT,  &RuntimeGenerator::GenerateWRAT },
-    { RuntimeWRSPC, &RuntimeGenerator::GenerateWRSPC },
-    { RuntimeWRTAB, &RuntimeGenerator::GenerateWRTAB },
-    { RuntimeWRINT, &RuntimeGenerator::GenerateWRINT },
-    { RuntimeWRSNG, &RuntimeGenerator::GenerateWRSNG },
-    { RuntimeWRSTR, &RuntimeGenerator::GenerateWRSTR },
-};
-
-RuntimeGeneratorMethodRef RuntimeGenerator::FindRuntimeGeneratorMethodRef(RuntimeSymbol rtsymbol)
-{
-    for (auto it = std::begin(m_symbolspecs); it != std::end(m_symbolspecs); ++it)
-    {
-        if (rtsymbol == it->rtsymbol)
-            return it->methodref;
-    }
-    return nullptr;
-}
-
-
-//////////////////////////////////////////////////////////////////////
-
-
 RuntimeGenerator::RuntimeGenerator(const std::set<RuntimeSymbol>& needs, FinalModel* intermed)
     : m_needs(needs), m_final(intermed)
 {
     assert(intermed != nullptr);
 }
 
+void RuntimeGenerator::ParseRuntimeTemplate(std::istream* pInput)
+{
+    std::vector<string> lines;  // lines for the current block
+    RuntimeSymbol blockrtsymbol = RuntimeNone;  // name for the current block
+    //TODO: block needs
+    char buffer[256];
+    bool preambule = true;
+    while (!pInput->eof())
+    {
+        pInput->getline(buffer, sizeof(buffer));
+        if (*buffer == 0)  // skip empty lines
+            continue;
+        string line(buffer);
+        if (preambule)
+        {
+            if (line.find(";####") == std::string::npos)  // not start of block
+                continue;  // skip this line
+            preambule = false;  // start of the first block
+        }
+
+        if (line.find(";####") == 0)  // start of block
+        {
+            if (!lines.empty())
+            {
+                RuntimeBlock block;
+                block.rtsymbol = blockrtsymbol;
+                block.lines = lines;
+                m_rtblocks.push_back(block);
+            }
+
+            lines.clear();
+            blockrtsymbol = RuntimeNone;
+        }
+        else if (line.find(";## Need ") == 0)  // list of dependencies
+        {
+            string needname = line.substr(9);
+            RuntimeSymbol needrtsymbol = FindRuntimeSymbolByName(needname);
+            if (needrtsymbol == RuntimeNone)
+            {
+                std::cerr << "Runtime template parsing ERROR: unknown Need name " << needname << std::endl;
+                RegisterError();
+                return;
+            }
+        }
+        else if (line.find(";## ") == 0)  // block name
+        {
+            string blockname = line.substr(4);
+            blockrtsymbol = FindRuntimeSymbolByName(blockname);
+            if (blockrtsymbol == RuntimeNone)
+            {
+                std::cerr << "Runtime template parsing ERROR: unknown block name " << blockname << std::endl;
+                RegisterError();
+                return;
+            }
+        }
+        else
+        {
+            lines.push_back(line);
+        }
+    }
+    if (!lines.empty())
+    {
+        RuntimeBlock block;
+        block.lines = lines;
+        m_rtblocks.push_back(block);
+    }
+}
+
+RuntimeBlock RuntimeGenerator::FindRuntimeBlock(RuntimeSymbol rtsymbol)
+{
+    for (auto it = std::begin(m_rtblocks); it != std::end(m_rtblocks); ++it)
+    {
+        if (rtsymbol == it->rtsymbol)
+            return *it;
+    }
+    return RuntimeBlock();  // empty block
+}
+
 void RuntimeGenerator::GenerateRuntime()
 {
     std::vector<RuntimeSymbol> listneeds;
-
-    // First pass to collect all dependencies in m_needs
     std::copy(m_needs.begin(), m_needs.end(), std::back_inserter(listneeds));
+
+    // First collect all dependencies in m_needs
     for (RuntimeSymbol rtsymbol : listneeds)
     {
         string rtsymbolname = GetRuntimeSymbolName(rtsymbol);
 
-        // Find symbol generator implementation
-        RuntimeGeneratorMethodRef methodref = FindRuntimeGeneratorMethodRef(rtsymbol);
-        if (methodref != nullptr)
-            (this->*methodref)();
+        // Find symbol block
+        RuntimeBlock rtblock = FindRuntimeBlock(rtsymbol);
+        if (rtblock.rtsymbol == RuntimeNone)
+        {
+            //TODO: error
+        }
+
+        //TODO collect needs
+        //TODO: should be recursive
     }
 
     //NOTE: Now we have all the dependencies in m_needs
 
     // Prepare for the second pass
-    m_final->runtimelines.clear();
     listneeds.clear();
     
-    // Second pass to actually generate all the runtime code
+    // Generate all the runtime code
     std::copy(m_needs.begin(), m_needs.end(), std::back_inserter(listneeds));
     for (RuntimeSymbol rtsymbol : listneeds)
     {
         string rtsymbolname = GetRuntimeSymbolName(rtsymbol);
-        AddLine("");
+        m_final->AddRuntimeLine("");
         //AddLine("; " + rtsymbolname);
 
-        // Find symbol generator implementation
-        RuntimeGeneratorMethodRef methodref = FindRuntimeGeneratorMethodRef(rtsymbol);
-        if (methodref == nullptr)
+        // Find symbol block
+        RuntimeBlock rtblock = FindRuntimeBlock(rtsymbol);
+        if (rtblock.rtsymbol == RuntimeNone)
         {
             //Error("Runtime generator for symbol " + rtsymbolname + " not found.");
             AddLine(rtsymbolname + "::");
@@ -81,103 +137,15 @@ void RuntimeGenerator::GenerateRuntime()
             continue;
         }
 
-        (this->*methodref)();
+        // copy lines to final model
+        for (string line : rtblock.lines)
+            AddLine(line);
     }
 }
 
 void RuntimeGenerator::NeedRuntime(RuntimeSymbol rtsymbol)
 {
     m_needs.insert(rtsymbol);
-}
-
-void RuntimeGenerator::GenerateWRCHR()
-{
-    AddLine("; Печать одного символа; R0 = символ");
-    AddLine("WRCHR::");
-    AddLine("20$:\tTSTB	@#177564\t; Источник канала 0 готов?");
-    AddLine("\tBPL\t20$\t\t; нет => ждём");
-    AddLine("\tMOV\tR0, @#177566\t; передаём символ в канал 0");
-    AddLine("\tRETURN");
-}
-
-void RuntimeGenerator::GenerateWREOL()
-{
-    AddLine("; Печать перевода строки");
-    AddLine("WREOL::");
-    AddLine("\tMOV\t#CRLF, R0");
-    AddLine("\tJMP\tWRSTR");
-    AddLine("CRLF:\t.ASCIZ\t<2><015><012>");
-    AddLine("\t.EVEN");
-    NeedRuntime(RuntimeWRSTR);
-}
-
-void RuntimeGenerator::GenerateWRAT()
-{
-    AddLine("; Подпрограмма PRINT AT(C,R), перемещение курсора");
-    AddLine("; R0 = колонка 0..255, R1 = строка 0..255");
-    AddLine("WRAT::");
-    //TODO: Нормировать R0
-    //TODO: Нормировать R1
-    //TODO
-    AddLine(";TODO");
-    AddLine("RETURN");
-}
-
-void RuntimeGenerator::GenerateWRSPC()
-{
-    AddLine("; Подпрограмма: PRINT SPC(N), печать пробелов");
-    AddLine("; R0 = количество пробелов, 1..255");
-    AddLine("WRSPC::");
-    AddLine("\tMOV\tR0, R1");
-    AddLine("\tMOV\t#040, R0\t; пробел");
-    AddLine("1$:\tCALL\tWRCHR");
-    AddLine("\tSOB\tR1, 1$");
-    AddLine("RETURN");
-    NeedRuntime(RuntimeWRCHR);
-}
-
-void RuntimeGenerator::GenerateWRINT()
-{
-    AddLine("; Печать целого числа");
-    AddLine("WRINT::");
-    //TODO
-    AddLine(";TODO");
-    AddLine("RETURN");
-    NeedRuntime(RuntimeWRCHR);
-}
-
-void RuntimeGenerator::GenerateWRTAB()
-{
-    AddLine("; Подпрограмма: PRINT TAB(N), вывод пробелов пока не достигнем колонки N");
-    AddLine("WRTAB::");
-    //TODO
-    AddLine(";TODO");
-    AddLine("RETURN");
-}
-
-void RuntimeGenerator::GenerateWRSNG()
-{
-    AddLine("; Печать Single числа");
-    AddLine("WRSNG::");
-    //TODO
-    AddLine(";TODO");
-    AddLine("RETURN");
-}
-
-void RuntimeGenerator::GenerateWRSTR()
-{
-    AddLine("; Печать строки");
-    AddLine("; R0 = адрес строки, первый байт строки содержит длину строки");
-    AddLine("WRSTR::");
-    AddLine("\tCLR\tR2");
-    AddLine("\tBIS\t(R0)+, R2\t; берём длину строки");
-    AddLine("\tBEQ\t9$\t\t; пустая строка => выходим");
-    AddLine("1$:\tMOVB\t(R0)+, R1");
-    AddLine("2$:\tTSTB\t@#177564\t; Источник канала 0 готов?");
-    AddLine("\tBPL\t2$\t\t; нет => ждём");
-    AddLine("\tMOV\tR1, @#177566\t; передаём символ в канал 0");
-    AddLine("SOB\tR2, 1$");
-    AddLine("9$:\tRETURN");
 }
 
 

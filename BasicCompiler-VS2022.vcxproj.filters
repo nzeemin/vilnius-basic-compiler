@@ -41,5 +41,11 @@
     <ClCompile Include="runtime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="runtime-UKNC.tmac" />
   </ItemGroup>
 </Project>

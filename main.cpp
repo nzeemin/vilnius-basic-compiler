@@ -6,8 +6,10 @@
 
 #include "main.h"
 
+string g_exefilepath;   // Path and file name for the executable file
 string g_infilename;    // Input file name
 string g_outfilename;   // Output .MAC file name
+string g_rttplfilename; // Runtime template file name
 string g_rtfilename;    // Runtime .MAC file name
 
 bool g_quiet = false;   // Be quiet
@@ -20,6 +22,9 @@ SourceModel g_source;
 FinalModel g_final;
 
 static int g_errorcount = 0;
+
+// utility.cpp declaration
+std::filesystem::path getexepath();
 
 void RegisterError()
 {
@@ -244,6 +249,30 @@ void ProcessFiles()
         exit(EXIT_FAILURE);
     }
 
+    // Generation
+    Generator generator(&g_source, &g_final);
+    g_errorcount = 0;
+    while (generator.ProcessLine())
+        ;
+
+    const std::set<RuntimeSymbol> runtimeneeds = generator.GetRuntimeNeeds();
+    RuntimeGenerator runtimegen(runtimeneeds, &g_final);
+
+    // Read and parse the runtime template
+    std::ifstream rttplstream;
+    rttplstream.open(g_rttplfilename);
+    if (!rttplstream.is_open())
+    {
+        std::cerr << "Failed to open runtime template file " + g_rttplfilename << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    runtimegen.ParseRuntimeTemplate(&rttplstream);
+    rttplstream.close();
+
+    // Generate runtime
+    runtimegen.GenerateRuntime();
+
+    // Write to the output file
     std::ofstream outstream;
     outstream.open(g_outfilename, std::ofstream::out | std::ofstream::trunc);
     if (!outstream.is_open())
@@ -253,12 +282,6 @@ void ProcessFiles()
     }
     outstream << "; Generated with vibasc [" << __DATE__ << "] on " << g_infilename << std::endl;
     outstream << ";" << std::endl;
-
-    // Generation
-    Generator generator(&g_source, &g_final);
-    g_errorcount = 0;
-    while (generator.ProcessLine())
-        ;
     for (size_t i = 0; i < g_final.lines.size(); i++)
     {
         string& intermed = g_final.lines[i];
@@ -273,7 +296,7 @@ void ProcessFiles()
     }
     outstream.close();
 
-    // Stream for runtime
+    // Write to the runtime file
     std::ofstream outrtstream;
     outrtstream.open(g_rtfilename, std::ofstream::out | std::ofstream::trunc);
     if (!outrtstream.is_open())
@@ -284,12 +307,6 @@ void ProcessFiles()
     outrtstream << "; Runtime file" << std::endl;
     outrtstream << "; Generated with vibasc [" << __DATE__ << "] on " << g_infilename << std::endl;
     outrtstream << ";" << std::endl;
-
-    // Generate runtime
-    const std::set<RuntimeSymbol> runtimeneeds = generator.GetRuntimeNeeds();
-    RuntimeGenerator runtimegen(runtimeneeds, &g_final);
-
-    runtimegen.GenerateRuntime();
     for (string line : g_final.runtimelines)
     {
         outrtstream << line << std::endl;
@@ -342,6 +359,10 @@ void ParseCommandLine(int argc, char** argv)
 
 int main(int argc, char* argv[])
 {
+    std::filesystem::path exepath = getexepath();
+    //std::cout << exepath << std::endl;
+    g_exefilepath = exepath.string();
+
     ParseCommandLine(argc, argv);
 
     size_t dotpos = g_infilename.find_last_of('.');
@@ -350,11 +371,17 @@ int main(int argc, char* argv[])
     else
         g_outfilename = g_infilename.substr(0, dotpos) + ".MAC";
 
-    size_t seppos = g_infilename.find_last_of(PATH_SEPARATOR);
+    size_t seppos = g_exefilepath.find_last_of(PATH_SEPARATOR);
+    if (seppos == string::npos)
+        g_rttplfilename = "runtime-UKNC.tmac";
+    else
+        g_rttplfilename = g_exefilepath.substr(0, seppos + 1) + "runtime-UKNC.tmac";
+
+    seppos = g_infilename.find_last_of(PATH_SEPARATOR);
     if (seppos == string::npos)
         g_rtfilename = "VIBAS.MAC";
     else
-        g_rtfilename = g_infilename.substr(0, seppos) + "VIBAS.MAC";
+        g_rtfilename = g_infilename.substr(0, seppos + 1) + "VIBAS.MAC";
 
     if (!g_quiet)
         std::cout << "vibasc  " << __DATE__ << std::endl;

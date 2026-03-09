@@ -561,6 +561,16 @@ string GetRuntimeSymbolName(RuntimeSymbol rtsymbol)
     return "UNKNOWN";
 }
 
+RuntimeSymbol FindRuntimeSymbolByName(const string& name)
+{
+    for (size_t i = 0; i < sizeof(RuntimeSymbolNames) / sizeof(const char*); i++)
+    {
+        if (name == RuntimeSymbolNames[i])
+            return (RuntimeSymbol)i;
+    }
+    return RuntimeNone;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////

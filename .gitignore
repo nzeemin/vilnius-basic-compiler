@@ -13,6 +13,7 @@
 *.sdf
 *.opensdf
 *.o
+/.vscode
 /vibasc
 /testrunner/testrunner
 /.idea

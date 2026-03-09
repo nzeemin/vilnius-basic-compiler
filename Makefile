@@ -2,9 +2,9 @@
 CXXFLAGS = -std=c++17 -O3 -Wall
 
 SOURCES_TESTRUNNER = testrunner/testrunner.cpp
-SOURCES = main.cpp model.cpp tokenizer.cpp parser.cpp validator.cpp generator.cpp runtime.cpp $(SOURCES_TESTRUNNER)
+SOURCES = main.cpp model.cpp tokenizer.cpp parser.cpp validator.cpp generator.cpp runtime.cpp utility.cpp $(SOURCES_TESTRUNNER)
 
-OBJECTS_VIBASC = main.o model.o tokenizer.o parser.o validator.o generator.o runtime.o
+OBJECTS_VIBASC = main.o model.o tokenizer.o parser.o validator.o generator.o runtime.o utility.o
 OBJECTS_TESTRUNNER = testrunner/testrunner.o
 
 all: vibasc testrunner

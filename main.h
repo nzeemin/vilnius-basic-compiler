@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iterator>
 #include <cmath>
+#include <filesystem>
 
 #ifndef PATH_MAX
 #define PATH_MAX    _MAX_PATH
@@ -113,6 +114,7 @@ enum RuntimeSymbol
 };
 
 string GetRuntimeSymbolName(RuntimeSymbol rtsymbol);
+RuntimeSymbol FindRuntimeSymbolByName(const string& name);
 
 extern void RegisterError();
 
@@ -278,6 +280,12 @@ public:
     void AddComment(const string& str);
 public:
     void AddRuntimeLine(const string& str);
+};
+
+struct RuntimeBlock
+{
+    RuntimeSymbol rtsymbol;
+    std::vector<string> lines;
 };
 
 
@@ -641,35 +649,18 @@ private:
     void GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node);
 };
 
-class RuntimeGenerator;
-typedef void (RuntimeGenerator::* RuntimeGeneratorMethodRef)();
-struct RuntimeGeneratorSymbolSpec
-{
-    RuntimeSymbol rtsymbol;
-    RuntimeGeneratorMethodRef methodref;
-};
-
 class RuntimeGenerator
 {
     std::set<RuntimeSymbol> m_needs;
     FinalModel* m_final;
+    std::vector<RuntimeBlock> m_rtblocks;
 public:
     RuntimeGenerator(const std::set<RuntimeSymbol>& needs, FinalModel* intermed);
 public:
+    void ParseRuntimeTemplate(std::istream* pInput);
     void GenerateRuntime();
 private:
-    static const RuntimeGeneratorSymbolSpec m_symbolspecs[];
-    static RuntimeGeneratorMethodRef FindRuntimeGeneratorMethodRef(RuntimeSymbol rtsymbol);
-private:
+    RuntimeBlock FindRuntimeBlock(RuntimeSymbol rtsymbol);
     void AddLine(const string& str) { m_final->AddRuntimeLine(str); }
     void NeedRuntime(RuntimeSymbol rtsymbol);
-    void GenerateWRCHR();
-    void GenerateWREOL();
-    void GenerateWRAT();
-    void GenerateWRSPC();
-    void GenerateWRTAB();
-    void GenerateWRINT();
-    void GenerateWRSNG();
-    void GenerateWRSTR();
 };
-
