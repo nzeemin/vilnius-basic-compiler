@@ -334,8 +334,9 @@ void ProcessFiles()
             outstream << line << std::endl;
         }
 
-        outstream << (g_turbo8 ? "\t.END" : "\t.END\tSTART") << std::endl;
+        outstream << std::endl;
         outstream << COMMENT_LINE_SEPARATOR << std::endl;
+        outstream << (g_turbo8 ? "\t.END" : "\t.END\tSTART") << std::endl;
         outstream.close();
     }
     else

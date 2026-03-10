@@ -137,15 +137,19 @@ void Generator::AddRuntimeCall(RuntimeSymbol rtsymbol, string comment)
 
 void Generator::ProcessBegin()
 {
-    //TODO: TITLE
-    //AddLine("\t.MCALL\t.EXIT");
     AddLine("START:");
+    AddLine("\tMOV\tSP, SAVESP");
 }
 
 void Generator::ProcessEnd()
 {
     AddLine("L" + std::to_string(MAX_LINE_NUMBER + 1) + ":");
-    AddLine("\tEMT\t350\t; .EXIT");  // In case we run after last line
+    AddLine("SAVESP = . + 2");
+    AddLine("\tMOV\t#776, SP\t; restore SP");
+    if (g_platform == PlatformBK0010)
+        AddLine("\tRETURN\t; return to Monitor/OS/etc.");
+    else if (g_platform == PlatformUKNC)
+        AddLine("\tEMT\t350\t; .EXIT");
 
     GenerateStrings();
 
@@ -153,8 +157,7 @@ void Generator::ProcessEnd()
 
     GenerateRuntimeNeeds();
 
-    AddLine(";");
-    //AddLine("\t.END\tSTART");
+    //NOTE: .END instruction will be generated in main.cpp
 }
 
 void Generator::GenerateStrings()

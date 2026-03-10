@@ -5,6 +5,7 @@
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 START:
+	MOV	SP, SAVESP
 ; 10 A%=23.42
 L10:
 	MOV	#23., VARIA	; assignment
@@ -14,6 +15,8 @@ L20:
 	CALL	WRINT
 	CALL	WREOL
 L65536:
+SAVESP = . + 2
+	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT
 ; VARIABLES
 	.EVEN
