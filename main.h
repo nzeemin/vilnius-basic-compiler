@@ -28,6 +28,10 @@ const int MAX_LINE_NUMBER = 65535;
 
 typedef std::string string;
 
+
+//////////////////////////////////////////////////////////////////////
+// Enums
+
 enum KeywordIndex
 {
     KeywordNone = 0,
@@ -56,9 +60,6 @@ enum KeywordIndex
     KeywordWIDTH,
     KeywordXOR
 };
-
-bool IsFunctionKeyword(KeywordIndex keyword);
-string GetKeywordString(KeywordIndex keyword);
 
 enum TokenizerMode
 {
@@ -97,29 +98,53 @@ enum FileMode
     FileModeOutput      = 2,
 };
 
+enum TargetPlatform
+{
+    PlatformNone        = 0,
+    PlatformBK0010      = 1,
+    PlatformUKNC        = 2,
+};
+
 enum RuntimeSymbol
 {
-    RuntimeNone            = 0,
-    RuntimeWRCHR           = 1,
-    RuntimeWREOL           = 2,
-    RuntimeWRAT            = 3,
-    RuntimeWRSPC           = 4,
-    RuntimeWRTAB           = 5,
-    RuntimeWRINT           = 6,
-    RuntimeWRSNG           = 7,
-    RuntimeWRSTR           = 8,
-    RuntimeSTRCP           = 9,
-    RuntimeREADI           = 10,
-    RuntimeRND             = 11,
+    RuntimeNone         = 0,
+    RuntimeWRCHR        = 1,
+    RuntimeWREOL        = 2,
+    RuntimeWRAT         = 3,
+    RuntimeWRSPC        = 4,
+    RuntimeWRTAB        = 5,
+    RuntimeWRINT        = 6,
+    RuntimeWRSNG        = 7,
+    RuntimeWRSTR        = 8,
+    RuntimeSTRCP        = 9,
+    RuntimeREADI        = 10,
+    RuntimeRND          = 11,
 };
+
+
+//////////////////////////////////////////////////////////////////////
+// Globals
+
+extern bool g_turbo8;   // Use BKTurbo8 syntax
+extern TargetPlatform g_platform;
+
+bool IsFunctionKeyword(KeywordIndex keyword);
+string GetKeywordString(KeywordIndex keyword);
 
 string GetRuntimeSymbolName(RuntimeSymbol rtsymbol);
 RuntimeSymbol FindRuntimeSymbolByName(const string& name);
 
-extern void RegisterError();
-
 string GetCanonicVariableName(const string& name);
 string DecorateVariableName(const string& name);
+
+const char* GetPlatformName(TargetPlatform platform);
+TargetPlatform FindPlatformByName(const string& name);
+
+void RegisterError();
+
+
+//////////////////////////////////////////////////////////////////////
+
 
 struct Token
 {
@@ -286,6 +311,7 @@ struct RuntimeBlock
 {
     RuntimeSymbol rtsymbol;
     std::vector<string> lines;
+    std::vector<RuntimeSymbol> needs;  // dependencies
 };
 
 

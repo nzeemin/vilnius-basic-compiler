@@ -22,5 +22,6 @@
 /*.OBJ
 /*.LST
 /*.MAP
+/*.BIN
 /tests.temp
 /x-*

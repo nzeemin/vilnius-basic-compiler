@@ -154,7 +154,7 @@ void Generator::ProcessEnd()
     GenerateRuntimeNeeds();
 
     AddLine(";");
-    AddLine("\t.END\tSTART");
+    //AddLine("\t.END\tSTART");
 }
 
 void Generator::GenerateStrings()
@@ -258,7 +258,7 @@ void Generator::GenerateRuntimeNeeds()
     for (RuntimeSymbol need : m_runtimeneeds)
     {
         if (line.empty())
-            line = "\t.GLOBL\t";
+            line = g_turbo8 ? ";\t" : "\t.GLOBL\t";
         if (countinline > 0)
             line += ", ";
         line += GetRuntimeSymbolName(need);

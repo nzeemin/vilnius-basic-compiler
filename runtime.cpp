@@ -18,7 +18,7 @@ void RuntimeGenerator::ParseRuntimeTemplate(std::istream* pInput)
 {
     std::vector<string> lines;  // lines for the current block
     RuntimeSymbol blockrtsymbol = RuntimeNone;  // name for the current block
-    //TODO: block needs
+    std::vector<RuntimeSymbol> blockneeds;  // dependencies for the current block
     char buffer[256];
     bool preambule = true;
     while (!pInput->eof())
@@ -41,11 +41,13 @@ void RuntimeGenerator::ParseRuntimeTemplate(std::istream* pInput)
                 RuntimeBlock block;
                 block.rtsymbol = blockrtsymbol;
                 block.lines = lines;
+                block.needs = blockneeds;
                 m_rtblocks.push_back(block);
             }
 
             lines.clear();
             blockrtsymbol = RuntimeNone;
+            blockneeds.clear();
         }
         else if (line.find(";## Need ") == 0)  // list of dependencies
         {
@@ -57,6 +59,7 @@ void RuntimeGenerator::ParseRuntimeTemplate(std::istream* pInput)
                 RegisterError();
                 return;
             }
+            blockneeds.push_back(needrtsymbol);
         }
         else if (line.find(";## ") == 0)  // block name
         {
@@ -109,8 +112,9 @@ void RuntimeGenerator::GenerateRuntime()
             //TODO: error
         }
 
-        //TODO collect needs
-        //TODO: should be recursive
+        for (RuntimeSymbol need : rtblock.needs)
+            m_needs.insert(need);
+        //TODO: this should be recursive
     }
 
     //NOTE: Now we have all the dependencies in m_needs

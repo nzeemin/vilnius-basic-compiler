@@ -47,5 +47,6 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="runtime-UKNC.tmac" />
+    <CopyFileToFolders Include="runtime-BK0010.tmac" />
   </ItemGroup>
 </Project>

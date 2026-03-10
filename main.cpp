@@ -9,12 +9,16 @@
 string g_exefilepath;   // Path and file name for the executable file
 string g_infilename;    // Input file name
 string g_outfilename;   // Output .MAC file name
-string g_rttplfilename; // Runtime template file name
+string g_rttplfilename; // Runtime template file name, like "runtime-UKNC.tmac"
+string g_rttplfilepath; // Runtime template file path
 string g_rtfilename;    // Runtime .MAC file name
 
-bool g_quiet = false;   // Be quiet
-bool g_tokenizeonly = false;  // Show tokenization and quit
-bool g_parsingonly = false;  // Show parsing result and quit
+bool g_quiet = false;           // Be quiet
+TargetPlatform g_platform = PlatformUKNC;
+bool g_onefile = false;         // Generate single output file including the main code and runtime
+bool g_turbo8 = false;          // Use BKTurbo8 syntax
+bool g_tokenizeonly = false;    // Show tokenization and quit
+bool g_parsingonly = false;     // Show parsing result and quit
 bool g_validationonly = false;  // Show validation result and quit
 bool g_showgeneration = false;
 
@@ -25,6 +29,27 @@ static int g_errorcount = 0;
 
 // utility.cpp declaration
 std::filesystem::path getexepath();
+
+const char* COMMENT_LINE_SEPARATOR = ";------------------------------------------------------------------------------";
+
+
+const char* GetPlatformName(TargetPlatform platform)
+{
+    switch (platform)
+    {
+    case PlatformBK0010: return "BK0010";
+    case PlatformUKNC: return "UKNC";
+    default:
+        return nullptr;
+    }
+}
+TargetPlatform FindPlatformByName(const string& name)
+{
+    if (name == "BK0010") return PlatformBK0010;
+    if (name == "UKNC") return PlatformUKNC;
+    return PlatformNone;
+}
+
 
 void RegisterError()
 {
@@ -260,10 +285,10 @@ void ProcessFiles()
 
     // Read and parse the runtime template
     std::ifstream rttplstream;
-    rttplstream.open(g_rttplfilename);
+    rttplstream.open(g_rttplfilepath);
     if (!rttplstream.is_open())
     {
-        std::cerr << "Failed to open runtime template file " + g_rttplfilename << std::endl;
+        std::cerr << "Failed to open runtime template file " + g_rttplfilepath << std::endl;
         exit(EXIT_FAILURE);
     }
     runtimegen.ParseRuntimeTemplate(&rttplstream);
@@ -271,6 +296,12 @@ void ProcessFiles()
 
     // Generate runtime
     runtimegen.GenerateRuntime();
+
+    if (g_errorcount > 0)
+    {
+        std::cerr << "Generation ERRORS: " << g_errorcount << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     // Write to the output file
     std::ofstream outstream;
@@ -282,6 +313,8 @@ void ProcessFiles()
     }
     outstream << "; Generated with vibasc [" << __DATE__ << "] on " << g_infilename << std::endl;
     outstream << ";" << std::endl;
+    outstream << std::endl;
+    outstream << COMMENT_LINE_SEPARATOR << std::endl;
     for (size_t i = 0; i < g_final.lines.size(); i++)
     {
         string& intermed = g_final.lines[i];
@@ -289,29 +322,49 @@ void ProcessFiles()
         if (g_showgeneration)
             std::cout << intermed << std::endl;
     }
-    if (g_errorcount > 0)
+    if (g_onefile)
     {
-        std::cerr << "Generation ERRORS: " << g_errorcount << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    outstream.close();
+        outstream << std::endl;
+        outstream << COMMENT_LINE_SEPARATOR << std::endl;
+        outstream << "; RUNTIME" << std::endl;
+        outstream << "; Generated from template file \"" << g_rttplfilename << "\"" << std::endl;
 
-    // Write to the runtime file
-    std::ofstream outrtstream;
-    outrtstream.open(g_rtfilename, std::ofstream::out | std::ofstream::trunc);
-    if (!outrtstream.is_open())
-    {
-        std::cerr << "Failed to open the output file " << g_rtfilename << std::endl;
-        exit(EXIT_FAILURE);
+        for (string line : g_final.runtimelines)
+        {
+            outstream << line << std::endl;
+        }
+
+        outstream << (g_turbo8 ? "\t.END" : "\t.END\tSTART") << std::endl;
+        outstream << COMMENT_LINE_SEPARATOR << std::endl;
+        outstream.close();
     }
-    outrtstream << "; Runtime file" << std::endl;
-    outrtstream << "; Generated with vibasc [" << __DATE__ << "] on " << g_infilename << std::endl;
-    outrtstream << ";" << std::endl;
-    for (string line : g_final.runtimelines)
+    else
     {
-        outrtstream << line << std::endl;
+        outstream << (g_turbo8 ? "\t.END" : "\t.END\tSTART") << std::endl;
+        outstream << COMMENT_LINE_SEPARATOR << std::endl;
+        outstream.close();
+
+        // Write to the runtime file
+        std::ofstream outrtstream;
+        outrtstream.open(g_rtfilename, std::ofstream::out | std::ofstream::trunc);
+        if (!outrtstream.is_open())
+        {
+            std::cerr << "Failed to open the output file " << g_rtfilename << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        outrtstream << "; RUNTIME" << std::endl;
+        outrtstream << "; Generated with vibasc [" << __DATE__ << "] on " << g_infilename << std::endl;
+        outrtstream << "; Generated from template file \"" << g_rttplfilename << "\"" << std::endl;
+        outrtstream << std::endl;
+        outrtstream << COMMENT_LINE_SEPARATOR << std::endl;
+        for (string line : g_final.runtimelines)
+        {
+            outrtstream << line << std::endl;
+        }
+        outrtstream << std::endl;
+        outrtstream << COMMENT_LINE_SEPARATOR << std::endl;
+        outrtstream.close();
     }
-    outrtstream.close();
 }
 
 void ParseCommandLine(int argc, char** argv)
@@ -328,6 +381,10 @@ void ParseCommandLine(int argc, char** argv)
         {
             if (_stricmp(arg + 1, "q") == 0 || _stricmp(arg, "--quiet") == 0)
                 g_quiet = true;
+            else if (_stricmp(arg, "--onefile") == 0)
+                g_onefile = true;
+            else if (_stricmp(arg, "--turbo8") == 0)
+                g_turbo8 = true;
             else if (_stricmp(arg + 1, "t") == 0 || _stricmp(arg, "--tokenizeonly") == 0)
                 g_tokenizeonly = true;
             else if (_stricmp(arg + 1, "p") == 0 || _stricmp(arg, "--parsingonly") == 0)
@@ -336,6 +393,16 @@ void ParseCommandLine(int argc, char** argv)
                 g_validationonly = true;
             else if (_stricmp(arg + 1, "g") == 0 || _stricmp(arg, "--showgeneration") == 0)
                 g_showgeneration = true;
+            else if (strncmp(arg, "--platform=", 11) == 0)
+            {
+                string name = string(arg).substr(11);
+                g_platform = FindPlatformByName(name);
+                if (g_platform == PlatformNone)
+                {
+                    std::cerr << "Option --platform parameter invalid." << arg << std::endl;
+                    exit(EXIT_FAILURE);
+                }
+            }
             else
             {
                 std::cerr << "Unknown option: " << arg << std::endl;
@@ -359,11 +426,10 @@ void ParseCommandLine(int argc, char** argv)
 
 int main(int argc, char* argv[])
 {
-    std::filesystem::path exepath = getexepath();
-    //std::cout << exepath << std::endl;
-    g_exefilepath = exepath.string();
-
     ParseCommandLine(argc, argv);
+
+    std::filesystem::path exepath = getexepath();
+    g_exefilepath = exepath.string();
 
     size_t dotpos = g_infilename.find_last_of('.');
     if (dotpos == string::npos)
@@ -371,11 +437,12 @@ int main(int argc, char* argv[])
     else
         g_outfilename = g_infilename.substr(0, dotpos) + ".MAC";
 
+    g_rttplfilename = string("runtime-") + GetPlatformName(g_platform) + ".tmac";
     size_t seppos = g_exefilepath.find_last_of(PATH_SEPARATOR);
     if (seppos == string::npos)
-        g_rttplfilename = "runtime-UKNC.tmac";
+        g_rttplfilepath = g_rttplfilename;
     else
-        g_rttplfilename = g_exefilepath.substr(0, seppos + 1) + "runtime-UKNC.tmac";
+        g_rttplfilepath = g_exefilepath.substr(0, seppos + 1) + g_rttplfilename;
 
     seppos = g_infilename.find_last_of(PATH_SEPARATOR);
     if (seppos == string::npos)
