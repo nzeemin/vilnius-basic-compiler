@@ -135,7 +135,7 @@ void RuntimeGenerator::GenerateRuntime()
         if (rtblock.rtsymbol == RuntimeNone)
         {
             //Error("Runtime generator for symbol " + rtsymbolname + " not found.");
-            AddLine(rtsymbolname + "::");
+            AddLine(rtsymbolname + ":");
             AddLine("; TODO: Runtime generator for symbol " + rtsymbolname + " not found.");
             AddLine("\tRETURN ;STUB");
             continue;

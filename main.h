@@ -116,9 +116,10 @@ enum RuntimeSymbol
     RuntimeWRINT        = 6,
     RuntimeWRSNG        = 7,
     RuntimeWRSTR        = 8,
-    RuntimeSTRCP        = 9,
-    RuntimeREADI        = 10,
-    RuntimeRND          = 11,
+    RuntimeCURSR        = 9,
+    RuntimeSTRCP        = 10,
+    RuntimeREADI        = 11,
+    RuntimeRND          = 12,
 };
 
 

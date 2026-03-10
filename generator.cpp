@@ -116,6 +116,32 @@ bool CompareVariables(const VariableModel& a, const VariableModel& b)
 //////////////////////////////////////////////////////////////////////
 
 
+// Get expression value as integer, put in register R0.
+// Use only when we know expr.IsConstExpression() == true, and it can't be ValueTypeString.
+#define GET_CONSTEXPR_INT_VALUE_IN_R0(expr) { \
+    int ivalue = (int)std::floor(expr.GetConstExpressionDValue()); \
+    if (ivalue == 0) \
+        AddLine("\tCLR\tR0"); \
+    else \
+        AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R0"); \
+}
+
+// For constant Integer/Single expression expr, returns one of:
+//   " CLR "
+//   " MOV #NNNNN, "
+static string GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(ExpressionModel expr)
+{
+    int ivalue = (int)std::floor(expr.GetConstExpressionDValue());
+    if (ivalue == 0)
+        return "\tCLR\t";
+    else \
+        return "\tMOV\t#" + std::to_string(ivalue) + "., ";
+}
+
+
+//////////////////////////////////////////////////////////////////////
+
+
 Generator::Generator(SourceModel* source, FinalModel* final)
     : m_source(source), m_final(final), m_lineindex(-1), m_line(nullptr), m_runtimeneeds()
 {
@@ -790,22 +816,67 @@ void Generator::GenerateOn(StatementModel& statement)
 void Generator::GenerateLocate(StatementModel& statement)
 {
     assert(statement.args.size() > 0);
-    //const ExpressionModel& expr1 = statement.args[0];  // column, could be empty
 
-    if (statement.args.size() > 1)
+    // 1st and 2nd arguments: column and row, same as for PRINT AT(col,row)
+    //NOTE: any of the arguments could be missing
+    const ExpressionModel& expr1 = statement.args[0];  // column, could be empty
+
+    // First case: 1st and 2nd arguments are present - just call AT(col,row)
+    if (statement.args.size() >= 2 && (!expr1.IsEmpty() && !statement.args[1].IsEmpty()))
+    {
+        string stat1;
+        if (expr1.IsConstExpression())
+            stat1 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr1);
+        else if (expr1.IsVariableExpression() && expr1.GetExpressionValueType() == ValueTypeInteger)
+            stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
+        else
+        {
+            GenerateExpression(expr1);
+            stat1 = "\tMOV\tR0, ";
+        }
+
+        const ExpressionModel& expr2 = statement.args[1];  // row, not empty
+        if (expr2.IsConstExpression())
+        {
+            AddLine(stat1 + "R1");  // column -> R1
+            GET_CONSTEXPR_INT_VALUE_IN_R0(expr2)
+        }
+        else if (expr2.IsVariableExpression() && expr2.GetExpressionValueType() == ValueTypeInteger)
+        {
+            AddLine(stat1 + "R1");  // column -> R1
+            string svalue = expr2.GetVariableExpressionDecoratedName();
+            AddLine("\tMOV\t" + svalue + ", R0");
+        }
+        else
+        {
+            AddLine(stat1 + "-(SP)\t; PUSH column");
+            GenerateExpression(expr2);  // R0
+            AddLine("\tMOV\t(SP)+, R1\t; POP R1");  // column -> R1
+        }
+
+        // R1 = column, R0 = row
+        AddRuntimeCall(RuntimeWRAT);
+    }
+    // Second case: 1st OR 2nd argument present
+    else if (statement.args.size() >= 1 &&
+        (!expr1.IsEmpty() || statement.args.size() > 1 && !statement.args[1].IsEmpty()))
     {
         //const ExpressionModel& expr2 = statement.args[1];  // row, could be empty
+
         //TODO
+        AddComment("TODO LOCATE");
+        // R1 = column, R0 = row
+        AddRuntimeCall(RuntimeWRAT);
     }
 
-    if (statement.args.size() > 2)
+    // 3rd argument - LOCATE cursor on/off
+    if (statement.args.size() > 2 && !statement.args[2].IsEmpty())
     {
-        //const ExpressionModel& expr3 = statement.args[2];  // on/off, could be empty
-        //TODO
+        const ExpressionModel& expr3 = statement.args[2];  // on/off, could be empty
+        GenerateExpression(expr3);
+        
+        AddRuntimeCall(RuntimeCURSR);
     }
-
-    //TODO
-    AddComment("TODO LOCATE");
 }
 
 void Generator::GeneratePset(StatementModel& statement)
@@ -844,19 +915,41 @@ void Generator::GeneratePoke(StatementModel& statement)
 {
     assert(statement.args.size() == 2);
 
-    ExpressionModel& expr1 = statement.args[0];
-    //TODO: Simplified version for const/var expression
-    GenerateExpression(expr1);
-    // Save value
-    AddLine("\tMOV\tR0, @#<10$+2>");
+    //NOTE: This expression could not be string
+    ExpressionModel& expr1 = statement.args[0];  // address
+    string stat1;
+    if (expr1.IsConstExpression())
+        stat1 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr1);
+    else if (expr1.IsVariableExpression() && expr1.GetExpressionValueType() == ValueTypeInteger)
+        stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
+    else
+    {
+        GenerateExpression(expr1);
+        stat1 = "\tMOV\tR0, ";
+    }
 
-    ExpressionModel& expr2 = statement.args[1];
-    //TODO: Simplified version for const/var expression
-    GenerateExpression(expr2);
-    // Save value
-    AddLine("\tMOV\tR0, @#<10$+4>");
+    //NOTE: This expression could not be string
+    ExpressionModel& expr2 = statement.args[1];  // value
+    string stat2;
+    if (expr2.IsConstExpression())
+    {
+        AddLine(stat1 + "R1");  // address -> R1
+        stat2 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr2);
+    }
+    else if (expr2.IsVariableExpression() && expr2.GetExpressionValueType() == ValueTypeInteger)
+    {
+        AddLine(stat1 + "R1");  // address -> R1
+        stat2 = "\tMOV\t" + expr2.GetVariableExpressionDecoratedName() + ", ";
+    }
+    else
+    {
+        AddLine(stat1 + "-(SP)\t; PUSH address");
+        GenerateExpression(expr2);  // result in R0
+        stat2 = "\tMOV\tR0, ";
+        AddLine("\tMOV\t-(SP), R1\t; POP R1");  // address -> R1
+    }
 
-    AddLine("10$:\tMOV\t#0, #0");
+    AddLine(stat2 + "(R1)\t; POKE");
 }
 
 void Generator::GenerateOut(StatementModel& statement)
@@ -940,11 +1033,40 @@ void Generator::GeneratePrintAt(const ExpressionModel& expr)
     const ExpressionNode& root = expr.nodes[expr.root];
     assert(root.args.size() == 2);
 
-    const ExpressionModel& expr1 = root.args[0];
-    GenerateExpression(expr1);
-    const ExpressionModel& expr2 = root.args[1];
-    GenerateExpression(expr2);//TODO: should be in R1
+    //NOTE: This expression could not be string
+    const ExpressionModel& expr1 = root.args[0];  // column
+    string stat1;
+    if (expr1.IsConstExpression())
+        stat1 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr1);
+    else if (expr1.IsVariableExpression() && expr1.GetExpressionValueType() == ValueTypeInteger)
+        stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
+    else
+    {
+        GenerateExpression(expr1);
+        stat1 = "\tMOV\tR0, ";
+    }
 
+    //NOTE: This expression could not be string
+    const ExpressionModel& expr2 = root.args[1];  // row
+    if (expr2.IsConstExpression())
+    {
+        AddLine(stat1 + "R1");  // column -> R1
+        GET_CONSTEXPR_INT_VALUE_IN_R0(expr2)
+    }
+    else if (expr2.IsVariableExpression() && expr2.GetExpressionValueType() == ValueTypeInteger)
+    {
+        AddLine(stat1 + "R1");  // column -> R1
+        string svalue = expr2.GetVariableExpressionDecoratedName();
+        AddLine("\tMOV\t" + svalue + ", R0");
+    }
+    else
+    {
+        AddLine("stat1 + -(SP)\t; PUSH column");
+        GenerateExpression(expr2);  // R0
+        AddLine("\tMOV\t(SP)+, R1\t; POP R1");  // column -> R1
+    }
+
+    // R1 = column, R0 = row
     AddRuntimeCall(RuntimeWRAT);
 }
 
@@ -957,14 +1079,17 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
     {
         string svalue = root.token.svalue;
 
-        if (svalue.length() == 0)
+        if (svalue.empty())
             return;  // Empty string, nothing to print
 
         if (svalue.length() == 1)  // one-char string, no use of const string
         {
             //TODO: char to int conversion depends on encoding
-            AddLine("\tMOV\t#" + std::to_string((unsigned int)svalue[0]) + "., R0");
-            AddRuntimeCall(RuntimeWREOL);
+            char ch = svalue[0];
+            string line = "\tMOV\t#" + std::to_string((unsigned int)ch) + "., R0";
+            if (ch >= ' ' && ch <= 127) line += string("\t; '") + ch + "'";
+            AddLine(line);
+            AddRuntimeCall(RuntimeWRCHR);
             return;
         }
 
@@ -1061,7 +1186,7 @@ void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNo
         return;
     }
 
-    AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
+    AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
     GenerateExpression(expr, noderight);
     AddLine("\tADD\t(SP)+, R0" + comment);  // POP & ADD
 }
@@ -1095,10 +1220,10 @@ void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionN
         return;
     }
 
-    AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
+    AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
     GenerateExpression(expr, noderight);
     AddLine("\tMOV\tR0, R1");
-    AddLine("\tMOV\t(SP)+, R0");  // POP R0
+    AddLine("\tMOV\t(SP)+, R0\t; POP R0");
     AddLine("\tSUB\tR1, R0" + comment);
 }
 
@@ -1176,9 +1301,9 @@ void Generator::GenerateLogicOperIntegerArguments(const ExpressionModel& expr, c
     }
     else
     {
-        AddLine("\tMOV\tR0, -(SP)");  // PUSH R0
+        AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
         GenerateExpression(expr, noderight);
-        AddLine("\tMOV\t(SP)+, R0");  // POP R0
+        AddLine("\tMOV\t(SP)+, R0\t; POP R0");
         AddLine("\tCMP\tR1, R0" + comment);
     }
 }
