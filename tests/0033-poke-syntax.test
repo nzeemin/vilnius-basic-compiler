@@ -8,11 +8,14 @@
 30 POKE 6%
 32 POKE 6%,
 34 POKE 6%, 
+35 POKE 6%, 'comment
 36 POKE 6%, -
 38 POKE 6%, POKE
 40 POKE 6%,'
 50 POKE ""
 52 POKE "",
+60 POKE 111%, 222%,
+62 POKE 111%, 222% POKE
 100 POKE 12345%,111%
 ----------------------------------------------------------------------
 ERROR at 1:8 line 10 - Expression should not be empty.
@@ -39,19 +42,28 @@ ERROR at 7:12 line 32 - Expression should not be empty.
 ERROR at 8:13 line 34 - Expression should not be empty.
 34 POKE 6%, 
             ^
-ERROR at 9:14 line 36 - Operand expected in expression.
+ERROR at 9:13 line 35 - Expression should not be empty.
+35 POKE 6%, 'comment
+            ^
+ERROR at 10:14 line 36 - Operand expected in expression.
 36 POKE 6%, -
              ^
-ERROR at 10:13 line 38 - Expression should not be empty.
+ERROR at 11:13 line 38 - Expression should not be empty.
 38 POKE 6%, POKE
             ^
-ERROR at 11:12 line 40 - Expression should not be empty.
+ERROR at 12:12 line 40 - Expression should not be empty.
 40 POKE 6%,'
            ^
-ERROR at 12:11 line 50 - Comma expected.
+ERROR at 13:11 line 50 - Comma expected.
 50 POKE ""
           ^
-ERROR at 13:12 line 52 - Expression should not be empty.
+ERROR at 14:12 line 52 - Expression should not be empty.
 52 POKE "",
            ^
-Parsing ERRORS: 13
+ERROR at 15:19 line 60 - Unexpected text at the end of the statement.
+60 POKE 111%, 222%,
+                  ^
+ERROR at 16:20 line 62 - Unexpected text at the end of the statement.
+62 POKE 111%, 222% POKE
+                   ^
+Parsing ERRORS: 16

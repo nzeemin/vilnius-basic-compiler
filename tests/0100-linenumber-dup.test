@@ -4,6 +4,7 @@
 30 BEEP
 30 BEEP
 10 PRINT
+50 50
 65535 STOP
 ----------------------------------------------------------------------
 ERROR at 3:1 line 30 - Line number duplicated.
@@ -12,4 +13,7 @@ ERROR at 3:1 line 30 - Line number duplicated.
 ERROR at 4:1 line 10 - Line number is incorrect.
 10 PRINT
 ^
-Parsing ERRORS: 2
+ERROR at 5:4 line 50 - Statement keyword expected.
+50 50
+   ^
+Parsing ERRORS: 3

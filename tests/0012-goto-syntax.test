@@ -1,0 +1,42 @@
+-q
+----------------------------------------------------------------------
+10 GOTO
+12 GOTO 
+14 GOTO'comment
+16 GOTO GOTO
+18 GOTO -
+20 GOTO 10%
+22 GOTO A%
+24 GOTO PI
+30 GOTO 10,
+32 GOTO 10,20
+100 GOTO 100
+----------------------------------------------------------------------
+ERROR at 1:8 line 10 - Line number expected.
+10 GOTO
+       ^
+ERROR at 2:9 line 12 - Line number expected.
+12 GOTO 
+        ^
+ERROR at 3:8 line 14 - Line number expected.
+14 GOTO'comment
+       ^
+ERROR at 4:9 line 16 - Line number expected.
+16 GOTO GOTO
+        ^
+ERROR at 5:9 line 18 - Line number expected.
+18 GOTO -
+        ^
+ERROR at 7:9 line 22 - Line number expected.
+22 GOTO A%
+        ^
+ERROR at 8:9 line 24 - Line number expected.
+24 GOTO PI
+        ^
+ERROR at 9:11 line 30 - Unexpected text at the end of the statement.
+30 GOTO 10,
+          ^
+ERROR at 10:11 line 32 - Unexpected text at the end of the statement.
+32 GOTO 10,20
+          ^
+Parsing ERRORS: 9
