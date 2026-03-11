@@ -1,0 +1,77 @@
+-q
+----------------------------------------------------------------------
+10 OUT
+12 OUT 
+14 OUT -
+16 OUT POKE
+20 OUT ,
+30 OUT 6%
+32 OUT 6%,
+34 OUT 6%, 
+36 OUT 6%, -
+38 OUT 6%, POKE
+40 OUT 6%,'
+50 OUT 6%,5
+52 OUT 6%,5,
+56 OUT 6%,5, -
+58 OUT 6%,5, POKE
+60 OUT 6%,5,'
+70 OUT ""
+72 OUT "",
+100 OUT 12345%,111%,222%
+----------------------------------------------------------------------
+ERROR at 1:7 line 10 - Arguments expected.
+10 OUT
+      ^
+ERROR at 2:8 line 12 - Arguments expected.
+12 OUT 
+       ^
+ERROR at 3:9 line 14 - Operand expected in expression.
+14 OUT -
+        ^
+ERROR at 4:8 line 16 - Expression should not be empty.
+16 OUT POKE
+       ^
+ERROR at 5:8 line 20 - Expression should not be empty.
+20 OUT ,
+       ^
+ERROR at 6:10 line 30 - Comma expected.
+30 OUT 6%
+         ^
+ERROR at 7:11 line 32 - Expression should not be empty.
+32 OUT 6%,
+          ^
+ERROR at 8:12 line 34 - Expression should not be empty.
+34 OUT 6%, 
+           ^
+ERROR at 9:13 line 36 - Operand expected in expression.
+36 OUT 6%, -
+            ^
+ERROR at 10:12 line 38 - Expression should not be empty.
+38 OUT 6%, POKE
+           ^
+ERROR at 11:11 line 40 - Expression should not be empty.
+40 OUT 6%,'
+          ^
+ERROR at 12:12 line 50 - Comma expected.
+50 OUT 6%,5
+           ^
+ERROR at 13:13 line 52 - Expression should not be empty.
+52 OUT 6%,5,
+            ^
+ERROR at 14:15 line 56 - Operand expected in expression.
+56 OUT 6%,5, -
+              ^
+ERROR at 15:14 line 58 - Expression should not be empty.
+58 OUT 6%,5, POKE
+             ^
+ERROR at 16:13 line 60 - Expression should not be empty.
+60 OUT 6%,5,'
+            ^
+ERROR at 17:10 line 70 - Comma expected.
+70 OUT ""
+         ^
+ERROR at 18:11 line 72 - Expression should not be empty.
+72 OUT "",
+          ^
+Parsing ERRORS: 18

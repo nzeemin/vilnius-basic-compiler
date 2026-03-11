@@ -1,0 +1,57 @@
+-q
+----------------------------------------------------------------------
+10 POKE
+12 POKE 
+14 POKE -
+16 POKE POKE
+20 POKE ,
+30 POKE 6%
+32 POKE 6%,
+34 POKE 6%, 
+36 POKE 6%, -
+38 POKE 6%, POKE
+40 POKE 6%,'
+50 POKE ""
+52 POKE "",
+100 POKE 12345%,111%
+----------------------------------------------------------------------
+ERROR at 1:8 line 10 - Expression should not be empty.
+10 POKE
+       ^
+ERROR at 2:9 line 12 - Expression should not be empty.
+12 POKE 
+        ^
+ERROR at 3:10 line 14 - Operand expected in expression.
+14 POKE -
+         ^
+ERROR at 4:9 line 16 - Expression should not be empty.
+16 POKE POKE
+        ^
+ERROR at 5:9 line 20 - Expression should not be empty.
+20 POKE ,
+        ^
+ERROR at 6:11 line 30 - Comma expected.
+30 POKE 6%
+          ^
+ERROR at 7:12 line 32 - Expression should not be empty.
+32 POKE 6%,
+           ^
+ERROR at 8:13 line 34 - Expression should not be empty.
+34 POKE 6%, 
+            ^
+ERROR at 9:14 line 36 - Operand expected in expression.
+36 POKE 6%, -
+             ^
+ERROR at 10:13 line 38 - Expression should not be empty.
+38 POKE 6%, POKE
+            ^
+ERROR at 11:12 line 40 - Expression should not be empty.
+40 POKE 6%,'
+           ^
+ERROR at 12:11 line 50 - Comma expected.
+50 POKE ""
+          ^
+ERROR at 13:12 line 52 - Expression should not be empty.
+52 POKE "",
+           ^
+Parsing ERRORS: 13

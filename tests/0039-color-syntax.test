@@ -1,0 +1,35 @@
+-q
+----------------------------------------------------------------------
+10 COLOR
+12 COLOR 
+14 COLOR -
+16 COLOR COLOR
+20 COLOR ,
+36 COLOR 6%, -
+38 COLOR 8,COLOR
+40 COLOR 6%,'
+80 COLOR ,,
+100 COLOR 1%,2%,3%
+----------------------------------------------------------------------
+ERROR at 1:9 line 10 - Arguments expected.
+10 COLOR
+        ^
+ERROR at 2:10 line 12 - Arguments expected.
+12 COLOR 
+         ^
+ERROR at 3:11 line 14 - Operand expected in expression.
+14 COLOR -
+          ^
+ERROR at 4:10 line 16 - Unexpected text.
+16 COLOR COLOR
+         ^
+ERROR at 6:15 line 36 - Operand expected in expression.
+36 COLOR 6%, -
+              ^
+ERROR at 7:12 line 38 - Unexpected text.
+38 COLOR 8,COLOR
+           ^
+ERROR at 9:12 line 80 - Expression should not be empty.
+80 COLOR ,,
+           ^
+Parsing ERRORS: 7
