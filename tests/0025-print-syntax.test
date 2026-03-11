@@ -1,0 +1,80 @@
+-q
+----------------------------------------------------------------------
+10 ? POKE
+20 PRINT POKE
+30 ? AT
+31 ? AT(
+32 ? AT(-
+33 ? AT(4
+34 ? AT(4,
+35 ? AT(4,POKE
+36 ? AT(4,5
+40 ? TAB
+41 ? TAB(
+42 ? TAB(-
+43 ? TAB(POKE
+44 ? TAB(10
+50 ? SPC
+51 ? SPC(
+52 ? SPC(-
+53 ? SPC(POKE
+54 ? SPC(10
+----------------------------------------------------------------------
+ERROR at 1:6 line 10 - AT/TAB/SPC or expression expected.
+10 ? POKE
+     ^
+ERROR at 2:10 line 20 - AT/TAB/SPC or expression expected.
+20 PRINT POKE
+         ^
+ERROR at 3:8 line 30 - Open bracket expected.
+30 ? AT
+       ^
+ERROR at 4:9 line 31 - Expression should not be empty.
+31 ? AT(
+        ^
+ERROR at 5:10 line 32 - Operand expected in expression.
+32 ? AT(-
+         ^
+ERROR at 6:10 line 33 - Comma expected.
+33 ? AT(4
+         ^
+ERROR at 7:11 line 34 - Expression should not be empty.
+34 ? AT(4,
+          ^
+ERROR at 8:11 line 35 - Expression should not be empty.
+35 ? AT(4,POKE
+          ^
+ERROR at 9:12 line 36 - Close bracket expected.
+36 ? AT(4,5
+           ^
+ERROR at 10:9 line 40 - Open bracket expected.
+40 ? TAB
+        ^
+ERROR at 11:10 line 41 - Expression should not be empty.
+41 ? TAB(
+         ^
+ERROR at 12:11 line 42 - Operand expected in expression.
+42 ? TAB(-
+          ^
+ERROR at 13:10 line 43 - Expression should not be empty.
+43 ? TAB(POKE
+         ^
+ERROR at 14:12 line 44 - Close bracket expected.
+44 ? TAB(10
+           ^
+ERROR at 15:9 line 50 - Open bracket expected.
+50 ? SPC
+        ^
+ERROR at 16:10 line 51 - Expression should not be empty.
+51 ? SPC(
+         ^
+ERROR at 17:11 line 52 - Operand expected in expression.
+52 ? SPC(-
+          ^
+ERROR at 18:10 line 53 - Expression should not be empty.
+53 ? SPC(POKE
+         ^
+ERROR at 19:12 line 54 - Close bracket expected.
+54 ? SPC(10
+           ^
+Parsing ERRORS: 19

@@ -31,6 +31,7 @@ HANDLE g_hConsole;
 #define TEXTATTRIBUTES_NORMAL (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
 #define TEXTATTRIBUTES_WARNING (FOREGROUND_RED | FOREGROUND_GREEN)
 #define TEXTATTRIBUTES_GOOD (FOREGROUND_GREEN)
+#define TEXTATTRIBUTES_BAD (FOREGROUND_RED)
 #define SetTextAttribute(ta) SetConsoleTextAttribute(g_hConsole, ta)
 #define mkdir(dir) _mkdir(dir)
 #else
@@ -355,7 +356,9 @@ void process_test(const string& testfilename)
     }
     if (outlinesdifferent)
     {
+        SetTextAttribute(TEXTATTRIBUTES_BAD);
         std::cout << "  FAILED: Out lines are different" << std::endl;
+        SetTextAttribute(TEXTATTRIBUTES_NORMAL);
         g_failedtests++;
         return;
     }

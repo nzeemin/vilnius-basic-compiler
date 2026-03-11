@@ -1356,20 +1356,24 @@ void Parser::ParsePrint(StatementModel& statement)
             ExpressionNode node0;
             node0.token = GetNextToken();  // AT keyword
 
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (!token.IsOpenBracket())
                 MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+            GetNextToken();  // open bracket
 
             ExpressionModel expr1 = ParseExpression();
             CHECK_MODEL_ERROR;
+            token = PeekNextToken();
             CHECK_EXPRESSION_NOT_EMPTY(expr1);
 
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (!token.IsComma())
                 MODEL_ERROR(MSG_COMMA_EXPECTED);
+            GetNextToken();  // comma
 
             ExpressionModel expr2 = ParseExpression();
             CHECK_MODEL_ERROR;
+            token = PeekNextToken();
             CHECK_EXPRESSION_NOT_EMPTY(expr2);
 
             token = PeekNextTokenSkipDivider();
@@ -1393,17 +1397,20 @@ void Parser::ParsePrint(StatementModel& statement)
             ExpressionNode node0;
             node0.token = GetNextToken();  // TAB keyword
 
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (!token.IsOpenBracket())
                 MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+            GetNextToken();  // open bracket
 
             ExpressionModel expr1 = ParseExpression();
             CHECK_MODEL_ERROR;
+            token = PeekNextToken();
             CHECK_EXPRESSION_NOT_EMPTY(expr1);
 
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (!token.IsCloseBracket())
                 MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+            GetNextToken();  // close bracket
 
             node0.args.push_back(expr1);
 
@@ -1420,17 +1427,20 @@ void Parser::ParsePrint(StatementModel& statement)
             ExpressionNode node0;
             node0.token = GetNextToken();  // SPC keyword
             
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (!token.IsOpenBracket())
                 MODEL_ERROR(MSG_OPEN_BRACKET_EXPECTED);
+            GetNextToken();  // open bracket
 
             ExpressionModel expr1 = ParseExpression();
             CHECK_MODEL_ERROR;
+            token = PeekNextToken();
             CHECK_EXPRESSION_NOT_EMPTY(expr1);
 
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (!token.IsCloseBracket())
                 MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+            GetNextToken();  // close bracket
 
             node0.args.push_back(expr1);
 
@@ -1441,6 +1451,10 @@ void Parser::ParsePrint(StatementModel& statement)
             statement.args.push_back(expr0);
 
             continue;
+        }
+        if (token.type == TokenTypeKeyword && !IsFunctionKeyword(token.keyword))
+        {
+            MODEL_ERROR("AT/TAB/SPC or expression expected.");
         }
 
         ExpressionModel expr = ParseExpression();
