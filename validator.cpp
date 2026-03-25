@@ -825,6 +825,8 @@ void Validator::ValidateLocate(StatementModel& statement)
         MODEL_ERROR("Too many parameters.");
 }
 
+// PSET [ @  ](<АРГ1>,< АРГ2>)[,< АРГ3>]
+// PSET [STEP](<АРГ1>,< АРГ2>)[,< АРГ3>]
 void Validator::ValidatePsetPreset(StatementModel& statement)
 {
     if (statement.args.size() < 2)
@@ -928,6 +930,7 @@ void Validator::ValidateOn(StatementModel& statement)
     }
 }
 
+// OUT <АДРЕС>,<МАСКА>,<КОД>
 void Validator::ValidateOut(StatementModel& statement)
 {
     if (statement.args.size() != 3)
@@ -946,6 +949,7 @@ void Validator::ValidateOut(StatementModel& statement)
         return;
 }
 
+// POKE <АДРЕС>,<ВЫРАЖЕНИЕ>
 void Validator::ValidatePoke(StatementModel& statement)
 {
     if (statement.args.size() != 2)

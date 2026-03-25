@@ -100,6 +100,7 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordINP,       &Generator::GenerateFuncInp },
     { KeywordLEN,       &Generator::GenerateFuncLen },
     { KeywordINKEY,     &Generator::GenerateFuncInkey },
+    { KeywordCSRLIN,    &Generator::GenerateFuncCsrlin },
     { KeywordPOS,       &Generator::GenerateFuncPos },
 };
 
@@ -124,6 +125,15 @@ bool CompareVariables(const VariableModel& a, const VariableModel& b)
         AddLine("\tCLR\tR0"); \
     else \
         AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R0"); \
+}
+// Get expression value as integer, put in register R1.
+// Use only when we know expr.IsConstExpression() == true, and it can't be ValueTypeString.
+#define GET_CONSTEXPR_INT_VALUE_IN_R1(expr) { \
+    int ivalue = (int)std::floor(expr.GetConstExpressionDValue()); \
+    if (ivalue == 0) \
+        AddLine("\tCLR\tR1"); \
+    else \
+        AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1"); \
 }
 
 // For constant Integer/Single expression expr, returns one of:
@@ -156,7 +166,7 @@ void Generator::AddRuntimeCall(RuntimeSymbol rtsymbol, string comment)
     if (comment.empty())
         m_final->AddLine("\tCALL\t" + rtsymbolname);
     else
-        m_final->AddLine("\tCALL\t" + rtsymbolname + "\t;" + comment);
+        m_final->AddLine("\tCALL\t" + rtsymbolname + "\t; " + comment);
     
     m_runtimeneeds.insert(rtsymbol);
 }
@@ -813,6 +823,7 @@ void Generator::GenerateOn(StatementModel& statement)
     }
 }
 
+// LOCATE [<АРГ1>][,<АРГ2>][,<АРГ3>]
 void Generator::GenerateLocate(StatementModel& statement)
 {
     assert(statement.args.size() > 0);
@@ -821,7 +832,7 @@ void Generator::GenerateLocate(StatementModel& statement)
     //NOTE: any of the arguments could be missing
     const ExpressionModel& expr1 = statement.args[0];  // column, could be empty
 
-    // First case: 1st and 2nd arguments are present - just call AT(col,row)
+    // First case: both 1st and 2nd arguments are present - just call AT(col,row)
     if (statement.args.size() >= 2 && (!expr1.IsEmpty() && !statement.args[1].IsEmpty()))
     {
         string stat1;
@@ -838,35 +849,82 @@ void Generator::GenerateLocate(StatementModel& statement)
         const ExpressionModel& expr2 = statement.args[1];  // row, not empty
         if (expr2.IsConstExpression())
         {
-            AddLine(stat1 + "R1");  // column -> R1
+            AddLine(stat1 + "R1\t; column");  // column -> R1
             GET_CONSTEXPR_INT_VALUE_IN_R0(expr2)
         }
         else if (expr2.IsVariableExpression() && expr2.GetExpressionValueType() == ValueTypeInteger)
         {
-            AddLine(stat1 + "R1");  // column -> R1
+            AddLine(stat1 + "R1\t; column");  // column -> R1
             string svalue = expr2.GetVariableExpressionDecoratedName();
-            AddLine("\tMOV\t" + svalue + ", R0");
+            AddLine("\tMOV\t" + svalue + ", R0\t; row");
         }
         else
         {
             AddLine(stat1 + "-(SP)\t; PUSH column");
             GenerateExpression(expr2);  // R0
-            AddLine("\tMOV\t(SP)+, R1\t; POP R1");  // column -> R1
+            AddLine("\tMOV\t(SP)+, R1\t; POP R1 column");  // column -> R1
         }
 
         // R1 = column, R0 = row
         AddRuntimeCall(RuntimeWRAT);
     }
-    // Second case: 1st OR 2nd argument present
-    else if (statement.args.size() >= 1 &&
-        (!expr1.IsEmpty() || statement.args.size() > 1 && !statement.args[1].IsEmpty()))
+    // Second case: 1st argument present, no 2nd argument
+    else if (statement.args.size() >= 1 && !expr1.IsEmpty() &&
+        (statement.args.size() == 1 || statement.args[1].IsEmpty()))
     {
-        //const ExpressionModel& expr2 = statement.args[1];  // row, could be empty
+        AddRuntimeCall(RuntimeGETCR);  // R1 = column, R2 = row
+        if (expr1.IsConstExpression())
+        {
+            GET_CONSTEXPR_INT_VALUE_IN_R1(expr1)  // column -> R1
+            AddLine("\tMOV\tR2, R0\t; row");  // row -> R0
+        }
+        else if (expr1.IsVariableExpression() && expr1.GetExpressionValueType() == ValueTypeInteger)
+        {
+            AddLine("\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", R1\t; column");
+            AddLine("\tMOV\tR2, R0\t; row");  // row -> R0
+        }
+        else
+        {
+            AddLine("\tMOV R2, -(SP)\t; PUSH row");
+            GenerateExpression(expr1);  // result in R0
+            AddLine("\tMOV\tR0, R1\t; column");
+            AddLine("\tMOV\t(SP)+, R0\t; POP R0 row");  // row -> R0
+        }
 
-        //TODO
-        AddComment("TODO LOCATE");
         // R1 = column, R0 = row
         AddRuntimeCall(RuntimeWRAT);
+    }
+    // Third case: no 1st argument, 2nd argument present
+    else if (statement.args.size() >= 2 && expr1.IsEmpty() && !statement.args[1].IsEmpty())
+    {
+        const ExpressionModel& expr2 = statement.args[1];  // row
+
+        AddRuntimeCall(RuntimeGETCR);  // R1 = column, R2 = row
+        if (expr2.IsConstExpression())
+        {
+            GET_CONSTEXPR_INT_VALUE_IN_R0(expr2)  // row -> R0
+        }
+        else if (expr2.IsVariableExpression() && expr2.GetExpressionValueType() == ValueTypeInteger)
+        {
+            AddLine("\tMOV\t" + expr2.GetVariableExpressionDecoratedName() + ", R0\t; row");
+        }
+        else
+        {
+            AddLine("\tMOV R1, -(SP)\t; PUSH column");
+            GenerateExpression(expr2);  // result in R0 = row
+            AddLine("\tMOV\t(SP)+, R1\t; POP R1 column");  // column -> R1
+        }
+
+        // R1 = column, R0 = row
+        AddRuntimeCall(RuntimeWRAT);
+    }
+    // Last case: no 1st, no 2nd argument
+    else
+    {
+        assert(statement.args.size() == 3);
+        assert(expr1.IsEmpty());
+        assert(statement.args[1].IsEmpty());
+        // skip WRAT call: no need
     }
 
     // 3rd argument - LOCATE cursor on/off
@@ -879,12 +937,16 @@ void Generator::GenerateLocate(StatementModel& statement)
     }
 }
 
+// PSET [ @  ](<АРГ1>,< АРГ2>)[,< АРГ3>]
+// PSET [STEP](<АРГ1>,< АРГ2>)[,< АРГ3>]
 void Generator::GeneratePset(StatementModel& statement)
 {
     //TODO
     AddComment("TODO PSET");
 }
 
+// PRESET [ @  ](<АРГ1>,< АРГ2>)[,< АРГ3>]
+// PRESET [STEP](<АРГ1>,< АРГ2>)[,< АРГ3>]
 void Generator::GeneratePreset(StatementModel& statement)
 {
     //TODO
@@ -911,6 +973,7 @@ void Generator::GenerateNext(StatementModel& statement)
     AddLine("X" + std::to_string(forlinenum) + ":");
 }
 
+// POKE <АДРЕС>,<ВЫРАЖЕНИЕ>
 void Generator::GeneratePoke(StatementModel& statement)
 {
     assert(statement.args.size() == 2);
@@ -946,18 +1009,96 @@ void Generator::GeneratePoke(StatementModel& statement)
         AddLine(stat1 + "-(SP)\t; PUSH address");
         GenerateExpression(expr2);  // result in R0
         stat2 = "\tMOV\tR0, ";
-        AddLine("\tMOV\t-(SP), R1\t; POP R1");  // address -> R1
+        AddLine("\tMOV\t(SP)+, R1\t; POP R1");  // address -> R1
     }
 
     AddLine(stat2 + "(R1)\t; POKE");
 }
 
+// OUT <АДРЕС>,<МАСКА>,<КОД>
 void Generator::GenerateOut(StatementModel& statement)
 {
     assert(statement.args.size() == 3);
 
-    //TODO
-    AddComment("TODO OUT");  //TODO
+    //NOTE: This expression could not be string
+    ExpressionModel& expr1 = statement.args[1];  // address
+
+    if (expr1.IsConstExpression() && expr1.GetConstExpressionDValue() == 0)
+    {
+        AddLine("\t\t; OUT mask is 0, reduced to no operation");
+        return;
+    }
+
+    //NOTE: This expression could not be string
+    ExpressionModel& expr2 = statement.args[0];  // mask
+    string stat2;
+    if (expr2.IsConstExpression())
+        stat2 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr2);
+    else if (expr2.IsVariableExpression() && expr2.GetExpressionValueType() == ValueTypeInteger)
+        stat2 = "\tMOV\t" + expr2.GetVariableExpressionDecoratedName() + ", ";
+    else
+    {
+        GenerateExpression(expr2);
+        stat2 = "\tMOV\tR0, ";
+    }
+
+    //NOTE: This expression could not be string
+    ExpressionModel& expr3 = statement.args[2];  // code: 0 = BIC, else BIS
+
+    if (expr3.IsConstExpression())
+    {
+        string operation = expr3.GetConstExpressionDValue() == 0 ? "BIC" : "BIS";
+
+        if (expr1.IsConstExpression())
+        {
+            int ivalue1 = (int)std::floor(expr1.GetConstExpressionDValue());
+            AddLine(stat2 + "R1");  // mask -> R1
+            AddLine("\t" + operation + "\tR1, @#" + std::to_string(ivalue1) + "\t; OUT");
+        }
+        else if (expr1.IsVariableExpression() && expr1.GetExpressionValueType() == ValueTypeInteger)
+        {
+            AddLine(stat2 + "R1");  // mask -> R1
+            AddLine("\t" + operation + "\tR1, @" + expr1.GetVariableExpressionDecoratedName() + "\t; OUT");
+        }
+        else
+        {
+            AddLine(stat2 + "-(SP)\t\t; PUSH mask");
+            GenerateExpression(expr2);  // result in R0
+            AddLine("\tMOV\t(SP)+, R1\t; POP R1 mask");  // mask -> R1
+            AddLine("\t" + operation + "\tR1, (R0)\t; OUT");
+        }
+    }
+    else
+    {
+        AddLine(stat2 + "-(SP)\t\t; PUSH mask");
+        string stat1;
+        if (expr1.IsConstExpression())
+            stat1 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr1);
+        else if (expr1.IsVariableExpression() && expr1.GetExpressionValueType() == ValueTypeInteger)
+            stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
+        else
+        {
+            GenerateExpression(expr1);  // result in R0
+            stat1 = "\tMOV\tR0, ";
+        }
+
+        if (expr3.IsVariableExpression())
+        {
+            AddLine(stat1 + "R2");  // address -> R2
+            AddLine("\tTST\t" + expr3.GetVariableExpressionDecoratedName());
+        }
+        else
+        {
+            AddLine(stat1 + "-(SP)\t; PUSH address");
+            GenerateExpression(expr3);  // result in R0
+            AddLine("\tMOV\t(SP)+, R2\t; POP R2 address");  // address -> R2
+            AddLine("\tTST\tR0");
+        }
+        AddLine("\tBEQ\t.+4");
+        AddLine("\tBIS\t(SP)+, (R2)\t; OUT BIS");
+        AddLine("\tBR\t.+2");
+        AddLine("\tBIC\t(SP)+, (R2)\t; OUT BIC");
+    }
 }
 
 void Generator::GenerateLine(StatementModel& statement)
@@ -1484,6 +1625,23 @@ void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionN
     AddComment("TODO INKEY$");
 }
 
+void Generator::GenerateFuncCsrlin(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() <= 1);
+
+    // If we have non-const expression then calculate it
+    if (node.args.size() > 0)
+    {
+        const ExpressionModel& expr1 = node.args[0];
+        if (!expr1.IsConstExpression() && !expr1.IsVariableExpression())
+            GenerateExpression(expr1);
+    }
+    //WARN: We don't use the calculated value
+
+    AddRuntimeCall(RuntimeGETCR, "for CSRLIN");  // R1 = column, R2 = row
+    AddLine("\tMOV\tR2, R0\t; row");
+}
+
 void Generator::GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(node.args.size() <= 1);
@@ -1492,11 +1650,13 @@ void Generator::GenerateFuncPos(const ExpressionModel& expr, const ExpressionNod
     if (node.args.size() > 0)
     {
         const ExpressionModel& expr1 = node.args[0];
-        if (!expr.IsConstExpression())
+        if (!expr1.IsConstExpression() && !expr1.IsVariableExpression())
             GenerateExpression(expr1);
     }
+    //WARN: We don't use the calculated value
 
-    AddComment("TODO POS");
+    AddRuntimeCall(RuntimeGETCR, "for POS");  // R1 = column, R2 = row
+    AddLine("\tMOV\tR1, R0\t; column");
 }
 
 

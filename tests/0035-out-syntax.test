@@ -1,6 +1,7 @@
 -q
 ----------------------------------------------------------------------
 10 OUT
+11 OUT'comment
 12 OUT 
 14 OUT -
 16 OUT POKE
@@ -23,55 +24,58 @@
 ERROR at 1:7 line 10 - Arguments expected.
 10 OUT
       ^
-ERROR at 2:8 line 12 - Arguments expected.
+ERROR at 2:7 line 11 - Arguments expected.
+11 OUT'comment
+      ^
+ERROR at 3:8 line 12 - Arguments expected.
 12 OUT 
        ^
-ERROR at 3:9 line 14 - Operand expected in expression.
+ERROR at 4:9 line 14 - Operand expected in expression.
 14 OUT -
         ^
-ERROR at 4:8 line 16 - Expression should not be empty.
+ERROR at 5:8 line 16 - Expression should not be empty.
 16 OUT POKE
        ^
-ERROR at 5:8 line 20 - Expression should not be empty.
+ERROR at 6:8 line 20 - Expression should not be empty.
 20 OUT ,
        ^
-ERROR at 6:10 line 30 - Comma expected.
+ERROR at 7:10 line 30 - Comma expected.
 30 OUT 6%
          ^
-ERROR at 7:11 line 32 - Expression should not be empty.
+ERROR at 8:11 line 32 - Expression should not be empty.
 32 OUT 6%,
           ^
-ERROR at 8:12 line 34 - Expression should not be empty.
+ERROR at 9:12 line 34 - Expression should not be empty.
 34 OUT 6%, 
            ^
-ERROR at 9:13 line 36 - Operand expected in expression.
+ERROR at 10:13 line 36 - Operand expected in expression.
 36 OUT 6%, -
             ^
-ERROR at 10:12 line 38 - Expression should not be empty.
+ERROR at 11:12 line 38 - Expression should not be empty.
 38 OUT 6%, POKE
            ^
-ERROR at 11:11 line 40 - Expression should not be empty.
+ERROR at 12:11 line 40 - Expression should not be empty.
 40 OUT 6%,'
           ^
-ERROR at 12:12 line 50 - Comma expected.
+ERROR at 13:12 line 50 - Comma expected.
 50 OUT 6%,5
            ^
-ERROR at 13:13 line 52 - Expression should not be empty.
+ERROR at 14:13 line 52 - Expression should not be empty.
 52 OUT 6%,5,
             ^
-ERROR at 14:15 line 56 - Operand expected in expression.
+ERROR at 15:15 line 56 - Operand expected in expression.
 56 OUT 6%,5, -
               ^
-ERROR at 15:14 line 58 - Expression should not be empty.
+ERROR at 16:14 line 58 - Expression should not be empty.
 58 OUT 6%,5, POKE
              ^
-ERROR at 16:13 line 60 - Expression should not be empty.
+ERROR at 17:13 line 60 - Expression should not be empty.
 60 OUT 6%,5,'
             ^
-ERROR at 17:10 line 70 - Comma expected.
+ERROR at 18:10 line 70 - Comma expected.
 70 OUT ""
          ^
-ERROR at 18:11 line 72 - Expression should not be empty.
+ERROR at 19:11 line 72 - Expression should not be empty.
 72 OUT "",
           ^
-Parsing ERRORS: 18
+Parsing ERRORS: 19

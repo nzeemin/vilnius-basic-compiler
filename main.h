@@ -116,10 +116,11 @@ enum RuntimeSymbol
     RuntimeWRINT        = 6,
     RuntimeWRSNG        = 7,
     RuntimeWRSTR        = 8,
-    RuntimeCURSR        = 9,
-    RuntimeSTRCP        = 10,
-    RuntimeREADI        = 11,
-    RuntimeRND          = 12,
+    RuntimeGETCR        = 9,
+    RuntimeCURSR        = 10,
+    RuntimeSTRCP        = 11,
+    RuntimeREADI        = 12,
+    RuntimeRND          = 13,
 };
 
 
@@ -673,6 +674,7 @@ private:
     void GenerateFuncInp(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncLen(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncCsrlin(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node);
 };
 

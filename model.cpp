@@ -548,7 +548,7 @@ const char* RuntimeSymbolNames[] = {
     "", // None
     "WRCHR", "WREOL", "WRAT", "WRSPC", "WRTAB",
     "WRINT", "WRSNG", "WRSTR",
-    "CURSR",
+    "GETCR", "CURSR",
     "STRCP",
     "READI",
     "RND",

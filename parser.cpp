@@ -1303,6 +1303,7 @@ void Parser::ParseOn(StatementModel& statement)
     }
 }
 
+// OUT <АДРЕС>,<МАСКА>,<КОД>
 void Parser::ParseOut(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
@@ -1491,6 +1492,7 @@ void Parser::ParsePrint(StatementModel& statement)
     }
 }
 
+// POKE <АДРЕС>,<ВЫРАЖЕНИЕ>
 void Parser::ParsePoke(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
@@ -1512,6 +1514,10 @@ void Parser::ParsePoke(StatementModel& statement)
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
+// PSET [ @  ](<АРГ1>,< АРГ2>)[,< АРГ3>]
+// PSET [STEP](<АРГ1>,< АРГ2>)[,< АРГ3>]
+// PRESET [ @  ](<АРГ1>,< АРГ2>)[,< АРГ3>]
+// PRESET [STEP](<АРГ1>,< АРГ2>)[,< АРГ3>]
 void Parser::ParsePsetPreset(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();

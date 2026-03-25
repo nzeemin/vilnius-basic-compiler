@@ -1,9 +1,17 @@
 -q
 ----------------------------------------------------------------------
-30 LOCATE 1
-31 LOCATE 1,2
-32 LOCATE ,2
-33 LOCATE 1,2,3
-34 LOCATE 1,,3
-35 LOCATE ,2,3
-36 LOCATE ,,3
+10 LOCATE 1%
+14 LOCATE 1
+16 LOCATE 1'comment
+20 LOCATE A%
+30 LOCATE 1%,2%
+34 LOCATE A%,2%
+36 LOCATE 1%,B%
+38 LOCATE A%,B%
+40 LOCATE ,2
+42 LOCATE ,2%
+44 LOCATE 1,2,3
+46 LOCATE 1,,3
+60 LOCATE ,2,3
+70 LOCATE ,,3
+75 LOCATE ,,C%
