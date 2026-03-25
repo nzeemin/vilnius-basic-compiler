@@ -98,7 +98,7 @@ void PrintExpression(ExpressionModel& expr, int number, int indent = 1)
 
 void PrintLineModel(SourceLineModel& line)
 {
-    std::cout << "Line " << line.number << " " << line.statement.token.text << line.statement.token.symbol;
+    std::cout << "Line " << line.linenum << " " << line.statement.token.text << line.statement.token.symbol;
     if (line.statement.paramline > 0)
         std::cout << " " << line.statement.paramline;
     if (line.statement.ident.type != TokenTypeNone)
@@ -186,7 +186,7 @@ void ShowParsing(Parser& parser)
     while (true)
     {
         SourceLineModel line = parser.ParseNextLine();
-        if (line.number == 0)
+        if (line.linenum == 0 && line.srclinenum == 0)
             break;
 
         if (!line.error)
@@ -242,7 +242,7 @@ void ProcessFiles()
     while (true)
     {
         SourceLineModel line = parser.ParseNextLine();
-        if (line.number == 0)
+        if (line.linenum == 0 && line.srclinenum == 0)
             break;
 
         g_source.lines.push_back(line);

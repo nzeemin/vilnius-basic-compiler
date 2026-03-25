@@ -455,6 +455,7 @@ void process_test(const string& testfilename)
     fsrt.close();
     if (rthastodos)
     {
+        SetTextAttribute(TEXTATTRIBUTES_NORMAL);
         std::cout << "  FAILED: Runtime .MAC file contains TODOs" << std::endl;
         g_failedtests++;
         return;

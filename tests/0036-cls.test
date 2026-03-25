@@ -7,14 +7,14 @@
 START:
 	MOV	SP, SAVESP
 ; 10 CLS
-L10:
+N10:
 	MOV	#14, R0
 	CALL	WRCHR
 ; 20 CLS 'comment
-L20:
+N20:
 	MOV	#14, R0
 	CALL	WRCHR
-L65536:
+L_END:
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT

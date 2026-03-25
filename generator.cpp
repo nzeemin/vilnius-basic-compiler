@@ -179,7 +179,7 @@ void Generator::ProcessBegin()
 
 void Generator::ProcessEnd()
 {
-    AddLine("L" + std::to_string(MAX_LINE_NUMBER + 1) + ":");
+    AddLine("L_END:");
     AddLine("SAVESP = . + 2");
     AddLine("\tMOV\t#776, SP\t; restore SP");
     if (g_platform == PlatformBK0010)
@@ -333,7 +333,7 @@ bool Generator::ProcessLine()
 
     m_line = &(m_source->lines[m_lineindex]);
     AddComment(m_line->text);
-    string linenumlabel = "L" + std::to_string(m_line->number) + ":";//TODO function GetLineNumberLabel
+    string linenumlabel = m_line->GetLineNumberLabel() + ":";
     AddLine(linenumlabel);
 
     // Find keyword generator implementation
@@ -352,7 +352,7 @@ bool Generator::ProcessLine()
 
 void Generator::Error(const string& message)
 {
-    std::cerr << "ERROR in line " << m_line->number << " - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_line->linenum << " - " << message << std::endl;
     m_line->error = true;
     RegisterError();
 }
@@ -598,10 +598,10 @@ void Generator::GenerateDraw(StatementModel& statement)
 
 void Generator::GenerateEnd(StatementModel&)
 {
-    // END generates JMP 65536, but only if END is not on the last line
-    int nextlinenum = m_source->GetNextLineNumber(m_line->number);
-    if (nextlinenum != MAX_LINE_NUMBER + 1)
-        AddLine("\tJMP\tL" + std::to_string(MAX_LINE_NUMBER + 1));
+    // END generates JMP L_END, but only if END is not on the last line
+    int nextlinenum = m_source->GetNextLineNumber(m_line->linenum);
+    if (nextlinenum < MAX_LINE_NUMBER + 1)
+        AddLine("\tJMP\tL_END");
 }
 
 void Generator::GenerateFor(StatementModel& statement)
@@ -628,12 +628,12 @@ void Generator::GenerateFor(StatementModel& statement)
     else if (expr2.IsVariableExpression())
     {
         string svalue = expr2.GetVariableExpressionDecoratedName();
-        AddLine("\tMOV\t" + svalue + ", @#<N" + std::to_string(m_line->number) + "+2>");
+        AddLine("\tMOV\t" + svalue + ", @#<N" + std::to_string(m_line->linenum) + "+2>");
     }
     else
     {
         GenerateExpression(expr2);
-        AddLine("\tMOV\tR0, @#<N" + std::to_string(m_line->number) + "+2>");  //  Save "to" value
+        AddLine("\tMOV\tR0, @#<N" + std::to_string(m_line->linenum) + "+2>");  //  Save "to" value
     }
 
     if (statement.args.size() > 2)  // has STEP expression
@@ -642,24 +642,24 @@ void Generator::GenerateFor(StatementModel& statement)
         ExpressionModel& expr3 = statement.args[2];
         GenerateExpression(expr3);
         // Save "step" value
-        AddLine("\tMOV\tR0, @#<L" + std::to_string(statement.paramline) + "+2>");
+        AddLine("\tMOV\tR0, @#<N" + std::to_string(statement.paramline) + "+2>");
     }
 
-    int nextlinenum = m_source->GetNextLineNumber(m_line->number);
-    AddLine("N" + std::to_string(m_line->number) + ":\tCMP\t" + tovalue + ", " + deconame);
-    AddLine("\tBHIS\tL" + std::to_string(nextlinenum));
-    AddLine("\tJMP\tX" + std::to_string(m_line->number));  // label after NEXT
+    int nextlinenum = m_source->GetNextLineNumber(m_line->linenum);
+    AddLine("N" + std::to_string(m_line->linenum) + ":\tCMP\t" + tovalue + ", " + deconame);
+    AddLine("\tBHIS\tN" + std::to_string(nextlinenum));
+    AddLine("\tJMP\tX" + std::to_string(m_line->linenum));  // label after NEXT
 }
 
 void Generator::GenerateGosub(StatementModel& statement)
 {
-    string linenum = "\tCALL\tL" + std::to_string(statement.paramline);
+    string linenum = "\tCALL\tN" + std::to_string(statement.paramline);
     AddLine(linenum);
 }
 
 void Generator::GenerateGoto(StatementModel& statement)
 {
-    string linenum = "\tJMP\tL" + std::to_string(statement.paramline);
+    string linenum = "\tJMP\tN" + std::to_string(statement.paramline);
     AddLine(linenum);
 }
 
@@ -676,7 +676,7 @@ void Generator::GenerateIf(StatementModel& statement)
             if (statement.stthen == nullptr)  // THEN linenum
             {
                 int linenum = (int)statement.params[0].dvalue;
-                AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN");
+                AddLine("\tJMP\tN" + std::to_string(linenum) + "\t; THEN"); //TODO GetLineNumberLabel
             }
             else  // Statement under THEN
             {
@@ -684,7 +684,7 @@ void Generator::GenerateIf(StatementModel& statement)
                 if (pstthen->token.keyword == KeywordGOTO)  // THEN GOTO linenum
                 {
                     int linenum = (int)pstthen->paramline;
-                    AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; THEN GOTO");
+                    AddLine("\tJMP\tN" + std::to_string(linenum) + "\t; THEN GOTO");
                 }
                 else
                 {
@@ -702,7 +702,7 @@ void Generator::GenerateIf(StatementModel& statement)
                 else
                 {
                     int linenum2 = (int)statement.params[1].dvalue;
-                    AddLine("\tJMP\tL" + std::to_string(linenum2) + "\t; ELSE");
+                    AddLine("\tJMP\tN" + std::to_string(linenum2) + "\t; ELSE");
                 }
                 //TODO
             }
@@ -712,7 +712,7 @@ void Generator::GenerateIf(StatementModel& statement)
                 if (pstelse->token.keyword == KeywordGOTO)  // THEN GOTO linenum
                 {
                     int linenum = (int)pstelse->paramline;
-                    AddLine("\tJMP\tL" + std::to_string(linenum) + "\t; ELSE GOTO");
+                    AddLine("\tJMP\tN" + std::to_string(linenum) + "\t; ELSE GOTO");
                 }
                 else
                 {
@@ -732,18 +732,18 @@ void Generator::GenerateIf(StatementModel& statement)
 
     if (statement.params.size() == 1)  // IF expr THEN linenum
     {
-        int linenumnext = m_source->GetNextLineNumber(m_line->number);
-        AddLine("\tBEQ\tL" + std::to_string(linenumnext));
+        int linenumnext = m_source->GetNextLineNumber(m_line->linenum);
+        AddLine("\tBEQ\tN" + std::to_string(linenumnext));
         int linenum = (int)statement.params[0].dvalue;
-        AddLine("\tJMP\tL" + std::to_string(linenum));
+        AddLine("\tJMP\tN" + std::to_string(linenum));
     }
     else  // IF expr THEN linenum ELSE linenum
     {
         AddLine("\tBEQ\t10$");
         int linenum1 = (int)statement.params[0].dvalue;
-        AddLine("\tJMP\tL" + std::to_string(linenum1));
+        AddLine("\tJMP\tN" + std::to_string(linenum1));
         int linenum2 = (int)statement.params[1].dvalue;
-        AddLine("10$:\tJMP\tL" + std::to_string(linenum2));
+        AddLine("10$:\tJMP\tN" + std::to_string(linenum2));
     }
 }
 
@@ -801,7 +801,7 @@ void Generator::GenerateOn(StatementModel& statement)
     ExpressionModel& expr = statement.args[0];
     GenerateExpression(expr);
     int numofcases = statement.params.size();
-    string nextline = "L" + std::to_string(m_source->GetNextLineNumber(m_line->number));
+    string nextline = "N" + std::to_string(m_source->GetNextLineNumber(m_line->linenum));
     AddLine("\tDEC\tR0");
     AddLine("\tBLO\t" + nextline);
     AddLine("\tCMP\t#" + std::to_string(numofcases) + ", R0");
@@ -815,11 +815,11 @@ void Generator::GenerateOn(StatementModel& statement)
         AddLine("\tBR\t" + nextline);
     }
     int linenum = (int)statement.params[0].dvalue;
-    AddLine("10$:\t.WORD\tL" + std::to_string(linenum));
+    AddLine("10$:\t.WORD\tN" + std::to_string(linenum));
     for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
     {
         linenum = (int)it->dvalue;
-        AddLine("\t.WORD\tL" + std::to_string(linenum));
+        AddLine("\t.WORD\tN" + std::to_string(linenum));
     }
 }
 

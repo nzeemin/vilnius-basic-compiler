@@ -273,13 +273,16 @@ public:
 
 struct SourceLineModel
 {
-    int		number;		// Line number
+    int		linenum;	// Line number
+    int     srclinenum; // Source file line number
     string  text;       // Full line text
     bool    error;      // Flag indicating that this line has an error
     StatementModel statement;
 public:
     SourceLineModel() :
-        number(0), error(false) {}
+        linenum(0), srclinenum(0), error(false) {}
+public:
+    string GetLineNumberLabel() const;
 };
 
 struct SourceModel
@@ -368,6 +371,7 @@ class Parser
     bool	m_havenexttoken;
     int     m_prevlinenum;
     SourceLineModel* m_line;  // Curent line being parsed
+    int     m_srclinenum;
 public:
     Parser(Tokenizer* tokenizer);
 public:

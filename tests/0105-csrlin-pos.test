@@ -11,40 +11,40 @@
 START:
 	MOV	SP, SAVESP
 ; 100 Y%=CSRLIN
-L100:
+N100:
 	CALL	GETCR	; for CSRLIN
 	MOV	R2, R0	; row
 	MOV	R0, VARIY	; assignment
 ; 105 Y%=CSRLIN(X%)
-L105:
+N105:
 	CALL	GETCR	; for CSRLIN
 	MOV	R2, R0	; row
 	MOV	R0, VARIY	; assignment
 ; 110 Y%=CSRLIN(X%-5)
-L110:
+N110:
 	MOV	VARIX, R0
 	SUB	#5., R0	; Operation '-'
 	CALL	GETCR	; for CSRLIN
 	MOV	R2, R0	; row
 	MOV	R0, VARIY	; assignment
 ; 200 X%=POS
-L200:
+N200:
 	CALL	GETCR	; for POS
 	MOV	R1, R0	; column
 	MOV	R0, VARIX	; assignment
 ; 205 X%=POS(Y%)
-L205:
+N205:
 	CALL	GETCR	; for POS
 	MOV	R1, R0	; column
 	MOV	R0, VARIX	; assignment
 ; 210 X%=POS(Y%+2)
-L210:
+N210:
 	MOV	VARIY, R0
 	ADD	#2., R0	; Operation '+'
 	CALL	GETCR	; for POS
 	MOV	R1, R0	; column
 	MOV	R0, VARIX	; assignment
-L65536:
+L_END:
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT

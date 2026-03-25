@@ -60,14 +60,14 @@ Current state of the project: **prototype**
 START:
 	MOV	SP, SAVESP
 ; 10 A%=23.42
-L10:
+N10:
 	MOV	#23., VARIA	; assignment
 ; 20 PRINT A%
-L20:
+N20:
 	MOV	VARIA, R0
 	CALL	WRINT
 	CALL	WREOL
-L65536:
+L_END:
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT

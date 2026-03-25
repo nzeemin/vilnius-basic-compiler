@@ -132,6 +132,7 @@ Parser::Parser(Tokenizer* tokenizer)
     m_havenexttoken = false;
     m_prevlinenum = 0;
     m_line = nullptr;
+    m_srclinenum = 0;
 }
 
 Token Parser::GetNextToken()
@@ -176,28 +177,35 @@ Token Parser::PeekNextTokenSkipDivider()
 
 SourceLineModel Parser::ParseNextLine()
 {
-    Token token = GetNextToken();
+    Token token = PeekNextToken();
 
     SourceLineModel model;
     m_line = &model;
+    model.srclinenum = ++m_srclinenum;
     model.text = m_tokenizer->GetLineText();
 
     if (token.type == TokenTypeEOT)
     {
-        model.number = 0;
+        GetNextToken();  // get the peeked token
+        model.linenum = model.srclinenum = 0;
         return model;
     }
 
     if (token.type == TokenTypeEOL)  // Empty lines allowed at the end of file
     {
+        GetNextToken();  // get the peeked token
         while (true)
         {
-            token = GetNextToken();
+            token = PeekNextToken();
             if (token.type == TokenTypeEOL || token.type == TokenTypeDivider)
+            {
+                GetNextToken();  // get the peeked token
                 continue;
+            }
             if (token.type == TokenTypeEOT)
             {
-                model.number = 0;
+                GetNextToken();  // get the peeked token
+                model.linenum = model.srclinenum = 0;
                 return model;
             }
 
@@ -206,37 +214,50 @@ SourceLineModel Parser::ParseNextLine()
         }
     }
 
-    if (token.type != TokenTypeNumber)
+    if (token.type == TokenTypeNumber)  // line with line number
     {
-        Error(token, "Line number not found.");
-        return model;
+        GetNextToken();  // get the peeked token
+        model.linenum = atoi(token.text.c_str());
+        if (model.linenum <= 0 || model.linenum > MAX_LINE_NUMBER)
+        {
+            Error(token, "Line number is out of valid range.");
+            SkipTilEnd();
+            GetNextToken();  // get EOL or EOT
+            return model;
+        }
+        if (model.linenum == m_prevlinenum)
+        {
+            Error(token, "Line number duplicated.");
+            SkipTilEnd();
+            GetNextToken();  // get EOL or EOT
+            return model;
+        }
+        if (model.linenum <= m_prevlinenum)
+        {
+            Error(token, "Line number is incorrect.");
+            SkipTilEnd();
+            GetNextToken();  // get EOL or EOT
+            return model;
+        }
+        m_prevlinenum = model.linenum;
     }
-    model.number = atoi(token.text.c_str());
-    if (model.number <= 0 || model.number > MAX_LINE_NUMBER)
+    else  // line without line number
     {
-        Error(token, "Line number is out of valid range.");
-        SkipTilEnd();
-        return model;
+        // do nothing
     }
-    if (model.number == m_prevlinenum)
-    {
-        Error(token, "Line number duplicated.");
-        SkipTilEnd();
-        return model;
-    }
-    if (model.number <= m_prevlinenum)
-    {
-        Error(token, "Line number is incorrect.");
-        SkipTilEnd();
-        return model;
-    }
-    m_prevlinenum = model.number;
 
     ParseStatement(model.statement);
-
-    token = PeekNextTokenSkipDivider();
-    if (token.IsEolOrEof())
-        GetNextToken();
+    if (model.error)  // error, skip to the end of line
+    {
+        SkipTilEnd();
+        GetNextToken();  // get EOL or EOT
+    }
+    else  // normal, skip empty end
+    {
+        token = PeekNextTokenSkipDivider();
+        if (token.IsEolOrEof())
+            GetNextToken();
+    }
 
     return model;
 }
@@ -337,7 +358,10 @@ skiptilend:
 void Parser::Error(const Token& token, const string& message)
 {
     assert(m_line != nullptr);
-    std::cerr << "ERROR at " << token.line << ":" << token.pos << " line " << m_line->number << " - " << message << std::endl;
+    std::cerr << "ERROR at " << token.line << ":" << token.pos;
+    if (m_line->linenum != 0)
+        std::cerr << " line " << m_line->linenum;
+    std::cerr << " - " << message << std::endl;
     const string& linetext = m_line->text;
     if (!linetext.empty())
     {
@@ -352,9 +376,10 @@ void Parser::SkipTilEnd()
 {
     while (true)  // Skip til EOL/EOF
     {
-        Token token = GetNextToken();
+        Token token = PeekNextToken();
         if (token.IsEolOrEof())
             break;
+        GetNextToken();  // get the peeked token
     }
 }
 

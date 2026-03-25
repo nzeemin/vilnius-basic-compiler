@@ -178,21 +178,21 @@ void Validator::ValidateStatement(StatementModel& statement)
 
 void Validator::Error(const string& message)
 {
-    std::cerr << "ERROR in line " << m_line->number << " - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_line->linenum << " - " << message << std::endl;
     m_line->error = true;
     RegisterError();
 }
 
 void Validator::Error(ExpressionModel& expr, const string& message)
 {
-    std::cerr << "ERROR in line " << m_line->number << " in expression - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_line->linenum << " in expression - " << message << std::endl;
     m_line->error = true;
     RegisterError();
 }
 
 void Validator::Error(ExpressionModel& expr, const ExpressionNode& node, const string& message)
 {
-    std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - " << message << std::endl;
+    std::cerr << "ERROR in line " << m_line->linenum << " at " << node.token.line << ":" << node.token.pos << " - " << message << std::endl;
     m_line->error = true;
     RegisterError();
 }
@@ -243,7 +243,7 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
             ValidateUnaryNot(expr, node, noderight);
         else
         {
-            std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - TODO validate unary operator " << node.token.text << std::endl;
+            std::cerr << "ERROR in line " << m_line->linenum << " at " << node.token.line << ":" << node.token.pos << " - TODO validate unary operator " << node.token.text << std::endl;
             m_line->error = true;
             RegisterError();
             return;
@@ -256,7 +256,7 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
 
         if (nodeleft.vtype == ValueTypeNone || noderight.vtype == ValueTypeNone)
         {
-            std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - Cannot calculate value type for the node." << std::endl;
+            std::cerr << "ERROR in line " << m_line->linenum << " at " << node.token.line << ":" << node.token.pos << " - Cannot calculate value type for the node." << std::endl;
             m_line->error = true;
             RegisterError();
             return;
@@ -278,7 +278,7 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
             (this->*methodref)(expr, node, nodeleft, noderight);
         else
         {
-            std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - TODO validate operator \'" + text + "\'." << std::endl;
+            std::cerr << "ERROR in line " << m_line->linenum << " at " << node.token.line << ":" << node.token.pos << " - TODO validate operator \'" + text + "\'." << std::endl;
             m_line->error = true;
             RegisterError();
             return;
@@ -301,7 +301,7 @@ void Validator::ValidateExpression(ExpressionModel& expr, int index)
 
         if (methodref == nullptr)
         {
-            std::cerr << "ERROR in line " << m_line->number << " at " << node.token.line << ":" << node.token.pos << " - TODO validate function " + GetKeywordString(keyword) << std::endl;
+            std::cerr << "ERROR in line " << m_line->linenum << " at " << node.token.line << ":" << node.token.pos << " - TODO validate function " + GetKeywordString(keyword) << std::endl;
             m_line->error = true;
             RegisterError();
             return;
@@ -509,7 +509,7 @@ void Validator::ValidateFor(StatementModel& statement)
     // Add FOR variable to FOR/NEXT stack
     ValidatorForSpec forspec;
     forspec.varname = var.name;
-    forspec.linenum = m_line->number;
+    forspec.linenum = m_line->linenum;
     m_fornextstack.push_back(forspec);
 
     if (statement.args.size() < 2)
@@ -877,7 +877,7 @@ void Validator::ValidateNext(StatementModel& statement)
 
         // link FOR to the NEXT line number
         SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
-        linefor.statement.paramline = m_line->number;
+        linefor.statement.paramline = m_line->linenum;
 
         return;
     }
@@ -902,7 +902,7 @@ void Validator::ValidateNext(StatementModel& statement)
 
         // link FOR to the NEXT line number
         SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
-        linefor.statement.paramline = m_line->number;
+        linefor.statement.paramline = m_line->linenum;
     }
 }
 

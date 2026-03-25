@@ -403,6 +403,17 @@ int ExpressionModel::AddOperationNode(ExpressionNode& node, int prev)
     return index;
 }
 
+//////////////////////////////////////////////////////////////////////
+// SourceLineModel
+
+string SourceLineModel::GetLineNumberLabel() const
+{
+    assert(linenum != 0 || srclinenum != 0);
+    if (linenum != 0)
+        return "N" + std::to_string(linenum);
+    return "L" + std::to_string(srclinenum);
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // SourceModel
@@ -446,7 +457,7 @@ bool SourceModel::IsLineNumberExists(int linenumber) const
         return false;
     for (auto it = std::begin(lines); it != std::end(lines); ++it)
     {
-        if (it->number == linenumber)
+        if (it->linenum == linenumber)
             return true;
     }
     return false;
@@ -458,8 +469,8 @@ int SourceModel::GetNextLineNumber(int linenumber) const
         return MAX_LINE_NUMBER + 1;
     for (auto it = std::begin(lines); it != std::end(lines); ++it)
     {
-        if (it->number > linenumber)
-            return it->number;
+        if (it->linenum > linenumber)
+            return it->linenum;
     }
     return MAX_LINE_NUMBER + 1;
 }
@@ -470,7 +481,7 @@ SourceLineModel& SourceModel::GetSourceLine(int linenumber)
 
     for (auto it = std::begin(lines); it != std::end(lines); ++it)
     {
-        if (it->number == linenumber)
+        if (it->linenum == linenumber)
             return *it;
     }
 

@@ -1,20 +1,26 @@
 -q
 ----------------------------------------------------------------------
-1  GOTO 65535
+1 CLS
+GOTO 65535
 20 GOTO 1000
 50    GOTO 10000
 100 GOTO 20
-101 GOTO 20
+    GOTO 20
 200 GOTO 200
 1000 GOTO   50
 10000 GOTO 100
+	GOTO 200
 65535 GOTO 1
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 START:
 	MOV	SP, SAVESP
-; 1  GOTO 65535
+; 1 CLS
 N1:
+	MOV	#14, R0
+	CALL	WRCHR
+; GOTO 65535
+L2:
 	JMP	N65535
 ; 20 GOTO 1000
 N20:
@@ -25,8 +31,8 @@ N50:
 ; 100 GOTO 20
 N100:
 	JMP	N20
-; 101 GOTO 20
-N101:
+;     GOTO 20
+L6:
 	JMP	N20
 ; 200 GOTO 200
 N200:
@@ -37,6 +43,9 @@ N1000:
 ; 10000 GOTO 100
 N10000:
 	JMP	N100
+; 	GOTO 200
+L10:
+	JMP	N200
 ; 65535 GOTO 1
 N65535:
 	JMP	N1
@@ -45,5 +54,5 @@ SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT
 ; RUNTIME CALLS
-;
+	.GLOBL	WRCHR
 	.END	START
