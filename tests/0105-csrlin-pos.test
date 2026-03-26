@@ -48,7 +48,7 @@ N210:
 	CALL	GETCR	; for POS
 	MOV	R1, R0	; column
 	MOV	R0, VARIX	; assignment
-L_END:
+LEND:
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT

@@ -40,7 +40,7 @@ N10000:
 ; 65535 GOTO 1
 N65535:
 	JMP	N1
-L_END:
+LEND:
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT

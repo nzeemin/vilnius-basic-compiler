@@ -20,7 +20,7 @@ N810:
 ; 820 GOSUB 700'comment
 N820:
 	CALL	N700
-L_END:
+LEND:
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT

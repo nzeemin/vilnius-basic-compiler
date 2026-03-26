@@ -179,7 +179,7 @@ void Generator::ProcessBegin()
 
 void Generator::ProcessEnd()
 {
-    AddLine("L_END:");
+    AddLine("LEND:");
     AddLine("SAVESP = . + 2");
     AddLine("\tMOV\t#776, SP\t; restore SP");
     if (g_platform == PlatformBK0010)
@@ -332,9 +332,15 @@ bool Generator::ProcessLine()
     }
 
     m_line = &(m_source->lines[m_lineindex]);
-    AddComment(m_line->text);
-    string linenumlabel = m_line->GetLineNumberLabel() + ":";
-    AddLine(linenumlabel);
+
+    // Show the line text and line number, unless it's a comment line without line number
+    if (m_line->linenum != 0 ||
+        m_line->statement.token.keyword != KeywordREM)
+    {
+        AddComment(m_line->text);
+        string linenumlabel = m_line->GetLineNumberLabel() + ":";
+        AddLine(linenumlabel);
+    }
 
     // Find keyword generator implementation
     KeywordIndex keyword = m_line->statement.token.keyword;
@@ -410,9 +416,20 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
         return;
     }
 
+    // Binary operation
     if (node.token.type == TokenTypeOperation && node.left >= 0 && node.right >= 0)
     {
         GenerateExprBinaryOperation(expr, node);
+        return;
+    }
+    // Unary operation
+    else if (node.token.type == TokenTypeOperation && node.left == -1 && node.right >= 0)
+    {
+        if (node.token.keyword == KeywordNOT)
+            GenerateExprUnaryNot(expr, node);
+        //TODO: unary +/-
+        else
+            AddComment("TODO generate unary operation " + node.token.text);
         return;
     }
 
@@ -421,6 +438,18 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
         AddComment("TODO generate complex expression");
         return;
     }
+}
+
+void Generator::GenerateExprUnaryNot(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.left == -1);
+    assert(node.right >= 0);
+
+    const ExpressionNode& noderight = expr.nodes[node.right];
+
+    GenerateExpression(expr, noderight);
+
+    AddLine("\tCOM\tR0\t\t; NOT");
 }
 
 void Generator::GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node)
@@ -603,10 +632,10 @@ void Generator::GenerateDraw(StatementModel& statement)
 
 void Generator::GenerateEnd(StatementModel&)
 {
-    // END generates JMP L_END, but only if END is not on the last line
+    // END generates JMP LEND, but only if END is not on the last line
     int nextlinenum = m_source->GetNextLineNumber(m_line->linenum);
     if (nextlinenum < MAX_LINE_NUMBER + 1)
-        AddLine("\tJMP\tL_END");
+        AddLine("\tJMP\tLEND");
 }
 
 // FOR <ПАРАМЕТР>=<АРГУМЕНТ1> TO <АРГУМЕНТ2>
@@ -682,7 +711,7 @@ void Generator::GenerateIf(StatementModel& statement)
             if (statement.stthen == nullptr)  // THEN linenum
             {
                 int linenum = (int)statement.params[0].dvalue;
-                AddLine("\tJMP\tN" + std::to_string(linenum) + "\t; THEN"); //TODO GetLineNumberLabel
+                AddLine("\tJMP\tN" + std::to_string(linenum) + "\t; THEN");
             }
             else  // Statement under THEN
             {
@@ -891,7 +920,7 @@ void Generator::GenerateLocate(StatementModel& statement)
         }
         else
         {
-            AddLine("\tMOV R2, -(SP)\t; PUSH row");
+            AddLine("\tMOV\tR2, -(SP)\t; PUSH row");
             GenerateExpression(expr1);  // result in R0
             AddLine("\tMOV\tR0, R1\t; column");
             AddLine("\tMOV\t(SP)+, R0\t; POP R0 row");  // row -> R0
@@ -916,7 +945,7 @@ void Generator::GenerateLocate(StatementModel& statement)
         }
         else
         {
-            AddLine("\tMOV R1, -(SP)\t; PUSH column");
+            AddLine("\tMOV\tR1, -(SP)\t; PUSH column");
             GenerateExpression(expr2);  // result in R0 = row
             AddLine("\tMOV\t(SP)+, R1\t; POP R1 column");  // column -> R1
         }
@@ -1463,10 +1492,10 @@ void Generator::GenerateOperEqual(const ExpressionModel& expr, const ExpressionN
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //AddLine("\tBEQ\t");
-
-    //TODO
-    AddComment("TODO operation equal");
+    AddLine("\tBEQ\t.+4");
+    AddLine("\tCLR\tR0\t; false");
+    AddLine("\tBR\t.+4");
+    AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1475,10 +1504,10 @@ void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const Expressi
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //AddLine("\tBNE\t");
-
-    //TODO
-    AddComment("TODO operation not-equal");
+    AddLine("\tBNE\t.+4");
+    AddLine("\tCLR\tR0\t; false");
+    AddLine("\tBR\t.+4");
+    AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperLess(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1487,10 +1516,10 @@ void Generator::GenerateOperLess(const ExpressionModel& expr, const ExpressionNo
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //AddLine("\tBLO\t");
-
-    //TODO
-    AddComment("TODO operation less");
+    AddLine("\tBLT\t.+4");
+    AddLine("\tCLR\tR0\t; false");
+    AddLine("\tBR\t.+4");
+    AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperGreater(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1499,10 +1528,10 @@ void Generator::GenerateOperGreater(const ExpressionModel& expr, const Expressio
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //AddLine("\tBHI\t");
-
-    //TODO
-    AddComment("TODO operation greater");
+    AddLine("\tBGT\t.+4");
+    AddLine("\tCLR\tR0\t; false");
+    AddLine("\tBR\t.+4");
+    AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperLessOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1511,10 +1540,10 @@ void Generator::GenerateOperLessOrEqual(const ExpressionModel& expr, const Expre
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //AddLine("\tBLO\t");
-
-    //TODO
-    AddComment("TODO operation less or equal");
+    AddLine("\tBLE\t.+4");
+    AddLine("\tCLR\tR0\t; false");
+    AddLine("\tBR\t.+4");
+    AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperGreaterOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -1523,34 +1552,220 @@ void Generator::GenerateOperGreaterOrEqual(const ExpressionModel& expr, const Ex
 
     GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
 
-    //AddLine("\tBHI\t");
-
-    //TODO
-    AddComment("TODO operation greater or equal");
+    AddLine("\tBGE\t.+4");
+    AddLine("\tCLR\tR0\t; false");
+    AddLine("\tBR\t.+4");
+    AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     //const string comment = "\t; Operation \'AND\'";
 
-    //TODO
-    AddComment("TODO operation AND");
+    // Special case: 0 AND xxx, result is 0
+    if (noderight.vtype != ValueTypeString &&
+        nodeleft.constval && (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+        (int)std::floor(nodeleft.token.dvalue) == 0)
+    {
+        //WARN
+        AddLine("\tCLR\tR0\t\t; 0 AND xxx");
+        return;
+    }
+    // Special case: xxx AND 0, result is 0
+    if (nodeleft.vtype != ValueTypeString &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle) &&
+        (int)std::floor(noderight.token.dvalue) == 0)
+    {
+        //WARN
+        AddLine("\tCLR\tR0\t\t; xxx AND 0");
+        return;
+    }
+
+    // Special case: -1 AND xxx, result is xxx
+    if (noderight.vtype != ValueTypeString &&
+        nodeleft.constval && (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+        (int)std::floor(nodeleft.token.dvalue) == -1)
+    {
+        //WARN
+        GenerateExpression(expr, noderight);
+        return;
+    }
+    // Special case: xxx AND -1, result is xxx
+    if (nodeleft.vtype != ValueTypeString &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle) &&
+        (int)std::floor(noderight.token.dvalue) == -1)
+    {
+        //WARN
+        GenerateExpression(expr, nodeleft);
+        return;
+    }
+
+    // Left part is constant, let's calculate right part first
+    if (nodeleft.constval &&
+        (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle))
+    {
+        GenerateExpression(expr, noderight);
+        int ivalue = ~(int)std::floor(nodeleft.token.dvalue);  // inverted to use with BIC
+        AddLine("\tBIC\t#" + std::to_string(ivalue) + "., R0\t; OR");
+        return;
+    }
+    // Right part is constant
+    if (noderight.constval &&
+        (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        GenerateExpression(expr, nodeleft);
+        int ivalue = ~(int)std::floor(noderight.token.dvalue);  // inverted to use with BIC
+        AddLine("\tBIC\t#" + std::to_string(ivalue) + "., R0\t; OR");
+        return;
+    }
+
+    // Both right and left parts are not constant
+    GenerateExpression(expr, nodeleft);  // result in R0
+    AddLine("\tCOM\tR0");  // invert for BIC
+    AddLine("\tMOV\tR0, -(SP)\t; PUSH");
+    GenerateExpression(expr, noderight);  // result in R0
+    AddLine("\tBIC\t(SP)+, R0\t; OR");
 }
 
 void Generator::GenerateOperOr(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     //const string comment = "\t; Operation \'OR\'";
 
-    //TODO
-    AddComment("TODO operation OR");
+    // Special case: -1 OR xxx, result is -1
+    if (noderight.vtype != ValueTypeString &&
+        nodeleft.constval && (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+        (int)std::floor(nodeleft.token.dvalue) == -1)
+    {
+        //WARN
+        AddLine("\tMOV\t#-1, R0\t; -1 OR xxx");
+        return;
+    }
+    // Special case: xxx OR -1, result is xxx
+    if (nodeleft.vtype != ValueTypeString &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle) &&
+        (int)std::floor(noderight.token.dvalue) == -1)
+    {
+        //WARN
+        AddLine("\tMOV\t#-1, R0\t; xxx OR -1");
+        return;
+    }
+
+    // Special case: 0 OR xxx, result is xxx
+    if (noderight.vtype != ValueTypeString &&
+        nodeleft.constval && (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+        (int)std::floor(nodeleft.token.dvalue) == 0)
+    {
+        //WARN
+        GenerateExpression(expr, noderight);
+        return;
+    }
+    // Special case: xxx OR 0, result is xxx
+    if (nodeleft.vtype != ValueTypeString &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle) &&
+        (int)std::floor(noderight.token.dvalue) == 0)
+    {
+        //WARN
+        GenerateExpression(expr, nodeleft);
+        return;
+    }
+
+    // Left part is constant, let's calculate right part first
+    if (nodeleft.constval &&
+        (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle))
+    {
+        GenerateExpression(expr, noderight);
+        int ivalue = (int)std::floor(nodeleft.token.dvalue);
+        AddLine("\tBIS\t#" + std::to_string(ivalue) + "., R0\t; OR");
+        return;
+    }
+    // Right part is constant
+    if (noderight.constval &&
+        (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        GenerateExpression(expr, nodeleft);
+        int ivalue = (int)std::floor(noderight.token.dvalue);
+        AddLine("\tBIS\t#" + std::to_string(ivalue) + "., R0\t; OR");
+        return;
+    }
+
+    // Both right and left parts are not constant
+    GenerateExpression(expr, nodeleft);  // result in R0
+    AddLine("\tMOV\tR0, -(SP)\t; PUSH");
+    GenerateExpression(expr, noderight);  // result in R0
+    AddLine("\tBIS\t(SP)+, R0\t; OR");
 }
 
 void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     //const string comment = "\t; Operation \'XOR\'";
 
-    //TODO
-    AddComment("TODO operation XOR");
+    // Special case: 0 XOR xxx, result is xxx
+    if (noderight.vtype != ValueTypeString &&
+        nodeleft.constval && (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+        (int)std::floor(nodeleft.token.dvalue) == 0)
+    {
+        //WARN
+        GenerateExpression(expr, noderight);
+        return;
+    }
+    // Special case: xxx OR 0, result is xxx
+    if (nodeleft.vtype != ValueTypeString &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle) &&
+        (int)std::floor(noderight.token.dvalue) == 0)
+    {
+        //WARN
+        GenerateExpression(expr, nodeleft);
+        return;
+    }
+
+    // Special case: -1 OR xxx, result same as NOT xxx
+    if (noderight.vtype != ValueTypeString &&
+        nodeleft.constval && (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+        (int)std::floor(nodeleft.token.dvalue) == -1)
+    {
+        //WARN
+        GenerateExpression(expr, noderight);
+        AddLine("\tCOM\tR0\t\t; xxx XOR -1");
+        return;
+    }
+    // Special case: xxx XOR -1, result same as NOT xxx
+    if (nodeleft.vtype != ValueTypeString &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle) &&
+        (int)std::floor(noderight.token.dvalue) == -1)
+    {
+        //WARN
+        GenerateExpression(expr, nodeleft);
+        AddLine("\tCOM\tR0\t\t; xxx XOR -1");
+        return;
+    }
+
+    // Left part is constant, let's calculate right part first
+    if (nodeleft.constval &&
+        (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle))
+    {
+        GenerateExpression(expr, noderight);
+        int ivalue = (int)std::floor(nodeleft.token.dvalue);
+        AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
+        AddLine("\tXOR\tR1, R0\t\t; XOR");  // XOR works only from register
+        return;
+    }
+    // Right part is constant
+    if (noderight.constval &&
+        (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        GenerateExpression(expr, nodeleft);
+        int ivalue = (int)std::floor(noderight.token.dvalue);
+        AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
+        AddLine("\tXOR\tR1, R0\t\t; XOR");  // XOR works only from register
+        return;
+    }
+
+    // Both right and left parts are not constant
+    GenerateExpression(expr, nodeleft);  // result in R0
+    AddLine("\tMOV\tR0, -(SP)\t; PUSH");
+    GenerateExpression(expr, noderight);  // result in R0
+    AddLine("\tMOV\t(SP)+, R1\t; POP");
+    AddLine("\tXOR\tR1, R0\t\t; XOR");  // XOR works only from register
 }
 
 
@@ -1563,9 +1778,8 @@ void Generator::GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNod
     const ExpressionModel& expr1 = node.args[0];
     GenerateExpression(expr1);
 
-    AddLine("\tBPL\t1$");
+    AddLine("\tBPL\t.+2");
     AddLine("\tNEG\tR0");
-    AddLine("1$:");
 }
 
 void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNode& node)

@@ -1,18 +1,55 @@
 -q
 ----------------------------------------------------------------------
 10 CLS
-20 REM Logic expressions test
-30 A% = NOT 0%
-35 PRINT "-1", A%
-40 A% = NOT A%
-45 PRINT "0", A%
-50 B% = A% AND 0% AND -1%
-55 PRINT "0", A%
-60 A% = A% OR 0% OR -1%
+12 REM Logic expressions test
+' NOT
+20 A% = NOT 0%
+22 PRINT "-1", A%
+30 A% = NOT A%
+32 PRINT "0", A%
+' AND
+40 B% = A% AND 0% AND -1%
+42 PRINT "0", B%
+43 A% = 12345%
+44 B% = A% AND -1%
+45 PRINT "12345", B%
+46 B% = -1% AND A%
+47 PRINT "12345", B%
+50 A% = &HFFFF
+51 B% = A% AND &H00FF
+52 PRINT "255", A%
+53 B% = &H00FF AND A%
+54 PRINT "255", A%
+55 A% = 9
+56 B% = 17
+57 B% = A% AND B%
+58 PRINT "1", B%
+' OR
+60 A% = 123
+61 B% = A% OR 0%
+62 PRINT "123", B%
+64 A% = A% OR 0% OR -1%
 65 PRINT "-1", A%
-70 A% = -1% XOR -1%
-75 PRINT "0", A%
-80 A% = A% XOR -1%
-85 PRINT "-1", A%
-90 A% = NOT (A% OR B%)
-95 PRINT "0", A%
+66 A% = 5%
+67 A% = A% OR B%
+68 PRINT "127", A%
+' XOR
+80 A% = -1% XOR -1%
+82 PRINT "0", A%
+83 A% = 1234
+84 A% = 0% XOR A%
+85 PRINT "1234", A%
+86 A% = A% XOR 0%
+87 PRINT "1234", A%
+90 A% = 0
+91 B% = A% XOR -1%
+92 PRINT "-32786", B%
+93 B% = -1% XOR A%
+94 PRINT "-32786", B%
+95 A% = 8
+96 B% = 17
+97 B% = A% XOR B%
+98 PRINT "25", B%
+' More complex expressions
+100 A% = NOT (A% OR B%)
+102 PRINT "0", A%

@@ -8,7 +8,7 @@ START:
 ; 1 ?
 L1:
 	CALL	WREOL
-L_END:
+LEND:
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT

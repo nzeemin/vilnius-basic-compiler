@@ -614,6 +614,7 @@ private:
     void GenerateExpression(const ExpressionModel& expr);
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateExprUnaryNot(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateAssignment(VariableExpressionModel& var, ExpressionModel& expr);
 private:

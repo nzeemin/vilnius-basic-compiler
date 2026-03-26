@@ -16,7 +16,7 @@ N210:
 ; 300 RETURN'with comment
 N300:
 	RETURN
-L_END:
+LEND:
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT

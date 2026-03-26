@@ -14,7 +14,7 @@ N10:
 N20:
 	MOV	#14, R0
 	CALL	WRCHR
-L_END:
+LEND:
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350	; .EXIT
