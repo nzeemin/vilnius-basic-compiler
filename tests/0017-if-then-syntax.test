@@ -1,0 +1,49 @@
+-q
+----------------------------------------------------------------------
+10 IF
+12 IF 
+14 IF 'comment
+16 IF -
+18 IF POKE
+20 IF 1%
+22 IF A%
+30 IF 1% THEN
+32 IF 1% THEN-
+40 IF 1% THEN GOTO
+60 IF 1% THEN ? ELSE
+----------------------------------------------------------------------
+
+ERROR at 1:6 line 10 - Expression should not be empty.
+10 IF
+     ^
+ERROR at 2:7 line 12 - Expression should not be empty.
+12 IF 
+      ^
+ERROR at 3:7 line 14 - Expression should not be empty.
+14 IF 'comment
+      ^
+ERROR at 4:8 line 16 - Operand expected in expression.
+16 IF -
+       ^
+ERROR at 5:7 line 18 - Expression should not be empty.
+18 IF POKE
+      ^
+ERROR at 6:9 line 20 - Keyword THEN or GOTO expected.
+20 IF 1%
+        ^
+ERROR at 7:9 line 22 - Keyword THEN or GOTO expected.
+22 IF A%
+        ^
+ERROR at 8:14 line 30 - Statement keyword expected.
+30 IF 1% THEN
+             ^
+ERROR at 9:14 line 32 - Statement keyword expected.
+32 IF 1% THEN-
+             ^
+ERROR at 10:19 line 40 - Line number expected.
+40 IF 1% THEN GOTO
+                  ^
+ERROR at 11:21 line 60 - Statement keyword expected.
+60 IF 1% THEN ? ELSE
+                    ^
+Parsing ERRORS: 11

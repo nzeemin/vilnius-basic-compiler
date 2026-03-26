@@ -357,6 +357,11 @@ void Generator::Error(const string& message)
     RegisterError();
 }
 
+void Generator::Warning(const string& message)
+{
+    std::cerr << "WARNING: line " << m_line->linenum << " - " << message << std::endl;
+}
+
 void Generator::GenerateExpression(const ExpressionModel& expr)
 {
     assert(!expr.IsEmpty());
@@ -604,6 +609,7 @@ void Generator::GenerateEnd(StatementModel&)
         AddLine("\tJMP\tL_END");
 }
 
+// FOR <ПАРАМЕТР>=<АРГУМЕНТ1> TO <АРГУМЕНТ2>
 void Generator::GenerateFor(StatementModel& statement)
 {
     // Calculate expression for "from"
@@ -953,6 +959,7 @@ void Generator::GeneratePreset(StatementModel& statement)
     AddComment("TODO PRESET");
 }
 
+// NEXT [<ПАРАМЕТР>[,< ПАРАМЕТР >...]]
 void Generator::GenerateNext(StatementModel& statement)
 {
     assert(statement.paramline != 0);
@@ -1025,6 +1032,7 @@ void Generator::GenerateOut(StatementModel& statement)
 
     if (expr1.IsConstExpression() && expr1.GetConstExpressionDValue() == 0)
     {
+        Warning("OUT mask is 0, reduced to no operation; consider to remove the OUT statement");
         AddLine("\t\t; OUT mask is 0, reduced to no operation");
         return;
     }
@@ -1635,8 +1643,8 @@ void Generator::GenerateFuncCsrlin(const ExpressionModel& expr, const Expression
         const ExpressionModel& expr1 = node.args[0];
         if (!expr1.IsConstExpression() && !expr1.IsVariableExpression())
             GenerateExpression(expr1);
+        Warning("CSRLIN argument calculated but value not used; consider to remove the argument");
     }
-    //WARN: We don't use the calculated value
 
     AddRuntimeCall(RuntimeGETCR, "for CSRLIN");  // R1 = column, R2 = row
     AddLine("\tMOV\tR2, R0\t; row");
@@ -1652,8 +1660,8 @@ void Generator::GenerateFuncPos(const ExpressionModel& expr, const ExpressionNod
         const ExpressionModel& expr1 = node.args[0];
         if (!expr1.IsConstExpression() && !expr1.IsVariableExpression())
             GenerateExpression(expr1);
+        Warning("POS argument calculated but value not used; consider to remove the argument");
     }
-    //WARN: We don't use the calculated value
 
     AddRuntimeCall(RuntimeGETCR, "for POS");  // R1 = column, R2 = row
     AddLine("\tMOV\tR1, R0\t; column");

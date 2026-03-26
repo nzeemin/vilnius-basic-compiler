@@ -1,0 +1,20 @@
+-q
+----------------------------------------------------------------------
+10 IF 1% THEN 5
+15 IF 1% THEN GOTO 5
+20 IF 1% THEN BEEP ELSE 5
+25 IF 1% THEN BEEP ELSE GOTO 5
+40 IF 1% THEN FOR I%=1% TO 10%
+50 IF 1% THEN NEXT
+60 IF 1% THEN BEEP ELSE FOR I%=1% TO 10%
+70 IF 1% THEN BEEP ELSE NEXT
+----------------------------------------------------------------------
+ERROR in line 10 - Invalid line number 5.
+ERROR in line 15 - Invalid line number 5.
+ERROR in line 20 - Invalid line number 5.
+ERROR in line 25 - Invalid line number 5.
+ERROR in line 40 - FOR statement not allowed under IF/THEN/ELSE.
+ERROR in line 50 - NEXT statement not allowed under IF/THEN/ELSE.
+ERROR in line 60 - FOR statement not allowed under IF/THEN/ELSE.
+ERROR in line 70 - NEXT statement not allowed under IF/THEN/ELSE.
+Validation ERRORS: 8

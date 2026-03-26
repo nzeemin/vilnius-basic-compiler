@@ -607,6 +607,7 @@ private:
     static const GeneratorFuncSpec m_funcspecs[];
 private:
     void Error(const string& message);
+    void Warning(const string& message);
     void AddLine(const string& str) { m_final->AddLine(str); }
     void AddComment(const string& str) { m_final->AddComment(str); }
     void AddRuntimeCall(RuntimeSymbol need, string comment = "");

@@ -48,3 +48,5 @@
 231 IF 0 THEN DRAW A$ ELSE 231
 240 BEEP
 241 IF 0 THEN BEEP ELSE 241
+----------------------------------------------------------------------
+WARNING: line 130 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement

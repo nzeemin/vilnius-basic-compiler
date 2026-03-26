@@ -7,6 +7,10 @@
 205 X%=POS(Y%)
 210 X%=POS(Y%+2)
 ----------------------------------------------------------------------
+WARNING: line 105 - CSRLIN argument calculated but value not used; consider to remove the argument
+WARNING: line 110 - CSRLIN argument calculated but value not used; consider to remove the argument
+WARNING: line 205 - POS argument calculated but value not used; consider to remove the argument
+WARNING: line 210 - POS argument calculated but value not used; consider to remove the argument
 ----------------------------------------------------------------------
 START:
 	MOV	SP, SAVESP

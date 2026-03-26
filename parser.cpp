@@ -965,7 +965,7 @@ void Parser::ParseFor(StatementModel& statement)
         MODEL_ERROR("Equal sign (\'=\') expected.");
     GetNextToken();  // equal sign
 
-    token = PeekNextToken();
+    token = PeekNextTokenSkipDivider();
     ExpressionModel expr1 = ParseExpression();
     CHECK_MODEL_ERROR;
     CHECK_EXPRESSION_NOT_EMPTY(expr1);
@@ -976,26 +976,27 @@ void Parser::ParseFor(StatementModel& statement)
         MODEL_ERROR("TO keyword expected.");
     GetNextToken();  // TO keyword
 
-    token = PeekNextToken();
+    token = PeekNextTokenSkipDivider();
     ExpressionModel expr2 = ParseExpression();
     CHECK_MODEL_ERROR;
     CHECK_EXPRESSION_NOT_EMPTY(expr2);
     statement.args.push_back(expr2);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
         return;
 
     if (token.type != TokenTypeKeyword || token.keyword != KeywordSTEP)
         MODEL_ERROR(MSG_UNEXPECTED);
+    GetNextToken();  // STEP keyword
 
-    token = PeekNextToken();
+    token = PeekNextTokenSkipDivider();
     ExpressionModel expr3 = ParseExpression();
     CHECK_MODEL_ERROR;
     CHECK_EXPRESSION_NOT_EMPTY(expr3);
     statement.args.push_back(expr3);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsEndOfStatement())
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
@@ -1055,6 +1056,11 @@ void Parser::ParseIf(StatementModel& statement)
     }
 
     token = PeekNextTokenSkipDivider();
+    if (token.type == TokenTypeEndComment)
+    {
+        SkipTilEnd();
+        token = PeekNextToken();
+    }
     if (token.IsEolOrEof())
         return;
 
