@@ -1,0 +1,50 @@
+-q
+----------------------------------------------------------------------
+10 ? PEEK(0%)
+15 ?PEEK(0)
+20 ? PEEK(10%+20%)
+30 ? PEEK(A%)
+40 ? PEEK(A%+10%+B%)
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+START:
+	MOV	SP, SAVESP
+; 10 ? PEEK(0%)
+N10:
+	MOV	@#0., R0	; PEEK
+	CALL	WRINT
+	CALL	WREOL
+; 15 ?PEEK(0)
+N15:
+	MOV	@#0., R0	; PEEK
+	CALL	WRINT
+	CALL	WREOL
+; 20 ? PEEK(10%+20%)
+N20:
+	MOV	@#30., R0	; PEEK
+	CALL	WRINT
+	CALL	WREOL
+; 30 ? PEEK(A%)
+N30:
+	MOV	@VARIA, R0	; PEEK
+	CALL	WRINT
+	CALL	WREOL
+; 40 ? PEEK(A%+10%+B%)
+N40:
+	MOV	VARIA, R0
+	ADD	#10., R0	; Operation '+'
+	ADD	VARIB, R0	; Operation '+'
+	MOV	(R0), R0	; PEEK
+	CALL	WRINT
+	CALL	WREOL
+LEND:
+SAVESP = . + 2
+	MOV	#776, SP	; restore SP
+	EMT	350	; .EXIT
+; VARIABLES
+	.EVEN
+VARIA:	.WORD	0	; A%
+VARIB:	.WORD	0	; B%
+; RUNTIME CALLS
+	.GLOBL	WREOL, WRINT
+	.END	START

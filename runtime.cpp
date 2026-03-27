@@ -135,11 +135,14 @@ void RuntimeGenerator::GenerateRuntime()
         if (rtblock.rtsymbol == RuntimeNone)
         {
             //Error("Runtime generator for symbol " + rtsymbolname + " not found.");
-            AddLine(rtsymbolname + ":");
+            AddLine(rtsymbolname + (g_turbo8 ? ":" : "::"));
             AddLine("; TODO: Runtime generator for symbol " + rtsymbolname + " not found.");
             AddLine("\tRETURN ;STUB");
             continue;
         }
+
+        if (!g_turbo8)
+            AddLine("\t.GLOBL\t" + rtsymbolname);
 
         // copy lines to final model
         for (string line : rtblock.lines)

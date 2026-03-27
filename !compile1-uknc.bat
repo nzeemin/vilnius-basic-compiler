@@ -11,7 +11,16 @@ for /F "delims=#" %%E in ('"prompt #$E# & for %%E in (1) do rem"') do set "ESCch
 @if exist 1.SAV del 1.SAV
 
 Debug\vibasc.exe --onefile --platform=UKNC 1.ASC
+if errorlevel 1 (
+	exit /b
+)
 
 x-tools\macro11.exe 1.MAC -l 1.LST -o 1.OBJ -rt11
+if errorlevel 1 (
+	exit /b
+)
 
 x-tools\pclink11.exe 1.OBJ
+if errorlevel 1 (
+	exit /b
+)

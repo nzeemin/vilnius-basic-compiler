@@ -14,7 +14,7 @@
 90 OUT A%,&B10101,&H5555
 95 OUT A%,&B10101,&H0000
 ----------------------------------------------------------------------
-WARNING: line 10 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
-WARNING: line 15 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
-WARNING: line 40 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
-WARNING: line 50 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
+WARNING: at 1:4 line 10 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
+WARNING: at 2:4 line 15 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
+WARNING: at 6:4 line 40 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
+WARNING: at 7:4 line 50 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement

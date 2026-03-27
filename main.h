@@ -113,14 +113,15 @@ enum RuntimeSymbol
     RuntimeWRAT         = 3,
     RuntimeWRSPC        = 4,
     RuntimeWRTAB        = 5,
-    RuntimeWRINT        = 6,
-    RuntimeWRSNG        = 7,
-    RuntimeWRSTR        = 8,
-    RuntimeGETCR        = 9,
-    RuntimeCURSR        = 10,
-    RuntimeSTRCP        = 11,
-    RuntimeREADI        = 12,
-    RuntimeRND          = 13,
+    RuntimeWRCOM        = 6,
+    RuntimeWRINT        = 7,
+    RuntimeWRSNG        = 8,
+    RuntimeWRSTR        = 9,
+    RuntimeGETCR        = 10,
+    RuntimeCURSR        = 11,
+    RuntimeSTRCP        = 12,
+    RuntimeREADI        = 13,
+    RuntimeRND          = 14,
 };
 
 
@@ -607,7 +608,7 @@ private:
     static const GeneratorFuncSpec m_funcspecs[];
 private:
     void Error(const string& message);
-    void Warning(const string& message);
+    void Warning(const Token& token, const string& message);
     void AddLine(const string& str) { m_final->AddLine(str); }
     void AddComment(const string& str) { m_final->AddComment(str); }
     void AddRuntimeCall(RuntimeSymbol need, string comment = "");
@@ -673,6 +674,7 @@ private:
     void GenerateOperAnd(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperOr(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperXor(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
+    void GenerateOperEqv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
 private:
     void GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNode& node);

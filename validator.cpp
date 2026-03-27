@@ -1804,6 +1804,7 @@ void Validator::ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node)
     }
 }
 
+// X=PEEK(<АРГУМЕНТ>)
 void Validator::ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
@@ -1817,6 +1818,7 @@ void Validator::ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node)
     node.constval = false;
 }
 
+// X=INP(<АДРЕС>,<МАСКА>)
 void Validator::ValidateFuncInp(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 2)

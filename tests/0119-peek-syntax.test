@@ -1,0 +1,28 @@
+-q
+----------------------------------------------------------------------
+10 ?PEEK
+12 ? PEEK'
+14 ? PEEK('
+20 ?PEEK(0%
+25 ? PEEK("A"
+30 ? PEEK(POKE)
+----------------------------------------------------------------------
+ERROR at 1:9 line 10 - Expected parameter for this function.
+10 ?PEEK
+        ^
+ERROR at 2:10 line 12 - Expected parameter for this function.
+12 ? PEEK'
+         ^
+ERROR at 3:11 line 14 - Comma expected in function parameter list.
+14 ? PEEK('
+          ^
+ERROR at 4:12 line 20 - Comma expected in function parameter list.
+20 ?PEEK(0%
+           ^
+ERROR at 5:14 line 25 - Comma expected in function parameter list.
+25 ? PEEK("A"
+             ^
+ERROR at 6:11 line 30 - Comma expected in function parameter list.
+30 ? PEEK(POKE)
+          ^
+Parsing ERRORS: 6

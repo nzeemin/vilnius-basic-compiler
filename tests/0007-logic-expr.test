@@ -1,55 +1,79 @@
 -q
 ----------------------------------------------------------------------
-10 CLS
-12 REM Logic expressions test
+' Logic expressions test
+5 CLS
 ' NOT
-20 A% = NOT 0%
-22 PRINT "-1", A%
-30 A% = NOT A%
-32 PRINT "0", A%
+10 A% = NOT 0%
+11 PRINT "-1", A%
+14 A% = NOT A%
+15 PRINT "0", A%
 ' AND
-40 B% = A% AND 0% AND -1%
-42 PRINT "0", B%
-43 A% = 12345%
-44 B% = A% AND -1%
-45 PRINT "12345", B%
-46 B% = -1% AND A%
-47 PRINT "12345", B%
-50 A% = &HFFFF
-51 B% = A% AND &H00FF
-52 PRINT "255", A%
-53 B% = &H00FF AND A%
-54 PRINT "255", A%
-55 A% = 9
-56 B% = 17
-57 B% = A% AND B%
-58 PRINT "1", B%
+20 B% = A% AND 0% AND -1%
+22 PRINT "0", B%
+23 A% = 12345%
+24 B% = A% AND -1%
+25 PRINT "12345", B%
+26 B% = -1% AND A%
+27 PRINT "12345", B%
+30 A% = &HFFFF
+31 B% = A% AND &H00FF
+32 PRINT "255", B%
+33 B% = &H00FF AND A%
+34 PRINT "255", B%
+35 A% = 9
+36 B% = 17
+37 B% = A% AND B%
+38 PRINT "1", B%
 ' OR
-60 A% = 123
-61 B% = A% OR 0%
-62 PRINT "123", B%
-64 A% = A% OR 0% OR -1%
-65 PRINT "-1", A%
-66 A% = 5%
-67 A% = A% OR B%
-68 PRINT "127", A%
+40 A% = 123
+41 B% = A% OR 0%
+42 PRINT "123", B%
+44 A% = A% OR 0% OR -1%
+45 PRINT "-1", A%
+46 A% = 5%
+47 A% = A% OR B%
+48 PRINT "127", A%
 ' XOR
-80 A% = -1% XOR -1%
-82 PRINT "0", A%
-83 A% = 1234
-84 A% = 0% XOR A%
-85 PRINT "1234", A%
-86 A% = A% XOR 0%
-87 PRINT "1234", A%
-90 A% = 0
-91 B% = A% XOR -1%
-92 PRINT "-32786", B%
-93 B% = -1% XOR A%
-94 PRINT "-32786", B%
-95 A% = 8
-96 B% = 17
-97 B% = A% XOR B%
-98 PRINT "25", B%
+50 A% = -1% XOR -1%
+52 PRINT "0", A%
+53 A% = 1234
+54 A% = 0% XOR A%
+55 PRINT "1234", A%
+56 A% = A% XOR 0%
+57 PRINT "1234", A%
+60 A% = 0
+61 B% = A% XOR -1%
+62 PRINT "-1", B%
+63 B% = -1% XOR A%
+64 PRINT "-1", B%
+65 A% = 8
+66 B% = 17
+67 B% = A% XOR B%
+68 PRINT "25", B%
+' EQV
+70 A% = -1% EQV -1%
+72 PRINT "-1", A%
+80 A% = 0
+81 B% = A% EQV -1%
+82 PRINT "0", B%
+85 A% = 8
+86 B% = 17
+87 B% = A% EQV B%
+88 PRINT "-26", B%
 ' More complex expressions
-100 A% = NOT (A% OR B%)
-102 PRINT "0", A%
+100 A% = &HFF00
+101 B% = 1
+102 A% = NOT (A% OR B%)
+103 PRINT "254", A%
+----------------------------------------------------------------------
+WARNING: at 9:19 line 20 - AND operation with -1 reduced to no operation; consider to remove the useless AND
+WARNING: at 9:12 line 20 - AND operation with 0 reduced to 0; consider to remove the useless AND
+WARNING: at 12:12 line 24 - AND operation with -1 reduced to no operation; consider to remove the useless AND
+WARNING: at 14:13 line 26 - AND operation with -1 reduced to no operation; consider to remove the useless AND
+WARNING: at 27:12 line 41 - OR operation with 0 reduced to no operation; consider to remove the useless OR
+WARNING: at 29:18 line 44 - OR operation with -1 reduced to -1; consider to remove the useless OR
+WARNING: at 38:12 line 54 - XOR operation with 0 reduced to no operation; consider to remove the useless XOR
+WARNING: at 40:12 line 56 - XOR operation with 0 reduced to no operation; consider to remove the useless XOR
+WARNING: at 43:12 line 61 - XOR operation with -1 reduced to inversion; consider to replace XOR with NOT
+WARNING: at 45:13 line 63 - XOR operation with -1 reduced to inversion; consider to replace XOR with NOT
+WARNING: at 55:12 line 81 - EQV operation with -1 reduced to no operation; consider to remove the useless EQV
