@@ -11,5 +11,11 @@ for /F "delims=#" %%E in ('"prompt #$E# & for %%E in (1) do rem"') do set "ESCch
 @if exist 1.SAV del 1.SAV
 
 Debug\vibasc.exe --onefile --turbo8 --platform=BK0010 1.ASC
+if errorlevel 1 (
+	exit /b
+)
 
 x-tools\BKTurbo8_x64.exe -l CO 1.MAC 
+if errorlevel 1 (
+	exit /b
+)

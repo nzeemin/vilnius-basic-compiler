@@ -19,10 +19,11 @@
 /.idea
 /*.ASC
 /*.MAC
-/*.OBJ
-/*.LST
-/*.MAP
-/*.BIN
+*.OBJ
+*.LST
+*.MAP
+*.BIN
+*.SAV
 /tests.temp
 /x-*
 /*.log

@@ -1,7 +1,7 @@
 -q
 ----------------------------------------------------------------------
 10 CLS
-20 REM Integer expressions test
+' Integer expressions test
 30 A% = +1%
 35 PRINT "1", A%
 40 A% = A% + 2
@@ -9,7 +9,7 @@
 50 B% = 1% + 2% + 3%
 55 PRINT "6", B%
 60 A% = 1% + 2% + 3% * 4%
-65 PRINT "24", A%
+65 PRINT "15", A%
 70 B% = 1% + 2% + 3% * 4% + 50% - 10%
 75 PRINT "55", B%
 80 C% = -100
@@ -22,14 +22,16 @@
 115 PRINT "7", F%
 120 G% = 5% MOD 2%
 125 PRINT "1", G%
-130 G% = 5% ^ 2%
-135 PRINT "25", G%
-140 H% = G% - (E% + 2%) MOD F%
-145 PRINT "19", G%
-149 REM Test unary/binary minus
-150 A% = -1%
-155 PRINT "-1", A%
-160 A% = 10-1
-165 PRINT "9", A%
-170 A% = -10-1
-175 PRINT "-11", A%
+130 G% = F% MOD 4%
+135 PRINT "3", G%
+170 G% = 5% ^ 2%
+175 PRINT "25", G%
+180 H% = G% - (E% + 2%) MOD F%
+185 PRINT "19", H%
+' Test unary/binary minus
+190 A% = -1%
+191 PRINT "-1", A%
+192 A% = 10-1
+193 PRINT "9", A%
+194 A% = -10-1
+195 PRINT "-11", A%

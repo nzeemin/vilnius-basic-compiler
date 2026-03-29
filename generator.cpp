@@ -1435,24 +1435,78 @@ void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNod
 
 void Generator::GenerateOperDivInt(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    const string comment = "\t; Operation \'\\\'";
+    if (noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        int ivalue = (int)std::floor(noderight.token.dvalue);
+        
+        if (ivalue == 0)  // check if divider is zero
+        {
+            std::cerr << "ERROR in expression at " << node.token.line << ":" << node.token.pos << " - DIV didiver is zero." << std::endl;
+            m_line->error = true;
+            RegisterError();
+            return;
+        }
 
-    // Code to calculate left sub-expression, with result in R0
-    GenerateExpression(expr, nodeleft);
+        // Special case for const expression at right
+        GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
+    }
+    else if (noderight.token.type == TokenTypeIdentifier && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        // Special case for variable at right
+        string deconame = DecorateVariableName(GetCanonicVariableName(noderight.token.text));
+        GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tMOV\t" + deconame + ", R1");
+    }
+    else
+    {
+        GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
+        GenerateExpression(expr, noderight);  // result in R0
+    }
 
-    //TODO
-    AddComment("TODO operation divint");
+    //TODO: Special cases for const/variable expressions at left
+
+    AddRuntimeCall(RuntimeIDIV);  // DIV result in R0, MOD in R1
 }
 
 void Generator::GenerateOperMod(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    const string comment = "\t; Operation \'MOD\'";
+    if (noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        int ivalue = (int)std::floor(noderight.token.dvalue);
 
-    // Code to calculate left sub-expression, with result in R0
-    GenerateExpression(expr, nodeleft);
+        if (ivalue == 0)  // check if divider is zero
+        {
+            std::cerr << "ERROR in expression at " << node.token.line << ":" << node.token.pos << " - MOD didiver is zero." << std::endl;
+            m_line->error = true;
+            RegisterError();
+            return;
+        }
 
-    //TODO
-    AddComment("TODO operation MOD");
+        // Special case for const expression at right
+        GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
+    }
+    else if (noderight.token.type == TokenTypeIdentifier && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        // Special case for variable at right
+        string deconame = DecorateVariableName(GetCanonicVariableName(noderight.token.text));
+        GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tMOV\t" + deconame + ", R1");
+    }
+    else
+    {
+        GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
+        GenerateExpression(expr, noderight);  // result in R0
+        AddLine("\tMOV\t(SP)+, R1\t; POP R1");
+    }
+
+    //TODO: Special cases for const/variable expressions at left
+
+    AddRuntimeCall(RuntimeIDIV);  // DIV result in R0, MOD in R1
+    AddLine("\tMOV\tR1, R0\t; MOD result");
 }
 
 void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
