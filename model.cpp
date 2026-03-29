@@ -51,7 +51,7 @@ string DecorateVariableName(const string& name)
     case '$': chtype = 'S'; break;
     case '%': chtype = 'I'; break;
     default:
-        chtype = 'N'; break;
+        chtype = 'F'; break;
     }
     string stdname = name.substr(0, name.length() - 1);
 
@@ -563,7 +563,10 @@ const char* RuntimeSymbolNames[] = {
     "IDIV",
     "STRCP",
     "READI",
-    "RND",
+    "INKEY",
+    "ITOF", "FRND", "FABS",
+    "FADD", "FSUB", "FMUL", "FDIV",  // FIS
+    "FPWR", "FCOS", "FSIN",
 };
 
 string GetRuntimeSymbolName(RuntimeSymbol rtsymbol)

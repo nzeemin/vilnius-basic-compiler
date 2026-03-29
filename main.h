@@ -122,7 +122,17 @@ enum RuntimeSymbol
     RuntimeIDIV         = 12,
     RuntimeSTRCP        = 13,
     RuntimeREADI        = 14,
-    RuntimeRND          = 15,
+    RuntimeINKEY        = 15,
+    RuntimeITOF         = 16,
+    RuntimeFRND         = 17,
+    RuntimeFABS         = 18,
+    RuntimeFADD         = 19,  // FIS
+    RuntimeFSUB         = 20,  // FIS
+    RuntimeFMUL         = 21,  // FIS
+    RuntimeFDIV         = 22,  // FIS
+    RuntimeFPWR         = 23,
+    RuntimeFCOS         = 24,
+    RuntimeFSIN         = 25,
 };
 
 
@@ -201,6 +211,7 @@ struct VariableBaseModel
     string name;  // Variable name in canonic form
 public:
     ValueType GetValueType() const;
+    string GetVariableCanonicName() const { return GetCanonicVariableName(name); }
     string GetVariableDecoratedName() const { return DecorateVariableName(GetCanonicVariableName(name)); }
 };
 
@@ -685,6 +696,8 @@ private:
     void GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncCsrlin(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncSin(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncCos(const ExpressionModel& expr, const ExpressionNode& node);
 };
 
 class RuntimeGenerator

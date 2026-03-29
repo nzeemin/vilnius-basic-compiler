@@ -61,10 +61,10 @@ START:
 	MOV	SP, SAVESP
 ; 10 A%=23.42
 N10:
-	MOV	#23., VARIA	; assignment
+	MOV	#23., VARIA	; var A% assignment
 ; 20 PRINT A%
 N20:
-	MOV	VARIA, R0
+	MOV	VARIA, R0	; var A%
 	CALL	WRINT
 	CALL	WREOL
 LEND:
@@ -83,12 +83,12 @@ VARIA:	.WORD	0	; A%
 
 Переменные в Бейсик Вильнюс опознаются по первым двум символам имени + тип.
 
-Имена переменных в коде для MACRO имеют вид: `VAR` + тип (`I`,`N`,`S`) + первые два символа имени переменной.
+Имена переменных в коде для MACRO имеют вид: `VAR` + тип (`I`,`F`,`S`) + первые два символа имени переменной.
 
 Примеры декорирования:
 ```
 A%                    VARIA
-B или B!              VARNB
+B или B!              VARFB
 C$                    VARSC
 AA или AAA или AA1    VARNAA
 ```
