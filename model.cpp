@@ -560,10 +560,10 @@ const char* RuntimeSymbolNames[] = {
     "WRCHR", "WREOL", "WRAT", "WRSPC", "WRTAB", "WRCOM",
     "WRINT", "WRSNG", "WRSTR",
     "GETCR", "CURSR",
-    "IDIV",
     "STRCP",
     "READI",
     "INKEY",
+    "IDIV",
     "ITOF", "READF", "FRND",
     "FADD", "FSUB", "FMUL", "FDIV",  // FIS
     "FPWR", "FSQR", "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
