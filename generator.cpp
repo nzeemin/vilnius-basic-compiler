@@ -102,8 +102,17 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordINKEY,     &Generator::GenerateFuncInkey },
     { KeywordCSRLIN,    &Generator::GenerateFuncCsrlin },
     { KeywordPOS,       &Generator::GenerateFuncPos },
+    { KeywordSQR,       &Generator::GenerateFuncSqr },
     { KeywordSIN,       &Generator::GenerateFuncSin },
     { KeywordCOS,       &Generator::GenerateFuncCos },
+    { KeywordTAN,       &Generator::GenerateFuncTan },
+    { KeywordATN,       &Generator::GenerateFuncAtn },
+    { KeywordEXP,       &Generator::GenerateFuncExp },
+    { KeywordLOG,       &Generator::GenerateFuncLog },
+    { KeywordFIX,       &Generator::GenerateFuncFix },
+    { KeywordINT,       &Generator::GenerateFuncInt },
+    { KeywordSGN,       &Generator::GenerateFuncSgn },
+    { KeywordCINT,      &Generator::GenerateFuncFix },
 };
 
 
@@ -123,6 +132,14 @@ static string to_string_octal(uint16_t value)
         result.insert(0, 1, '0' + (value & 7));
         value >>= 3;
     }
+    return result;
+}
+
+static string to_string_float(float value)
+{
+    string result = std::to_string(value);
+    while (result[result.size() - 1] == '0')  // trim ending zeroes
+        result.erase(result.size() - 1);
     return result;
 }
 
@@ -207,6 +224,31 @@ void Generator::ProcessEnd()
         AddLine("\tRETURN\t; return to Monitor/OS/etc.");
     else if (g_platform == PlatformUKNC)
         AddLine("\tEMT\t350\t; .EXIT");
+
+    // Enumerate all the prepared lines to format them properly
+    for (string& line : m_final->lines)
+    {
+        int pos = 0;
+        for (size_t i = 0; i < line.size(); i++)
+        {
+            char ch = line[i];
+            if (ch == '\t')
+            {
+                pos = (pos + 8) / 8 * 8;
+                if (pos == 24)
+                {
+                    line.insert(i, 1, '\t');
+                    i++;
+                }
+                else if (pos > 32)
+                {
+                    line[i] = ' ';  // replace tab with space char
+                }
+            }
+            else
+                pos++;
+        }
+    }
 
     GenerateStrings();
 
@@ -425,7 +467,7 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
         case ValueTypeSingle:
         {
             float fvalue = static_cast<float>(node.token.dvalue);
-            string comment = "const " + std::to_string(fvalue);
+            string comment = "const " + to_string_float(fvalue);
             uint32_t bits;  std::memcpy(&bits, &fvalue, sizeof(uint32_t));
             uint16_t wordlo = bits & 0xFFFF;
             uint16_t wordhi = bits >> 16;
@@ -505,7 +547,7 @@ void Generator::GenerateExprUnaryNot(const ExpressionModel& expr, const Expressi
 
     GenerateExpression(expr, noderight);
 
-    AddLine("\tCOM\tR0\t\t; NOT");
+    AddLine("\tCOM\tR0\t; NOT");
 }
 
 void Generator::GenerateExprUnaryMinus(const ExpressionModel& expr, const ExpressionNode& node)
@@ -618,8 +660,13 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
         }
         else if (vtype == ValueTypeSingle)
         {
-            AddLine("\tMOV\t(SP)+, " + deconame + "+2" + comment);
-            AddLine("\tMOV\t(SP)+, " + deconame);
+            float fvalue = static_cast<float>(expr.GetConstExpressionDValue());
+            string comment = "\t; var " + canoname + " = const " + to_string_float(fvalue);
+            uint32_t bits;  std::memcpy(&bits, &fvalue, sizeof(uint32_t));
+            uint16_t wordlo = bits & 0xFFFF;
+            uint16_t wordhi = bits >> 16;
+            AddLine((wordlo == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordlo) + ", ") + deconame + "+2" + comment);
+            AddLine((wordhi == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordhi) + ", ") + deconame);
         }
         else if (vtype == ValueTypeString)
         {
@@ -823,7 +870,7 @@ void Generator::GenerateIf(StatementModel& statement)
             if (statement.stelse == nullptr)  // ELSE linenum
             {
                 if (statement.params.size() == 1)
-                    AddLine("\t\t\t; ELSE do nothing");
+                    AddLine("\t\t; ELSE do nothing");
                 else
                 {
                     int linenum2 = (int)statement.params[1].dvalue;
@@ -887,23 +934,22 @@ void Generator::GenerateInput(StatementModel& statement)
     {
         ValueType vtype = it->GetValueType();
         string deconame = it->GetVariableDecoratedName();
-        if (vtype == ValueTypeInteger)
+        switch (vtype)
         {
+        case ValueTypeInteger:
+
             AddRuntimeCall(RuntimeREADI);
             AddLine("\tMOV\tR0, " + deconame);
-        }
-        else if (vtype == ValueTypeSingle)
-        {
+            break;
+        case ValueTypeSingle:
             AddRuntimeCall(RuntimeREADF);
             AddLine("\tMOV\t(SP)+, " + deconame + "+2");
             AddLine("\tMOV\t(SP)+, " + deconame);
-        }
-        else if (vtype == ValueTypeString)
-        {
+            break;
+        case ValueTypeString:
             AddComment("TODO INPUT " + it->name);  //TODO
-        }
-        else
-        {
+            break;
+        default:
             assert(false);
         }
     }
@@ -1194,7 +1240,7 @@ void Generator::GenerateOut(StatementModel& statement)
     if (expr1.IsConstExpression() && expr1.GetConstExpressionDValue() == 0)
     {
         Warning(statement.token, "OUT mask is 0, reduced to no operation; consider to remove the OUT statement");
-        AddLine("\t\t; OUT mask is 0, reduced to no operation");
+        AddLine("\t; OUT mask is 0, reduced to no operation");
         return;
     }
 
@@ -1231,7 +1277,7 @@ void Generator::GenerateOut(StatementModel& statement)
         }
         else
         {
-            AddLine(stat2 + "-(SP)\t\t; PUSH mask");
+            AddLine(stat2 + "-(SP)\t; PUSH mask");
             GenerateExpression(expr2);  // result in R0
             AddLine("\tMOV\t(SP)+, R1\t; POP R1 mask");  // mask -> R1
             AddLine("\t" + operation + "\tR1, (R0)\t; OUT");
@@ -1239,7 +1285,7 @@ void Generator::GenerateOut(StatementModel& statement)
     }
     else
     {
-        AddLine(stat2 + "-(SP)\t\t; PUSH mask");
+        AddLine(stat2 + "-(SP)\t; PUSH mask");
         string stat1;
         if (expr1.IsConstExpression())
             stat1 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr1);
@@ -1598,8 +1644,11 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
 
     GenerateExpression(expr, nodeleft);  // result in R0
 
+    //TODO: Special case for MUL 2/4/8/16/32/64
+
     AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
     GenerateExpression(expr, noderight);
+    //TODO if no EIS
     AddLine("\tMUL\t(SP)+, R0" + comment);  // POP & MUL; MUL result in R0:R1
     AddLine("\tMOV\tR1, R0");  // result in R0
 }
@@ -1654,6 +1703,7 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
 
     //TODO: Special cases for const/variable expressions at left
 
+    //TODO: if EIS, use DIV command
     AddRuntimeCall(RuntimeIDIV);  // DIV result in R0, MOD in R1
 }
 
@@ -1714,6 +1764,9 @@ void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionN
         AddRuntimeCall(RuntimeFPWR, "Operation \'^\'");  // result on stack
         return;
     }
+
+    assert(nodeleft.vtype == ValueTypeInteger);
+    assert(noderight.vtype == ValueTypeInteger);
 
     // Code to calculate left sub-expression, with result in R0
     GenerateExpression(expr, nodeleft);
@@ -1830,7 +1883,7 @@ void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNod
         (int)std::floor(nodeleft.token.dvalue) == 0)
     {
         Warning(node.token, "AND operation with 0 reduced to 0; consider to remove the useless AND");
-        AddLine("\tCLR\tR0\t\t; 0 AND xxx");
+        AddLine("\tCLR\tR0\t; 0 AND xxx");
         return;
     }
     // Special case: xxx AND 0, result is 0
@@ -1839,7 +1892,7 @@ void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNod
         (int)std::floor(noderight.token.dvalue) == 0)
     {
         Warning(node.token, "AND operation with 0 reduced to 0; consider to remove the useless AND");
-        AddLine("\tCLR\tR0\t\t; xxx AND 0");
+        AddLine("\tCLR\tR0\t; xxx AND 0");
         return;
     }
 
@@ -1987,7 +2040,7 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
     {
         Warning(node.token, "XOR operation with -1 reduced to inversion; consider to replace XOR with NOT");
         GenerateExpression(expr, noderight);
-        AddLine("\tCOM\tR0\t\t; xxx XOR -1");
+        AddLine("\tCOM\tR0\t; xxx XOR -1");
         return;
     }
     // Special case: xxx XOR -1, result same as NOT xxx
@@ -1997,7 +2050,7 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
     {
         Warning(node.token, "XOR operation with -1 reduced to inversion; consider to replace XOR with NOT");
         GenerateExpression(expr, nodeleft);
-        AddLine("\tCOM\tR0\t\t; xxx XOR -1");
+        AddLine("\tCOM\tR0\t; xxx XOR -1");
         return;
     }
 
@@ -2042,7 +2095,7 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
     {
         Warning(node.token, "EQV operation with 0 reduced to inversion; consider to replace EQV with NOT");
         GenerateExpression(expr, noderight);
-        AddLine("\tCOM\tR0\t\t; 0 EQV xxx");
+        AddLine("\tCOM\tR0\t; 0 EQV xxx");
         return;
     }
     // Special case: xxx EQV 0, result is NOT xxx
@@ -2052,7 +2105,7 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
     {
         Warning(node.token, "EQV operation with 0 reduced to inversion; consider to replace EQV with NOT");
         GenerateExpression(expr, nodeleft);
-        AddLine("\tCOM\tR0\t\t; xxx EQV 0");
+        AddLine("\tCOM\tR0\t; xxx EQV 0");
         return;
     }
 
@@ -2253,6 +2306,21 @@ void Generator::GenerateFuncPos(const ExpressionModel& expr, const ExpressionNod
     AddLine("\tMOV\tR1, R0\t; column");
 }
 
+void Generator::GenerateFuncSqr(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF);  // Integer R0 to Single, result on stack
+
+    AddRuntimeCall(RuntimeFSQR);  // result on stack
+}
+
 void Generator::GenerateFuncCos(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(expr.GetExpressionValueType() != ValueTypeString);
@@ -2281,6 +2349,103 @@ void Generator::GenerateFuncSin(const ExpressionModel& expr, const ExpressionNod
         AddRuntimeCall(RuntimeITOF);  // Integer R0 to Single, result on stack
 
     AddRuntimeCall(RuntimeFSIN);  // result on stack
+}
+
+void Generator::GenerateFuncTan(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF);  // Integer R0 to Single, result on stack
+
+    AddRuntimeCall(RuntimeFTAN);  // result on stack
+}
+
+void Generator::GenerateFuncAtn(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF);  // Integer R0 to Single, result on stack
+
+    AddRuntimeCall(RuntimeFATN);  // result on stack
+}
+
+void Generator::GenerateFuncExp(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF);  // Integer R0 to Single, result on stack
+
+    AddRuntimeCall(RuntimeFEXP);  // result on stack
+}
+
+void Generator::GenerateFuncLog(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF);  // Integer R0 to Single, result on stack
+
+    AddRuntimeCall(RuntimeFLOG);  // result on stack
+}
+
+// CINT / FIX
+void Generator::GenerateFuncFix(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    //TODO
+    AddLine(";TODO FIX function");
+}
+
+void Generator::GenerateFuncInt(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    //TODO
+    AddLine(";TODO INT function");
+}
+
+void Generator::GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    //TODO
+    AddLine(";TODO SGN function");
 }
 
 

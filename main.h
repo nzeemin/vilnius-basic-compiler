@@ -131,8 +131,13 @@ enum RuntimeSymbol
     RuntimeFMUL         = 21,  // FIS
     RuntimeFDIV         = 22,  // FIS
     RuntimeFPWR         = 23,
-    RuntimeFCOS         = 24,
-    RuntimeFSIN         = 25,
+    RuntimeFSQR         = 24,
+    RuntimeFCOS         = 25,
+    RuntimeFSIN         = 26,
+    RuntimeFTAN         = 27,
+    RuntimeFATN         = 28,
+    RuntimeFEXP         = 29,
+    RuntimeFLOG         = 30,
 };
 
 
@@ -544,6 +549,7 @@ private:
     void ValidateOperEqv(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void ValidateOperImp(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
 private:
+    void ValidateFuncSqr(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncSin(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCos(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncTan(ExpressionModel& expr, ExpressionNode& node);
@@ -697,8 +703,16 @@ private:
     void GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncCsrlin(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncSqr(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncSin(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncCos(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncTan(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncAtn(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncExp(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncLog(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncFix(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncInt(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node);
 };
 
 class RuntimeGenerator

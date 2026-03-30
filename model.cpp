@@ -566,7 +566,7 @@ const char* RuntimeSymbolNames[] = {
     "INKEY",
     "ITOF", "READF", "FRND",
     "FADD", "FSUB", "FMUL", "FDIV",  // FIS
-    "FPWR", "FCOS", "FSIN",
+    "FPWR", "FSQR", "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
 };
 
 string GetRuntimeSymbolName(RuntimeSymbol rtsymbol)

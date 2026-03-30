@@ -86,6 +86,7 @@ const ValidatorOperSpec Validator::m_operspecs[] =
 
 const ValidatorFuncSpec Validator::m_funcspecs[] =
 {
+    { KeywordSQR,       &Validator::ValidateFuncSqr },
     { KeywordSIN,       &Validator::ValidateFuncSin },
     { KeywordCOS,       &Validator::ValidateFuncCos },
     { KeywordTAN,       &Validator::ValidateFuncTan },
@@ -1565,6 +1566,25 @@ void Validator::ValidateOperImp(ExpressionModel& expr, ExpressionNode& node, con
 
 // Function validation ///////////////////////////////////////////////
 
+void Validator::ValidateFuncSqr(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeSingle;
+    node.constval = expr1.IsConstExpression();
+
+    if (node.constval)
+    {
+        node.token.dvalue = sqrt(expr1.GetConstExpressionDValue());
+        //TODO: if (node.token.IsDValueInteger())
+    }
+}
+
 void Validator::ValidateFuncSin(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
@@ -1644,7 +1664,7 @@ void Validator::ValidateFuncPi(ExpressionModel& expr, ExpressionNode& node)
 
     node.vtype = ValueTypeSingle;
     node.constval = true;
-    node.token.dvalue = 3.141593;
+    node.token.dvalue = 3.14159265359;
 }
 
 void Validator::ValidateFuncExp(ExpressionModel& expr, ExpressionNode& node)
