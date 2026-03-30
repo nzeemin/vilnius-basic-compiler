@@ -80,7 +80,9 @@ void RuntimeGenerator::ParseRuntimeTemplate(std::istream* pInput)
     if (!lines.empty())
     {
         RuntimeBlock block;
+        block.rtsymbol = blockrtsymbol;
         block.lines = lines;
+        block.needs = blockneeds;
         m_rtblocks.push_back(block);
     }
 }

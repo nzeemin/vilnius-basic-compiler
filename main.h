@@ -124,8 +124,8 @@ enum RuntimeSymbol
     RuntimeREADI        = 14,
     RuntimeINKEY        = 15,
     RuntimeITOF         = 16,
-    RuntimeFRND         = 17,
-    RuntimeFABS         = 18,
+    RuntimeREADF        = 17,
+    RuntimeFRND         = 18,
     RuntimeFADD         = 19,  // FIS
     RuntimeFSUB         = 20,  // FIS
     RuntimeFMUL         = 21,  // FIS
@@ -628,6 +628,7 @@ private:
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprUnaryNot(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateExprUnaryMinus(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateAssignment(VariableExpressionModel& var, ExpressionModel& expr);
 private:

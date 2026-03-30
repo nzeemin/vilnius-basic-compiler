@@ -427,8 +427,10 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
             float fvalue = static_cast<float>(node.token.dvalue);
             string comment = "const " + std::to_string(fvalue);
             uint32_t bits;  std::memcpy(&bits, &fvalue, sizeof(uint32_t));
-            AddLine("\tMOV\t#" + to_string_octal(bits & 0xFFFF) + ", -(SP)\t; " + comment);
-            AddLine("\tMOV\t#" + to_string_octal(bits >> 16) + ", -(SP)");
+            uint16_t wordlo = bits & 0xFFFF;
+            uint16_t wordhi = bits >> 16;
+            AddLine((wordlo == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordlo) + ", ") + "-(SP)\t; " + comment);
+            AddLine((wordhi == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordhi) + ", ") + "-(SP)");
             return;
         }
         case ValueTypeString:
@@ -478,7 +480,9 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
     {
         if (node.token.keyword == KeywordNOT)
             GenerateExprUnaryNot(expr, node);
-        //TODO: unary +/-
+        else if (node.token.text == "-")  // unary '-'
+            GenerateExprUnaryMinus(expr, node);
+        //TODO: unary +
         else
             AddComment("TODO generate unary operation " + node.token.text);
         return;
@@ -497,10 +501,32 @@ void Generator::GenerateExprUnaryNot(const ExpressionModel& expr, const Expressi
     assert(node.right >= 0);
 
     const ExpressionNode& noderight = expr.nodes[node.right];
+    assert(noderight.vtype != ValueTypeString);
 
     GenerateExpression(expr, noderight);
 
     AddLine("\tCOM\tR0\t\t; NOT");
+}
+
+void Generator::GenerateExprUnaryMinus(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.left == -1);
+    assert(node.right >= 0);
+
+    const string comment = "\t; unary \'-\'";
+
+    const ExpressionNode& noderight = expr.nodes[node.right];
+    assert(noderight.vtype != ValueTypeString);
+
+    GenerateExpression(expr, noderight);
+
+    if (noderight.vtype == ValueTypeInteger)
+        AddLine("\tCOM\tR0" + comment);
+    else if (noderight.vtype == ValueTypeSingle)
+    {
+        AddLine("\tMOV\t#100000, R0");  // sign bit in high word of Single
+        AddLine("\tXOR\tR0, (SP)" + comment);  // invert sign
+    }
 }
 
 void Generator::GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node)
@@ -860,15 +886,25 @@ void Generator::GenerateInput(StatementModel& statement)
     for (auto it = std::begin(statement.variables); it != std::end(statement.variables); ++it)
     {
         ValueType vtype = it->GetValueType();
-        string vardeco = it->GetVariableDecoratedName();
+        string deconame = it->GetVariableDecoratedName();
         if (vtype == ValueTypeInteger)
         {
             AddRuntimeCall(RuntimeREADI);
-            AddLine("\tMOV\tR0, " + vardeco);
+            AddLine("\tMOV\tR0, " + deconame);
+        }
+        else if (vtype == ValueTypeSingle)
+        {
+            AddRuntimeCall(RuntimeREADF);
+            AddLine("\tMOV\t(SP)+, " + deconame + "+2");
+            AddLine("\tMOV\t(SP)+, " + deconame);
+        }
+        else if (vtype == ValueTypeString)
+        {
+            AddComment("TODO INPUT " + it->name);  //TODO
         }
         else
         {
-            AddComment("TODO INPUT " + it->name);  //TODO
+            assert(false);
         }
     }
 }
@@ -1040,6 +1076,22 @@ void Generator::GenerateLocate(StatementModel& statement)
 // PSET [STEP](<АРГ1>,< АРГ2>)[,< АРГ3>]
 void Generator::GeneratePset(StatementModel& statement)
 {
+    assert(statement.args.size() >= 2);
+
+    ExpressionModel& expr1 = statement.args[0];  // X
+    ExpressionModel& expr2 = statement.args[1];  // Y
+
+    GenerateExpression(expr1);
+
+    GenerateExpression(expr2);
+
+    if (statement.args.size() >= 3)
+    {
+        ExpressionModel& expr3 = statement.args[0];  // color
+
+        GenerateExpression(expr3);
+    }
+
     //TODO
     AddComment("TODO PSET");
 }
@@ -1048,6 +1100,22 @@ void Generator::GeneratePset(StatementModel& statement)
 // PRESET [STEP](<АРГ1>,< АРГ2>)[,< АРГ3>]
 void Generator::GeneratePreset(StatementModel& statement)
 {
+    assert(statement.args.size() >= 2);
+
+    ExpressionModel& expr1 = statement.args[0];  // X
+    ExpressionModel& expr2 = statement.args[1];  // Y
+
+    GenerateExpression(expr1);
+
+    GenerateExpression(expr2);
+
+    if (statement.args.size() >= 3)
+    {
+        ExpressionModel& expr3 = statement.args[0];  // color
+
+        GenerateExpression(expr3);
+    }
+
     //TODO
     AddComment("TODO PRESET");
 }
@@ -1423,7 +1491,6 @@ void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNo
 
     //TODO: String operands
 
-    // Code to calculate left sub-expression
     GenerateExpression(expr, nodeleft);  // result in R0
 
     // Convert "XXX + N" into INC/ADD
@@ -1506,13 +1573,35 @@ void Generator::GenerateOperMinus(const ExpressionModel& expr, const ExpressionN
 
 void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
+    assert(nodeleft.vtype != ValueTypeString);
+    assert(noderight.vtype != ValueTypeString);
+
     const string comment = "\t; Operation \'*\'";
 
-    // Code to calculate left sub-expression, with result in R0
-    GenerateExpression(expr, nodeleft);
+    // Single operands
+    if (nodeleft.vtype == ValueTypeSingle || noderight.vtype == ValueTypeSingle)
+    {
+        GenerateExpression(expr, nodeleft);
+        if (nodeleft.vtype == ValueTypeInteger)
+            AddRuntimeCall(RuntimeITOF);  // Integer R0 to Single, result on stack
 
-    //TODO
-    AddComment("TODO operation multiply");
+        GenerateExpression(expr, noderight);
+        if (noderight.vtype == ValueTypeInteger)
+            AddRuntimeCall(RuntimeITOF);  // Integer R0 to Single, result on stack
+
+        AddRuntimeCall(RuntimeFMUL, "Operation \'*\'");  // result on stack
+        return;
+    }
+
+    assert(nodeleft.vtype == ValueTypeInteger);
+    assert(noderight.vtype == ValueTypeInteger);
+
+    GenerateExpression(expr, nodeleft);  // result in R0
+
+    AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
+    GenerateExpression(expr, noderight);
+    AddLine("\tMUL\t(SP)+, R0" + comment);  // POP & MUL; MUL result in R0:R1
+    AddLine("\tMOV\tR1, R0");  // result in R0
 }
 
 void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
@@ -2036,7 +2125,8 @@ void Generator::GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNod
         break;
     case ValueTypeSingle:
         GenerateExpression(expr1);  // result on stack
-        AddRuntimeCall(RuntimeFABS);  // result on stack
+        AddLine("\tBIC\t#100000, (SP)\t; ABS");  // clear sign
+        break;
     default:
         assert(false);  // unexpected value type
     }
@@ -2049,9 +2139,9 @@ void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNod
 
     const ExpressionModel& expr1 = node.args[0];
     GenerateExpression(expr1);
-    if (expr1.GetExpressionValueType() == ValueTypeSingle)
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
     {
-        //TODO: For Single expression, convert to Integer
+        //TODO: For Integer expression, convert to Single
     }
 
     AddRuntimeCall(RuntimeFRND);  // result on stack
