@@ -36,3 +36,6 @@
 340 GOTO 100
 350 GOTO 100
 360 RETURN
+----------------------------------------------------------------------
+WARNING: The following statements/functions have not yet been implemented:
+CIRCLE, COLOR, LINE, PAINT, PSET

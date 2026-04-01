@@ -124,20 +124,21 @@ enum RuntimeSymbol
     RuntimeINKEY        = 14,
     RuntimeIDIV         = 15,
     RuntimeITOF         = 16,
-    RuntimeREADF        = 17,
-    RuntimeFRND         = 18,
-    RuntimeFADD         = 19,  // FIS
-    RuntimeFSUB         = 20,  // FIS
-    RuntimeFMUL         = 21,  // FIS
-    RuntimeFDIV         = 22,  // FIS
-    RuntimeFPWR         = 23,
-    RuntimeFSQR         = 24,
-    RuntimeFCOS         = 25,
-    RuntimeFSIN         = 26,
-    RuntimeFTAN         = 27,
-    RuntimeFATN         = 28,
-    RuntimeFEXP         = 29,
-    RuntimeFLOG         = 30,
+    RuntimeFTOI         = 17,  // for CINT and FIX
+    RuntimeREADF        = 18,
+    RuntimeFRND         = 19,
+    RuntimeFADD         = 20,  // FIS
+    RuntimeFSUB         = 21,  // FIS
+    RuntimeFMUL         = 22,  // FIS
+    RuntimeFDIV         = 23,  // FIS
+    RuntimeFPWR         = 24,
+    RuntimeFSQR         = 25,
+    RuntimeFCOS         = 26,
+    RuntimeFSIN         = 27,
+    RuntimeFTAN         = 28,
+    RuntimeFATN         = 29,
+    RuntimeFEXP         = 30,
+    RuntimeFLOG         = 31,
 };
 
 
@@ -609,6 +610,7 @@ class Generator
     int             m_lineindex;
     SourceLineModel* m_line;  // Curent line being generated
     std::set<RuntimeSymbol> m_runtimeneeds;
+    std::set<KeywordIndex> m_notimplemented;  // Statements/functions used but not implemented
 public:
     Generator(SourceModel* source, FinalModel* intermed);
 public:
@@ -710,9 +712,10 @@ private:
     void GenerateFuncAtn(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncExp(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncLog(const ExpressionModel& expr, const ExpressionNode& node);
-    void GenerateFuncFix(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncCintFix(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncInt(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNode& node);
 };
 
 class RuntimeGenerator

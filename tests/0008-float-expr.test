@@ -60,3 +60,9 @@
 262 PRINT "-1", A
 270 A = RND(-1)
 271 PRINT A
+280 B% = -123%
+281 A = CSNG(B%)
+282 PRINT "-123", A
+----------------------------------------------------------------------
+WARNING: The following statements/functions have not yet been implemented:
+INT, SGN

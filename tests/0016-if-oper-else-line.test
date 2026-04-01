@@ -12,10 +12,10 @@
 51 IF 0 THEN ON A GOTO 10,20,30 ELSE 51
 60 STOP
 61 IF 0 THEN STOP ELSE 61
-70 DIM B
-71 IF 0 THEN DIM C ELSE 71
-80 READ A
-81 IF 0 THEN READ A ELSE 81
+70 BEEP
+71 IF 0 THEN BEEP ELSE 71
+80 A = 0
+81 IF 0 THEN A = 1 ELSE 81
 90 RESTORE
 91 IF 0 THEN RESTORE ELSE 91
 100 PRINT A
@@ -50,3 +50,5 @@
 241 IF 0 THEN BEEP ELSE 241
 ----------------------------------------------------------------------
 WARNING: at 25:5 line 130 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
+WARNING: The following statements/functions have not yet been implemented:
+CIRCLE, COLOR, DRAW, LINE, PAINT, PRESET, PSET, RESTORE

@@ -8,3 +8,6 @@
 60 LINE  - (100,100), 0
 61 LINE  - (100,100), 1, B
 62 LINE  - (100,100), 1, BF
+----------------------------------------------------------------------
+WARNING: The following statements/functions have not yet been implemented:
+LINE

@@ -3,3 +3,6 @@
 10 OPEN "AAA"
 20 OPEN "BBBB" FOR INPUT
 30 OPEN "CCCCC" FOR OUTPUT
+----------------------------------------------------------------------
+WARNING: The following statements/functions have not yet been implemented:
+OPEN

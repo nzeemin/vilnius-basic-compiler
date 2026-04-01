@@ -5,3 +5,6 @@
 30 PSET (RND(1)*640%, RND(1)*264%), RND(1)*9%
 40 NEXT
 50 GOTO 50
+----------------------------------------------------------------------
+WARNING: The following statements/functions have not yet been implemented:
+PSET

@@ -7,3 +7,6 @@
 30 PAINT STEP (0,0)
 31 PAINT STEP (0,0), 8
 100 PAINT (105,22),3
+----------------------------------------------------------------------
+WARNING: The following statements/functions have not yet been implemented:
+PAINT

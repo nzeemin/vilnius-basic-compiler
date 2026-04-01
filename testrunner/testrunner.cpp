@@ -280,7 +280,8 @@ void process_test(const string& testfilename)
     }
     ofs.flush();
     ofs.close();
-    // next section of the test file is expected errors
+    // next section of the test file is expected errors/warnings
+    bool outhasanyerrors = false;
     std::vector<string> errorlines;
     while (!fs.eof())
     {
@@ -288,7 +289,12 @@ void process_test(const string& testfilename)
         if (buffer[0] == '-')
             break;
         if (*buffer != 0)
+        {
             errorlines.push_back(buffer);
+            string line(buffer);
+            if (line.find("ERROR") == 0)
+                outhasanyerrors = true;
+        }
     }
     // next section is optional, it is etalon program text for MACRO
     std::vector<string> macetalontext;
@@ -363,7 +369,7 @@ void process_test(const string& testfilename)
         return;
     }
 
-    if (!errorlines.empty())  // have errors, so will be no .MAC file, test passed
+    if (!errorlines.empty() && outhasanyerrors)  // have errors, so will be no .MAC file, test passed
     {
         SetTextAttribute(TEXTATTRIBUTES_GOOD);
         std::cout << "OK (compared output)";

@@ -7,3 +7,6 @@
 50 RESTORE 20
 60 RESTORE 65535
 65535 ?
+----------------------------------------------------------------------
+WARNING: The following statements/functions have not yet been implemented:
+DATA, RESTORE

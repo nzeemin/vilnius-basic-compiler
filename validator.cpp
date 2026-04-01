@@ -564,7 +564,7 @@ void Validator::ValidateIf(StatementModel& statement)
     else
     {
         KeywordIndex keyword = statement.stthen->token.keyword;
-        if (keyword == KeywordFOR || keyword == KeywordNEXT)
+        if (keyword == KeywordFOR || keyword == KeywordNEXT || keyword == KeywordDIM)
             MODEL_ERROR(statement.stthen->token.text + " statement not allowed under IF/THEN/ELSE.");
 
         ValidateStatement(*statement.stthen);
@@ -585,7 +585,7 @@ void Validator::ValidateIf(StatementModel& statement)
     else
     {
         KeywordIndex keyword = statement.stelse->token.keyword;
-        if (keyword == KeywordFOR || keyword == KeywordNEXT)
+        if (keyword == KeywordFOR || keyword == KeywordNEXT || keyword == KeywordDIM)
             MODEL_ERROR(statement.stelse->token.text + " statement not allowed under IF/THEN/ELSE.");
 
         ValidateStatement(*statement.stelse);

@@ -2,3 +2,6 @@
 ----------------------------------------------------------------------
 10 CLOSE
 20 CLOSE' with comment
+----------------------------------------------------------------------
+WARNING: The following statements/functions have not yet been implemented:
+CLOSE

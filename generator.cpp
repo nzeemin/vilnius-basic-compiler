@@ -109,10 +109,11 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordATN,       &Generator::GenerateFuncAtn },
     { KeywordEXP,       &Generator::GenerateFuncExp },
     { KeywordLOG,       &Generator::GenerateFuncLog },
-    { KeywordFIX,       &Generator::GenerateFuncFix },
+    { KeywordFIX,       &Generator::GenerateFuncCintFix },
     { KeywordINT,       &Generator::GenerateFuncInt },
     { KeywordSGN,       &Generator::GenerateFuncSgn },
-    { KeywordCINT,      &Generator::GenerateFuncFix },
+    { KeywordCINT,      &Generator::GenerateFuncCintFix },
+    { KeywordCSNG,      &Generator::GenerateFuncCsng },
 };
 
 
@@ -183,7 +184,8 @@ static string GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(ExpressionModel expr)
 
 
 Generator::Generator(SourceModel* source, FinalModel* final)
-    : m_source(source), m_final(final), m_lineindex(-1), m_line(nullptr), m_runtimeneeds()
+    : m_source(source), m_final(final), m_lineindex(-1), m_line(nullptr),
+    m_runtimeneeds(), m_notimplemented()
 {
     assert(source != nullptr);
     assert(final != nullptr);
@@ -257,6 +259,21 @@ void Generator::ProcessEnd()
     GenerateRuntimeNeeds();
 
     //NOTE: .END instruction will be generated in main.cpp
+
+    // Show list of statements/functions not implemented yet
+    if (!m_notimplemented.empty())
+    {
+        std::cerr << "WARNING: The following statements/functions have not yet been implemented:" << std::endl;
+        bool needcomma = false;
+        for (KeywordIndex keyword : m_notimplemented)
+        {
+            if (needcomma)
+                std::cerr << ", ";
+            std::cerr << GetKeywordString(keyword);
+            needcomma = true;
+        }
+        std::cerr << std::endl;
+    }
 }
 
 void Generator::GenerateStrings()
@@ -628,6 +645,7 @@ void Generator::GenerateExprFunction(const ExpressionModel& expr, const Expressi
     if (methodref == nullptr)
     {
         AddComment("TODO generate function expression for " + GetKeywordString(keyword));
+        m_notimplemented.insert(keyword);
         return;
     }
 
@@ -748,12 +766,14 @@ void Generator::GenerateColor(StatementModel& statement)
 {
     //TODO
     AddComment("TODO COLOR");
+    m_notimplemented.insert(KeywordCOLOR);
 }
 
 void Generator::GenerateData(StatementModel& statement)
 {
     //TODO
     AddComment("TODO DATA");
+    m_notimplemented.insert(KeywordDATA);
 }
 
 void Generator::GenerateDim(StatementModel&)
@@ -765,6 +785,7 @@ void Generator::GenerateDraw(StatementModel& statement)
 {
     //TODO
     AddComment("TODO DRAW");
+    m_notimplemented.insert(KeywordDRAW);
 }
 
 void Generator::GenerateEnd(StatementModel&)
@@ -959,12 +980,14 @@ void Generator::GenerateOpen(StatementModel& statement)
 {
     //TODO
     AddComment("TODO OPEN");
+    m_notimplemented.insert(KeywordOPEN);
 }
 
 void Generator::GenerateClose(StatementModel& statement)
 {
     //TODO
     AddComment("TODO CLOSE");
+    m_notimplemented.insert(KeywordCLOSE);
 }
 
 void Generator::GenerateLet(StatementModel& statement)
@@ -1140,6 +1163,7 @@ void Generator::GeneratePset(StatementModel& statement)
 
     //TODO
     AddComment("TODO PSET");
+    m_notimplemented.insert(KeywordPSET);
 }
 
 // PRESET [ @  ](<АРГ1>,< АРГ2>)[,< АРГ3>]
@@ -1164,6 +1188,7 @@ void Generator::GeneratePreset(StatementModel& statement)
 
     //TODO
     AddComment("TODO PRESET");
+    m_notimplemented.insert(KeywordPRESET);
 }
 
 // NEXT [<ПАРАМЕТР>[,< ПАРАМЕТР >...]]
@@ -1320,18 +1345,21 @@ void Generator::GenerateLine(StatementModel& statement)
 {
     //TODO
     AddComment("TODO LINE");  //TODO
+    m_notimplemented.insert(KeywordLINE);
 }
 
 void Generator::GenerateCircle(StatementModel& statement)
 {
     //TODO
     AddComment("TODO CIRCLE");  //TODO
+    m_notimplemented.insert(KeywordCIRCLE);
 }
 
 void Generator::GeneratePaint(StatementModel& statement)
 {
     //TODO
     AddComment("TODO PAINT");  //TODO
+    m_notimplemented.insert(KeywordPAINT);
 }
 
 void Generator::GeneratePrint(StatementModel& statement)
@@ -1480,6 +1508,7 @@ void Generator::GenerateRead(StatementModel& statement)
 {
     //TODO
     AddComment("TODO READ");
+    m_notimplemented.insert(KeywordREAD);
 }
 
 void Generator::GenerateRem(StatementModel& statement)
@@ -1491,6 +1520,7 @@ void Generator::GenerateRestore(StatementModel& statement)
 {
     //TODO
     AddComment("TODO RESTORE");
+    m_notimplemented.insert(KeywordRESTORE);
 }
 
 void Generator::GenerateReturn(StatementModel& statement)
@@ -2270,6 +2300,7 @@ void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionN
     AddRuntimeCall(RuntimeINKEY);  // R0 = symbol or 0
     AddComment("TODO INKEY$");
     //TODO: form a string
+    m_notimplemented.insert(KeywordINKEY);
 }
 
 void Generator::GenerateFuncCsrlin(const ExpressionModel& expr, const ExpressionNode& node)
@@ -2412,7 +2443,7 @@ void Generator::GenerateFuncLog(const ExpressionModel& expr, const ExpressionNod
 }
 
 // CINT / FIX
-void Generator::GenerateFuncFix(const ExpressionModel& expr, const ExpressionNode& node)
+void Generator::GenerateFuncCintFix(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(expr.GetExpressionValueType() != ValueTypeString);
     assert(node.args.size() == 1);
@@ -2420,8 +2451,12 @@ void Generator::GenerateFuncFix(const ExpressionModel& expr, const ExpressionNod
     const ExpressionModel& expr1 = node.args[0];
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
-    //TODO
-    AddLine(";TODO FIX function");
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        return;  // already Integer
+
+    GenerateExpression(expr1);
+
+    AddRuntimeCall(RuntimeFTOI);  // result in R0
 }
 
 void Generator::GenerateFuncInt(const ExpressionModel& expr, const ExpressionNode& node)
@@ -2434,6 +2469,7 @@ void Generator::GenerateFuncInt(const ExpressionModel& expr, const ExpressionNod
 
     //TODO
     AddLine(";TODO INT function");
+    m_notimplemented.insert(KeywordINT);
 }
 
 void Generator::GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node)
@@ -2446,6 +2482,23 @@ void Generator::GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNod
 
     //TODO
     AddLine(";TODO SGN function");
+    m_notimplemented.insert(KeywordSGN);
+}
+
+void Generator::GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    if (expr1.GetExpressionValueType() == ValueTypeSingle)
+        return;  // already Integer
+
+    GenerateExpression(expr1);
+
+    AddRuntimeCall(RuntimeITOF);  // result in R0
 }
 
 

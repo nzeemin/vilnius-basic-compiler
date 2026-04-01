@@ -16,3 +16,6 @@
 110 READ Y(1,2)
 120 READ Z(1,2,3)
 200 READ AR%(I%,1)
+----------------------------------------------------------------------
+WARNING: The following statements/functions have not yet been implemented:
+DATA, READ
