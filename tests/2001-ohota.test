@@ -160,5 +160,8 @@
 1490 CLS 
 1500 END 
 ----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - SCREEN statement is ignored
+WARNING: at 52:5 line 520 - SCREEN statement is ignored
+WARNING: at 68:5 line 580 - SCREEN statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
 CIRCLE, COLOR, DRAW, INT, PAINT, PSET, SGN

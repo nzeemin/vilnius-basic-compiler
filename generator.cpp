@@ -743,6 +743,7 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
 void Generator::GenerateIgnoredStatement(StatementModel& statement)
 {
     AddComment(statement.token.text + " statement is ignored");
+    Warning(statement.token, statement.token.text + " statement is ignored");
 }
 
 void Generator::GenerateBeep(StatementModel&)
@@ -751,9 +752,10 @@ void Generator::GenerateBeep(StatementModel&)
     AddRuntimeCall(RuntimeWRCHR);
 }
 
-void Generator::GenerateClear(StatementModel&)
+void Generator::GenerateClear(StatementModel& statement)
 {
     AddComment("CLEAR statement is ignored");
+    Warning(statement.token, "CLEAR statement is ignored");
 }
 
 void Generator::GenerateCls(StatementModel&)
@@ -1531,6 +1533,7 @@ void Generator::GenerateReturn(StatementModel& statement)
 void Generator::GenerateScreen(StatementModel& statement)
 {
     AddComment("SCREEN statement is ignored");
+    Warning(statement.token, "SCREEN statement is ignored");
 }
 
 void Generator::GenerateStop(StatementModel& statement)
@@ -1541,6 +1544,7 @@ void Generator::GenerateStop(StatementModel& statement)
 void Generator::GenerateWidth(StatementModel& statement)
 {
     AddComment("WIDTH statement is ignored");
+    Warning(statement.token, "WIDTH statement is ignored");
 }
 
 

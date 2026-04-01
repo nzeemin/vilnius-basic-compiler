@@ -252,5 +252,9 @@
 3811 ? AT(11,14)O8$
 3900 RETURN 
 ----------------------------------------------------------------------
+WARNING: at 1:3 line 5 - WIDTH statement is ignored
+WARNING: at 2:4 line 10 - CLEAR statement is ignored
+WARNING: at 16:4 line 50 - WIDTH statement is ignored
+WARNING: at 59:5 line 650 - LOAD statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
 COLOR

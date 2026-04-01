@@ -197,5 +197,14 @@
 1995 CLS 
 2000 RETURN 
 ----------------------------------------------------------------------
+WARNING: at 1:3 line 5 - WIDTH statement is ignored
+WARNING: at 9:5 line 150 - SCREEN statement is ignored
+WARNING: at 28:5 line 340 - CLEAR statement is ignored
+WARNING: at 98:6 line 1040 - SCREEN statement is ignored
+WARNING: at 99:6 line 1050 - WIDTH statement is ignored
+WARNING: at 109:6 line 1140 - CLEAR statement is ignored
+WARNING: at 145:6 line 1500 - LOAD statement is ignored
+WARNING: at 158:6 line 1630 - LOAD statement is ignored
+WARNING: at 172:6 line 1770 - LOAD statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
 CIRCLE, DRAW, DATA, LINE, PAINT, PSET, READ

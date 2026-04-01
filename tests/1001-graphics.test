@@ -4,5 +4,6 @@
 20 PSET (RND(1)*640,RND(1)*240)
 30 GOTO 20
 ----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - SCREEN statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
 PSET

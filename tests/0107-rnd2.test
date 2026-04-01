@@ -6,5 +6,6 @@
 40 NEXT
 50 GOTO 50
 ----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - SCREEN statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
 PSET

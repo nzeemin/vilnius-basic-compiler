@@ -165,5 +165,7 @@
 1650 ? AT(0,15)
 1660 RETURN 
 ----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - WIDTH statement is ignored
+WARNING: at 69:5 line 685 - LOAD statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
 COLOR, DATA, READ, RESTORE

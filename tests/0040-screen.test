@@ -7,3 +7,11 @@
 10 SCREEN    0
 11   SCREEN 1
 65535 SCREEN 0
+----------------------------------------------------------------------
+WARNING: at 1:3 line 1 - SCREEN statement is ignored
+WARNING: at 2:3 line 2 - SCREEN statement is ignored
+WARNING: at 3:3 line 3 - SCREEN statement is ignored
+WARNING: at 4:3 line 4 - SCREEN statement is ignored
+WARNING: at 5:4 line 10 - SCREEN statement is ignored
+WARNING: at 6:6 line 11 - SCREEN statement is ignored
+WARNING: at 7:7 line 65535 - SCREEN statement is ignored

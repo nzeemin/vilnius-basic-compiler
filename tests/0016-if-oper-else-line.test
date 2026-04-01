@@ -50,5 +50,6 @@
 241 IF 0 THEN BEEP ELSE 241
 ----------------------------------------------------------------------
 WARNING: at 25:5 line 130 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
+WARNING: at 31:5 line 160 - SCREEN statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
 CIRCLE, COLOR, DRAW, LINE, PAINT, PRESET, PSET, RESTORE

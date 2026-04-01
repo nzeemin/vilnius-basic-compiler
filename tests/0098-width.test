@@ -3,3 +3,7 @@
 10 WIDTH 80,10
 20 WIDTH 60
 30 WIDTH 60, 8
+----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - WIDTH statement is ignored
+WARNING: at 2:4 line 20 - WIDTH statement is ignored
+WARNING: at 3:4 line 30 - WIDTH statement is ignored
