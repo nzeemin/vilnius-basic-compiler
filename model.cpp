@@ -564,7 +564,8 @@ const char* RuntimeSymbolNames[] = {
     "READI",
     "INKEY",
     "IDIV",
-    "ITOF", "FTOI", "READF", "FRND",
+    "ITOF", "FTOI", "FUNPK",
+    "READF", "FRND",
     "FADD", "FSUB", "FMUL", "FDIV",  // FIS
     "FPWR", "FSQR", "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
 };

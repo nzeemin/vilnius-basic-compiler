@@ -125,20 +125,21 @@ enum RuntimeSymbol
     RuntimeIDIV         = 15,
     RuntimeITOF         = 16,
     RuntimeFTOI         = 17,  // for CINT and FIX
-    RuntimeREADF        = 18,
-    RuntimeFRND         = 19,
-    RuntimeFADD         = 20,  // FIS
-    RuntimeFSUB         = 21,  // FIS
-    RuntimeFMUL         = 22,  // FIS
-    RuntimeFDIV         = 23,  // FIS
-    RuntimeFPWR         = 24,
-    RuntimeFSQR         = 25,
-    RuntimeFCOS         = 26,
-    RuntimeFSIN         = 27,
-    RuntimeFTAN         = 28,
-    RuntimeFATN         = 29,
-    RuntimeFEXP         = 30,
-    RuntimeFLOG         = 31,
+    RuntimeFUNPK        = 18,  // print float to buffer
+    RuntimeREADF        = 19,
+    RuntimeFRND         = 20,
+    RuntimeFADD         = 21,  // FIS
+    RuntimeFSUB         = 22,  // FIS
+    RuntimeFMUL         = 23,  // FIS
+    RuntimeFDIV         = 24,  // FIS
+    RuntimeFPWR         = 25,
+    RuntimeFSQR         = 26,
+    RuntimeFCOS         = 27,
+    RuntimeFSIN         = 28,
+    RuntimeFTAN         = 29,
+    RuntimeFATN         = 20,
+    RuntimeFEXP         = 31,
+    RuntimeFLOG         = 32,
 };
 
 
