@@ -147,8 +147,11 @@ static string to_string_float(float value)
 static uint32_t float_to_dec_float(float fvalue)
 {
     uint32_t bits;  std::memcpy(&bits, &fvalue, sizeof(uint32_t));
-    int exp = (((bits >> 24) & 0x7F) + 1) & 0x7F;
-    bits = (bits & 0x80FFFFFF) | (exp << 24);
+    if (bits != 0)
+    {
+        int exp = (((bits >> 24) & 0x7F) + 1) & 0x7F;
+        bits = (bits & 0x80FFFFFF) | (exp << 24);
+    }
     return bits;
 }
 
@@ -691,8 +694,8 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             uint32_t bits = float_to_dec_float(fvalue);
             uint16_t wordlo = bits & 0xFFFF;
             uint16_t wordhi = bits >> 16;
-            AddLine((wordlo == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordlo) + ", ") + deconame + "+2" + comment);
-            AddLine((wordhi == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordhi) + ", ") + deconame);
+            AddLine((wordlo == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordlo) + ", ") + deconame + comment);
+            AddLine((wordhi == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordhi) + ", ") + deconame + "+2");
         }
         else if (vtype == ValueTypeString)
         {
