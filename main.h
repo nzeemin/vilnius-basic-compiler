@@ -119,21 +119,21 @@ enum RuntimeSymbol
     RuntimeWRSTR        = 9,
     RuntimeGETCR        = 10,
     RuntimeCURSR        = 11,
-    RuntimeSTRCP        = 12,
-    RuntimeREADI        = 13,
-    RuntimeINKEY        = 14,
-    RuntimeIDIV         = 15,
-    RuntimeITOF         = 16,
-    RuntimeFTOI         = 17,  // for CINT and FIX
-    RuntimeFUNPK        = 18,  // print float to buffer
-    RuntimeFFIX         = 19,
-    RuntimeFINT         = 20,
-    RuntimeREADF        = 21,
-    RuntimeFRND         = 22,
-    RuntimeFADD         = 23,  // FIS
-    RuntimeFSUB         = 24,  // FIS
-    RuntimeFMUL         = 25,  // FIS
-    RuntimeFDIV         = 26,  // FIS
+    RuntimeREADI        = 12,
+    RuntimeINKEY        = 13,
+    RuntimeIDIV         = 14,
+    RuntimeITOF         = 15,
+    RuntimeFTOI         = 16,  // for CINT and FIX
+    RuntimeFUNPK        = 17,  // print float to buffer
+    RuntimeFFIX         = 18,
+    RuntimeFINT         = 19,
+    RuntimeREADF        = 20,
+    RuntimeFCMP         = 21,  // Compare two floats
+    RuntimeFADD         = 22,  // FIS
+    RuntimeFSUB         = 23,  // FIS
+    RuntimeFMUL         = 24,  // FIS
+    RuntimeFDIV         = 25,  // FIS
+    RuntimeFRND         = 26,  // Random number
     RuntimeFPWR         = 27,
     RuntimeFSQR         = 28,
     RuntimeFCOS         = 29,
@@ -142,6 +142,7 @@ enum RuntimeSymbol
     RuntimeFATN         = 32,
     RuntimeFEXP         = 33,
     RuntimeFLOG         = 34,
+    RuntimeSTRCP        = 35,
 };
 
 
@@ -689,7 +690,7 @@ private:
     void GenerateOperDivInt(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperMod(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperPower(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
-    void GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment);
+    void GenerateLogicOperArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperLess(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);

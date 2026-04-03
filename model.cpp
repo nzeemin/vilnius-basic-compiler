@@ -560,14 +560,14 @@ const char* RuntimeSymbolNames[] = {
     "WRCHR", "WREOL", "WRAT", "WRSPC", "WRTAB", "WRCOM",
     "WRINT", "WRSNG", "WRSTR",
     "GETCR", "CURSR",
-    "STRCP",
     "READI",
     "INKEY",
     "IDIV",
     "ITOF", "FTOI", "FUNPK", "FFIX", "FINT",
-    "READF", "FRND",
+    "READF", "FCMP",
     "FADD", "FSUB", "FMUL", "FDIV",  // FIS
-    "FPWR", "FSQR", "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
+    "FRND", "FPWR", "FSQR", "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
+    "STRCP",
 };
 
 string GetRuntimeSymbolName(RuntimeSymbol rtsymbol)

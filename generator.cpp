@@ -1827,29 +1827,76 @@ void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionN
     AddComment("TODO operation power");
 }
 
-void Generator::GenerateLogicOperIntegerArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight, const string& comment)
+void Generator::GenerateLogicOperArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    // Code to calculate left sub-expression, with result in R0
+    // Code to calculate left sub-expression
     GenerateExpression(expr, nodeleft);
 
-    // Convert "XXX < N" into CMP #N., R0
-    if (nodeleft.vtype == ValueTypeInteger &&
-        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    if (nodeleft.vtype == ValueTypeInteger)  // left result in R0
     {
-        int ivalue = (int)std::floor(noderight.token.dvalue);
-        AddLine("\tCMP\t#" + std::to_string(ivalue) + "., R0" + comment);
+        if (noderight.vtype == ValueTypeInteger)  // Integer <=> Integer
+        {
+            if (noderight.constval)
+            {
+                int ivalue = (int)std::floor(noderight.token.dvalue);
+                AddLine("\tCMP\t#" + std::to_string(ivalue) + "., R0\tcompare integer to const");
+            }
+            else if (noderight.token.type == TokenTypeIdentifier)
+            {
+                string deconame = DecorateVariableName(GetCanonicVariableName(noderight.token.text));
+                AddLine("\tCMP\t" + deconame + "., R0\tcompare integer to var");
+            }
+            else
+            {
+                AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
+                GenerateExpression(expr, noderight);
+                AddLine("\tMOV\t(SP)+, R0\t; POP R0");
+                AddLine("\tCMP\tR1, R0\tcompare integers");
+            }
+        }
+        else if (noderight.vtype == ValueTypeSingle)  // Integer <=> Single
+        {
+            AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+            GenerateExpression(expr, noderight);
+            AddRuntimeCall(RuntimeFCMP, "compare floats");  // result in flags
+        }
+        else  // Integer <=> String
+        {
+            assert(noderight.vtype == ValueTypeString);
+            assert(false);  // Compare Integer <=> String should be covered in validation
+        }
     }
-    else if (noderight.token.type == TokenTypeIdentifier && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    else if (nodeleft.vtype == ValueTypeSingle)  // left result on stack
     {
-        string deconame = DecorateVariableName(GetCanonicVariableName(noderight.token.text));
-        AddLine("\tCMP\t" + deconame + "., R0" + comment);
+        if (noderight.vtype == ValueTypeInteger)  // Single <=> Integer
+        {
+            GenerateExpression(expr, noderight);
+            AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+            AddRuntimeCall(RuntimeFCMP, "compare floats");  // result in flags
+        }
+        else if (noderight.vtype == ValueTypeSingle)  // Single <=> Single
+        {
+            GenerateExpression(expr, noderight);
+            AddRuntimeCall(RuntimeFCMP, "compare floats");  // result in flags
+        }
+        else  // Single <=> String
+        {
+            assert(noderight.vtype == ValueTypeString);
+            assert(false);  // Compare Single <=> String should be covered in validation
+        }
     }
-    else
+    else if (nodeleft.vtype == ValueTypeString)
     {
-        AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
-        GenerateExpression(expr, noderight);
-        AddLine("\tMOV\t(SP)+, R0\t; POP R0");
-        AddLine("\tCMP\tR1, R0" + comment);
+        if (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle)
+        {
+            assert(false);  // Compare String <=> Integer/Single should be covered in validation
+        }
+        else
+        {
+            assert(noderight.vtype == ValueTypeString);
+            AddComment("TODO compare String to String");
+            //TODO
+        }
     }
 }
 
@@ -1857,71 +1904,61 @@ void Generator::GenerateOperEqual(const ExpressionModel& expr, const ExpressionN
 {
     const string comment = "\t; Operation \'=\'";
 
-    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
+    GenerateLogicOperArguments(expr, nodeleft, noderight);
 
-    AddLine("\tBEQ\t.+4");
+    AddLine("\tBEQ\t.+6");
     AddLine("\tCLR\tR0\t; false");
-    AddLine("\tBR\t.+4");
+    AddLine("\tBR\t.+6");
     AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    const string comment = "\t; Operation \'<>\'";
+    GenerateLogicOperArguments(expr, nodeleft, noderight);
 
-    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
-
-    AddLine("\tBNE\t.+4");
+    AddLine("\tBNE\t.+6\t; Operation \'<>\'");
     AddLine("\tCLR\tR0\t; false");
-    AddLine("\tBR\t.+4");
+    AddLine("\tBR\t.+6");
     AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperLess(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    const string comment = "\t; Operation \'<\'";
+    GenerateLogicOperArguments(expr, nodeleft, noderight);
 
-    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
-
-    AddLine("\tBLT\t.+4");
+    AddLine("\tBLT\t.+6\t; Operation \'<\'");
     AddLine("\tCLR\tR0\t; false");
-    AddLine("\tBR\t.+4");
+    AddLine("\tBR\t.+6");
     AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperGreater(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    const string comment = "\t; Operation \'>\'";
+    GenerateLogicOperArguments(expr, nodeleft, noderight);
 
-    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
-
-    AddLine("\tBGT\t.+4");
+    AddLine("\tBGT\t.+6\t; Operation \'>\'");
     AddLine("\tCLR\tR0\t; false");
-    AddLine("\tBR\t.+4");
+    AddLine("\tBR\t.+6");
     AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperLessOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    const string comment = "\t; Operation \'<=\'";
+    GenerateLogicOperArguments(expr, nodeleft, noderight);
 
-    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
-
-    AddLine("\tBLE\t.+4");
+    AddLine("\tBLE\t.+6\t; Operation \'<=\'");
     AddLine("\tCLR\tR0\t; false");
-    AddLine("\tBR\t.+4");
+    AddLine("\tBR\t.+6");
     AddLine("\tMOV\t#-1, R0\t; true");
 }
 
 void Generator::GenerateOperGreaterOrEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    const string comment = "\t; Operation \'>=\'";
+    GenerateLogicOperArguments(expr, nodeleft, noderight);
 
-    GenerateLogicOperIntegerArguments(expr, nodeleft, noderight, comment);
-
-    AddLine("\tBGE\t.+4");
+    AddLine("\tBGE\t.+6\t; Operation \'>=\'");
     AddLine("\tCLR\tR0\t; false");
-    AddLine("\tBR\t.+4");
+    AddLine("\tBR\t.+6");
     AddLine("\tMOV\t#-1, R0\t; true");
 }
 
