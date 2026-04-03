@@ -65,4 +65,4 @@
 282 PRINT "-123", A
 ----------------------------------------------------------------------
 WARNING: The following statements/functions have not yet been implemented:
-INT, SGN
+SGN

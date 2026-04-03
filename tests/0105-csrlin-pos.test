@@ -16,42 +16,42 @@ START:
 	MOV	SP, SAVESP
 ; 100 Y%=CSRLIN
 N100:
-	CALL	GETCR		; for CSRLIN
+	CALL	GETCR		; get cursor pos for CSRLIN
 	MOV	R2, R0		; row
 	MOV	R0, VARIY	; var Y% assignment
 ; 105 Y%=CSRLIN(X%)
 N105:
-	CALL	GETCR		; for CSRLIN
+	CALL	GETCR		; get cursor pos for CSRLIN
 	MOV	R2, R0		; row
 	MOV	R0, VARIY	; var Y% assignment
 ; 110 Y%=CSRLIN(X%-5)
 N110:
 	MOV	VARIX, R0	; var X%
-	CALL	ITOF
+	CALL	ITOF		; to Single
 	CLR	-(SP)		; const 5.
-	MOV	#040240, -(SP)
+	MOV	#040640, -(SP)
 	FSUB	SP		; Operation '-'
-	CALL	GETCR		; for CSRLIN
+	CALL	GETCR		; get cursor pos for CSRLIN
 	MOV	R2, R0		; row
 	MOV	R0, VARIY	; var Y% assignment
 ; 200 X%=POS
 N200:
-	CALL	GETCR		; for POS
+	CALL	GETCR		; get cursor pos for POS
 	MOV	R1, R0		; column
 	MOV	R0, VARIX	; var X% assignment
 ; 205 X%=POS(Y%)
 N205:
-	CALL	GETCR		; for POS
+	CALL	GETCR		; get cursor pos for POS
 	MOV	R1, R0		; column
 	MOV	R0, VARIX	; var X% assignment
 ; 210 X%=POS(Y%+2)
 N210:
 	MOV	VARIY, R0	; var Y%
-	CALL	ITOF
+	CALL	ITOF		; to Single
 	CLR	-(SP)		; const 2.
-	MOV	#040000, -(SP)
+	MOV	#040400, -(SP)
 	FADD	SP		; Operation '+'
-	CALL	GETCR		; for POS
+	CALL	GETCR		; get cursor pos for POS
 	MOV	R1, R0		; column
 	MOV	R0, VARIX	; var X% assignment
 LEND:

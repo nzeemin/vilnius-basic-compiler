@@ -126,20 +126,22 @@ enum RuntimeSymbol
     RuntimeITOF         = 16,
     RuntimeFTOI         = 17,  // for CINT and FIX
     RuntimeFUNPK        = 18,  // print float to buffer
-    RuntimeREADF        = 19,
-    RuntimeFRND         = 20,
-    RuntimeFADD         = 21,  // FIS
-    RuntimeFSUB         = 22,  // FIS
-    RuntimeFMUL         = 23,  // FIS
-    RuntimeFDIV         = 24,  // FIS
-    RuntimeFPWR         = 25,
-    RuntimeFSQR         = 26,
-    RuntimeFCOS         = 27,
-    RuntimeFSIN         = 28,
-    RuntimeFTAN         = 29,
-    RuntimeFATN         = 20,
-    RuntimeFEXP         = 31,
-    RuntimeFLOG         = 32,
+    RuntimeFFIX         = 19,
+    RuntimeFINT         = 20,
+    RuntimeREADF        = 21,
+    RuntimeFRND         = 22,
+    RuntimeFADD         = 23,  // FIS
+    RuntimeFSUB         = 24,  // FIS
+    RuntimeFMUL         = 25,  // FIS
+    RuntimeFDIV         = 26,  // FIS
+    RuntimeFPWR         = 27,
+    RuntimeFSQR         = 28,
+    RuntimeFCOS         = 29,
+    RuntimeFSIN         = 30,
+    RuntimeFTAN         = 31,
+    RuntimeFATN         = 32,
+    RuntimeFEXP         = 33,
+    RuntimeFLOG         = 34,
 };
 
 
@@ -564,7 +566,8 @@ private:
     void ValidateFuncSgn(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncRnd(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncFre(ExpressionModel& expr, ExpressionNode& node);
-    void ValidateFuncCintFix(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncCint(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncFix(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncPeek(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncInp(ExpressionModel& expr, ExpressionNode& node);
@@ -713,7 +716,8 @@ private:
     void GenerateFuncAtn(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncExp(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncLog(const ExpressionModel& expr, const ExpressionNode& node);
-    void GenerateFuncCintFix(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncCint(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncFix(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncInt(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNode& node);

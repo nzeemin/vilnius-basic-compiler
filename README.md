@@ -28,12 +28,14 @@ Current state of the project: **prototype**
 
 Текущее состояние проекта: **прототип**
 
-Ближайшая цель это **версия 0.2**, в которой:
+Ближайшая цель это **версия 0.1**, в которой:
  - подмножество языка с типами Integer и Single, без массивов, строки только константные
- - полноценный парсинг всех конструкций языка
- - вычисление Integer и Single выражений
- - все Integer и Single функции
+ - полноценный парсинг всех конструкций языка, кроме оператора DATA
+ - вычисление Integer и Single выражений, вычисление константных String выражений
  - PRINT для Integer/Single и константных строк, INPUT только для целых чисел
+ - упрощённый IF: без полноценных операторов под THEN/ELSE, только GOTO
+ - функции: PI, ABS, FIX, INT, SGN, CINT, CSNG, PEEK, INP, CSRLIN, POS
+ - операторы: LET, GOTO, GOSUB, RETURN, IF/THEN/ELSE (частично), FOR, NEXT, ON, STOP, END, REM, PRINT (включая AT, TAB, SPC, запятая), INPUT, POKE, OUT, CLS, COLOR, LOCATE, BEEP
  - без работы со строками, без работы с файлами, без графики
  - без DATA/READ/RESTORE
 

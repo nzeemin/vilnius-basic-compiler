@@ -95,12 +95,12 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordEXP,       &Validator::ValidateFuncExp },
     { KeywordLOG,       &Validator::ValidateFuncLog },
     { KeywordABS,       &Validator::ValidateFuncAbs },
-    { KeywordFIX,       &Validator::ValidateFuncCintFix },
+    { KeywordFIX,       &Validator::ValidateFuncFix },
     { KeywordINT,       &Validator::ValidateFuncInt },
     { KeywordSGN,       &Validator::ValidateFuncSgn },
     { KeywordRND,       &Validator::ValidateFuncRnd },
     { KeywordFRE,       &Validator::ValidateFuncFre },
-    { KeywordCINT,      &Validator::ValidateFuncCintFix },
+    { KeywordCINT,      &Validator::ValidateFuncCint },
     { KeywordCSNG,      &Validator::ValidateFuncCsng },
     { KeywordPEEK,      &Validator::ValidateFuncPeek },
     { KeywordINP,       &Validator::ValidateFuncInp },
@@ -1721,7 +1721,7 @@ void Validator::ValidateFuncAbs(ExpressionModel& expr, ExpressionNode& node)
     }
 }
 
-void Validator::ValidateFuncCintFix(ExpressionModel& expr, ExpressionNode& node)
+void Validator::ValidateFuncCint(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
         EXPR_ERROR("One argument expected.");
@@ -1740,6 +1740,28 @@ void Validator::ValidateFuncCintFix(ExpressionModel& expr, ExpressionNode& node)
     }
 }
 
+// X=FIX(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
+void Validator::ValidateFuncFix(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 1)
+        EXPR_ERROR("One argument expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    node.vtype = ValueTypeSingle;
+    node.constval = expr1.IsConstExpression();
+
+    if (node.constval)
+    {
+        node.token.dvalue = (int)(expr1.GetConstExpressionDValue());
+    }
+}
+
+// X=INT(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
 void Validator::ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
@@ -1749,7 +1771,7 @@ void Validator::ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node)
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
-    node.vtype = ValueTypeInteger;
+    node.vtype = ValueTypeSingle;
     node.constval = expr1.IsConstExpression();
 
     if (node.constval)

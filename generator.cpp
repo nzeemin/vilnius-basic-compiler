@@ -109,10 +109,10 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordATN,       &Generator::GenerateFuncAtn },
     { KeywordEXP,       &Generator::GenerateFuncExp },
     { KeywordLOG,       &Generator::GenerateFuncLog },
-    { KeywordFIX,       &Generator::GenerateFuncCintFix },
+    { KeywordFIX,       &Generator::GenerateFuncCint },
     { KeywordINT,       &Generator::GenerateFuncInt },
     { KeywordSGN,       &Generator::GenerateFuncSgn },
-    { KeywordCINT,      &Generator::GenerateFuncCintFix },
+    { KeywordCINT,      &Generator::GenerateFuncFix },
     { KeywordCSNG,      &Generator::GenerateFuncCsng },
 };
 
@@ -2464,8 +2464,8 @@ void Generator::GenerateFuncLog(const ExpressionModel& expr, const ExpressionNod
     AddRuntimeCall(RuntimeFLOG, "log(X)");  // result on stack
 }
 
-// CINT / FIX
-void Generator::GenerateFuncCintFix(const ExpressionModel& expr, const ExpressionNode& node)
+// CINT
+void Generator::GenerateFuncCint(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(expr.GetExpressionValueType() != ValueTypeString);
     assert(node.args.size() == 1);
@@ -2481,6 +2481,30 @@ void Generator::GenerateFuncCintFix(const ExpressionModel& expr, const Expressio
     AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
 }
 
+// X=FIX(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
+void Generator::GenerateFuncFix(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+    {
+        AddRuntimeCall(RuntimeITOF, "to Single");
+        //TODO: WARN
+        return;
+    }
+
+    GenerateExpression(expr1);  // result on stack
+
+    AddRuntimeCall(RuntimeFFIX, "FIX");
+}
+
+// X=INT(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
 void Generator::GenerateFuncInt(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(expr.GetExpressionValueType() != ValueTypeString);
@@ -2489,9 +2513,14 @@ void Generator::GenerateFuncInt(const ExpressionModel& expr, const ExpressionNod
     const ExpressionModel& expr1 = node.args[0];
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
-    //TODO
-    AddLine(";TODO INT function");
-    m_notimplemented.insert(KeywordINT);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+    {
+        AddRuntimeCall(RuntimeITOF, "to Single");
+        //TODO: WARN
+        return;
+    }
+
+    AddRuntimeCall(RuntimeFINT, "INT");
 }
 
 void Generator::GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node)
