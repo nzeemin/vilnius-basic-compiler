@@ -1,0 +1,22 @@
+-q
+----------------------------------------------------------------------
+180 CIRCLE (A$,100), 50
+182 CIRCLE (200,B$), 50
+184 CIRCLE (200,100), C$
+186 CIRCLE (200,100), 50, -1
+187 CIRCLE (200,100), 50, 9
+188 CIRCLE (200,100), 50, A$
+189 CIRCLE (200,100), 50, , A$
+190 CIRCLE (200,100), 50, , , A$
+192 CIRCLE (200,100), 50, , , , A$
+----------------------------------------------------------------------
+ERROR in line 180 at 1:13 - Expression should be of type Integer or Single.
+ERROR in line 182 at 2:17 - Expression should be of type Integer or Single.
+ERROR in line 184 at 3:23 - Expression should be of type Integer or Single.
+ERROR in line 186 - Parameter value (-1) is out of range 0..8.
+ERROR in line 187 - Parameter value (9) is out of range 0..8.
+ERROR in line 188 at 6:27 - Expression should be of type Integer or Single.
+ERROR in line 189 at 7:29 - Expression should be of type Integer or Single.
+ERROR in line 190 at 8:31 - Expression should be of type Integer or Single.
+ERROR in line 192 at 9:33 - Expression should be of type Integer or Single.
+Validation ERRORS: 9

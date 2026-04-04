@@ -1839,19 +1839,18 @@ void Generator::GenerateLogicOperArguments(const ExpressionModel& expr, const Ex
             if (noderight.constval)
             {
                 int ivalue = (int)std::floor(noderight.token.dvalue);
-                AddLine("\tCMP\t#" + std::to_string(ivalue) + "., R0\tcompare integer to const");
+                AddLine("\tCMP\tR0, #" + std::to_string(ivalue) + ".\t; compare integer to const");
             }
             else if (noderight.token.type == TokenTypeIdentifier)
             {
                 string deconame = DecorateVariableName(GetCanonicVariableName(noderight.token.text));
-                AddLine("\tCMP\t" + deconame + "., R0\tcompare integer to var");
+                AddLine("\tCMP\tR0, " + deconame + "\t; compare integer to var");
             }
             else
             {
                 AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
                 GenerateExpression(expr, noderight);
-                AddLine("\tMOV\t(SP)+, R0\t; POP R0");
-                AddLine("\tCMP\tR1, R0\tcompare integers");
+                AddLine("\tCMP\t(SP)+, R0\t; compare integers");
             }
         }
         else if (noderight.vtype == ValueTypeSingle)  // Integer <=> Single

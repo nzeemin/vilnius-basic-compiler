@@ -1,0 +1,24 @@
+-q
+----------------------------------------------------------------------
+140 LINE (A$,10)-(40,30)
+142 LINE (20,B$)-(40,30)
+144 LINE (20,10)-(C$,30)
+146 LINE (20,10)-(40,D$)
+148 LINE (20,10)-(40,30), E$
+150 LINE (20,10)-(40,30), -1
+151 LINE (20,10)-(40,30), 9
+154 LINE -(A$,30)
+156 LINE -(40,B$)
+158 LINE -(40,30), "A"
+----------------------------------------------------------------------
+ERROR in line 140 at 1:11 - Expression should be of type Integer or Single.
+ERROR in line 142 at 2:14 - Expression should be of type Integer or Single.
+ERROR in line 144 at 3:19 - Expression should be of type Integer or Single.
+ERROR in line 146 at 4:22 - Expression should be of type Integer or Single.
+ERROR in line 148 at 5:27 - Expression should be of type Integer or Single.
+ERROR in line 150 - Parameter value (-1) is out of range 0..8.
+ERROR in line 151 - Parameter value (9) is out of range 0..8.
+ERROR in line 154 at 8:12 - Expression should be of type Integer or Single.
+ERROR in line 156 at 9:15 - Expression should be of type Integer or Single.
+ERROR in line 158 at 10:20 - Expression should be of type Integer or Single.
+Validation ERRORS: 10
