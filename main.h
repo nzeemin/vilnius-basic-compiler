@@ -318,7 +318,7 @@ public:
     bool RegisterVariable(const VariableExpressionModel& var);
     bool IsVariableRegistered(const string& varname) const;
     bool IsLineNumberExists(int linenumber) const;
-    int GetNextLineNumber(int linenumber) const;
+    string GetNextLineLabel(int linenumber) const;
     SourceLineModel& GetSourceLine(int linenumber);
     void RegisterConstString(const string& str);
     int GetConstStringIndex(const string& str);

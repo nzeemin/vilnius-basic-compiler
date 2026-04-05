@@ -463,16 +463,21 @@ bool SourceModel::IsLineNumberExists(int linenumber) const
     return false;
 }
 
-int SourceModel::GetNextLineNumber(int linenumber) const
+string SourceModel::GetNextLineLabel(int linenumber) const
 {
     if (linenumber > MAX_LINE_NUMBER)
-        return MAX_LINE_NUMBER + 1;
+        return "LEND";
     for (auto it = std::begin(lines); it != std::end(lines); ++it)
     {
-        if (it->linenum > linenumber)
-            return it->linenum;
+        if (it->linenum == linenumber)
+        {
+            ++it;  // next line
+            if (it == std::end(lines))  // no next line
+                break;
+            return it->GetLineNumberLabel();
+        }
     }
-    return MAX_LINE_NUMBER + 1;
+    return "LEND";
 }
 
 SourceLineModel& SourceModel::GetSourceLine(int linenumber)

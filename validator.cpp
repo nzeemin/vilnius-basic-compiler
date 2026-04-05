@@ -150,6 +150,12 @@ bool Validator::ProcessLine()
 
     m_line = &(m_source->lines[m_lineindex]);
 
+    // Spectial case: line with FOR statement should have line number
+    if (m_line->linenum == 0 && m_line->statement.token.keyword == KeywordFOR)
+    {
+        Error("Line with FOR statement should have line number.");
+    }
+
     ValidateStatement(m_line->statement);
 
     return true;
@@ -179,21 +185,32 @@ void Validator::ValidateStatement(StatementModel& statement)
 
 void Validator::Error(const string& message)
 {
-    std::cerr << "ERROR in line " << m_line->linenum << " - " << message << std::endl;
+    std::cerr << "ERROR ";
+    if (m_line->linenum == 0)
+        std::cerr << "at " << m_line->srclinenum;
+    else
+        std::cerr << "in line " << m_line->linenum;
+    std::cerr << " - " << message << std::endl;
     m_line->error = true;
     RegisterError();
 }
-
 void Validator::Error(ExpressionModel& expr, const string& message)
 {
-    std::cerr << "ERROR in line " << m_line->linenum << " in expression - " << message << std::endl;
+    std::cerr << "ERROR ";
+    if (m_line->linenum == 0)
+        std::cerr << "at " << m_line->srclinenum;
+    else
+        std::cerr << "in line " << m_line->linenum;
+    std::cerr << " in expression - " << message << std::endl;
     m_line->error = true;
     RegisterError();
 }
-
 void Validator::Error(ExpressionModel& expr, const ExpressionNode& node, const string& message)
 {
-    std::cerr << "ERROR in line " << m_line->linenum << " at " << node.token.line << ":" << node.token.pos << " - " << message << std::endl;
+    std::cerr << "ERROR ";
+    if (m_line->linenum != 0)
+        std::cerr << "in line " << m_line->linenum << " ";
+    std::cerr << "at " << node.token.line << ":" << node.token.pos << " - " << message << std::endl;
     m_line->error = true;
     RegisterError();
 }
@@ -506,6 +523,7 @@ void Validator::ValidateFor(StatementModel& statement)
     VariableModel var;
     var.name = GetCanonicVariableName(statement.ident.text);
     m_source->RegisterVariable(var);
+    //TODO: check variable type
 
     // Add FOR variable to FOR/NEXT stack
     ValidatorForSpec forspec;

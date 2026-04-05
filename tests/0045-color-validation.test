@@ -1,0 +1,20 @@
+-q
+----------------------------------------------------------------------
+50 COLOR "A",2
+51 COLOR A$,2
+52 COLOR 1,"B"
+53 COLOR 1,B$
+54 COLOR -1,2
+55 COLOR 9,2
+56 COLOR 1,-1
+57 COLOR 1,9
+----------------------------------------------------------------------
+ERROR in line 50 at 1:10 - Expression should be of type Integer or Single.
+ERROR in line 51 at 2:10 - Expression should be of type Integer or Single.
+ERROR in line 52 at 3:12 - Expression should be of type Integer or Single.
+ERROR in line 53 at 4:12 - Expression should be of type Integer or Single.
+ERROR in line 54 - Parameter value (-1) is out of range 0..8.
+ERROR in line 55 - Parameter value (9) is out of range 0..8.
+ERROR in line 56 - Parameter value (-1) is out of range 0..8.
+ERROR in line 57 - Parameter value (9) is out of range 0..8.
+Validation ERRORS: 8

@@ -811,8 +811,8 @@ void Generator::GenerateDraw(StatementModel& statement)
 void Generator::GenerateEnd(StatementModel&)
 {
     // END generates JMP LEND, but only if END is not on the last line
-    int nextlinenum = m_source->GetNextLineNumber(m_line->linenum);
-    if (nextlinenum < MAX_LINE_NUMBER + 1)
+    string nextlinelabel = m_source->GetNextLineLabel(m_line->linenum);
+    if (nextlinelabel != "LEND")
         AddLine("\tJMP\tLEND");
 }
 
@@ -841,12 +841,12 @@ void Generator::GenerateFor(StatementModel& statement)
     else if (expr2.IsVariableExpression())
     {
         string svalue = expr2.GetVariableExpressionDecoratedName();
-        AddLine("\tMOV\t" + svalue + ", @#<N" + std::to_string(m_line->linenum) + "+2>");
+        AddLine("\tMOV\t" + svalue + ", @#<R" + std::to_string(m_line->linenum) + "+2>");
     }
     else
     {
         GenerateExpression(expr2);
-        AddLine("\tMOV\tR0, @#<N" + std::to_string(m_line->linenum) + "+2>");  //  Save "to" value
+        AddLine("\tMOV\tR0, @#<R" + std::to_string(m_line->linenum) + "+2>");  //  Save "to" value
     }
 
     if (statement.args.size() > 2)  // has STEP expression
@@ -855,13 +855,34 @@ void Generator::GenerateFor(StatementModel& statement)
         ExpressionModel& expr3 = statement.args[2];
         GenerateExpression(expr3);
         // Save "step" value
-        AddLine("\tMOV\tR0, @#<N" + std::to_string(statement.paramline) + "+2>");
+        AddLine("\tMOV\tR0, @#<R" + std::to_string(statement.paramline) + "+2>");
     }
 
-    int nextlinenum = m_source->GetNextLineNumber(m_line->linenum);
-    AddLine("N" + std::to_string(m_line->linenum) + ":\tCMP\t" + tovalue + ", " + deconame);
-    AddLine("\tBHIS\tN" + std::to_string(nextlinenum));
+    string nextlinelabel = m_source->GetNextLineLabel(m_line->linenum);
+    AddLine("R" + std::to_string(m_line->linenum) + ":\tCMP\t" + tovalue + ", " + deconame);
+    AddLine("\tBHIS\t" + nextlinelabel);
     AddLine("\tJMP\tX" + std::to_string(m_line->linenum));  // label after NEXT
+}
+
+// NEXT [<ПАРАМЕТР>[,< ПАРАМЕТР >...]]
+void Generator::GenerateNext(StatementModel& statement)
+{
+    assert(statement.paramline != 0);
+    SourceLineModel& linefor = m_source->GetSourceLine(statement.paramline);
+
+    string varname = linefor.statement.ident.text;
+    string deconame = DecorateVariableName(GetCanonicVariableName(varname));
+    int forlinenum = statement.paramline;
+
+    if (linefor.statement.args.size() < 3)
+        AddLine("\tINC\t" + deconame);
+    else
+        AddLine("\tADD\t#1, " + deconame);
+
+    // JMP to continue loop
+    AddLine("\tJMP\tR" + std::to_string(forlinenum));
+    // Label after NEXT
+    AddLine("X" + std::to_string(forlinenum) + ":");
 }
 
 void Generator::GenerateGosub(StatementModel& statement)
@@ -945,8 +966,8 @@ void Generator::GenerateIf(StatementModel& statement)
 
     if (statement.params.size() == 1)  // IF expr THEN linenum
     {
-        int linenumnext = m_source->GetNextLineNumber(m_line->linenum);
-        AddLine("\tBEQ\tN" + std::to_string(linenumnext));
+        string nextlinelabel = m_source->GetNextLineLabel(m_line->linenum);
+        AddLine("\tBEQ\t" + nextlinelabel);
         int linenum = (int)statement.params[0].dvalue;
         AddLine("\tJMP\tN" + std::to_string(linenum));
     }
@@ -1025,7 +1046,7 @@ void Generator::GenerateOn(StatementModel& statement)
     ExpressionModel& expr = statement.args[0];
     GenerateExpression(expr);
     int numofcases = statement.params.size();
-    string nextline = "N" + std::to_string(m_source->GetNextLineNumber(m_line->linenum));
+    string nextline = m_source->GetNextLineLabel(m_line->linenum);
     AddLine("\tDEC\tR0");
     AddLine("\tBLO\t" + nextline);
     AddLine("\tCMP\t#" + std::to_string(numofcases) + ", R0");
@@ -1211,34 +1232,14 @@ void Generator::GeneratePreset(StatementModel& statement)
     m_notimplemented.insert(KeywordPRESET);
 }
 
-// NEXT [<ПАРАМЕТР>[,< ПАРАМЕТР >...]]
-void Generator::GenerateNext(StatementModel& statement)
-{
-    assert(statement.paramline != 0);
-    SourceLineModel& linefor = m_source->GetSourceLine(statement.paramline);
-
-    string varname = linefor.statement.ident.text;
-    string deconame = DecorateVariableName(GetCanonicVariableName(varname));
-    int forlinenum = statement.paramline;
-
-    if (linefor.statement.args.size() < 3)
-        AddLine("\tINC\t" + deconame);
-    else
-        AddLine("\tADD\t#1, " + deconame);
-
-    // JMP to continue loop
-    AddLine("\tJMP\tN" + std::to_string(forlinenum));
-    // Label after NEXT
-    AddLine("X" + std::to_string(forlinenum) + ":");
-}
-
 // POKE <АДРЕС>,<ВЫРАЖЕНИЕ>
 void Generator::GeneratePoke(StatementModel& statement)
 {
     assert(statement.args.size() == 2);
 
-    //NOTE: This expression could not be string
     ExpressionModel& expr1 = statement.args[0];  // address
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
     string stat1;
     if (expr1.IsConstExpression())
         stat1 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr1);
@@ -1250,8 +1251,9 @@ void Generator::GeneratePoke(StatementModel& statement)
         stat1 = "\tMOV\tR0, ";
     }
 
-    //NOTE: This expression could not be string
     ExpressionModel& expr2 = statement.args[1];  // value
+    assert(expr2.GetExpressionValueType() != ValueTypeString);
+
     string stat2;
     if (expr2.IsConstExpression())
     {
@@ -1279,8 +1281,8 @@ void Generator::GenerateOut(StatementModel& statement)
 {
     assert(statement.args.size() == 3);
 
-    //NOTE: This expression could not be string
     ExpressionModel& expr1 = statement.args[1];  // address
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
 
     if (expr1.IsConstExpression() && expr1.GetConstExpressionDValue() == 0)
     {
@@ -1289,8 +1291,9 @@ void Generator::GenerateOut(StatementModel& statement)
         return;
     }
 
-    //NOTE: This expression could not be string
     ExpressionModel& expr2 = statement.args[0];  // mask
+    assert(expr2.GetExpressionValueType() != ValueTypeString);
+
     string stat2;
     if (expr2.IsConstExpression())
         stat2 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr2);
@@ -1389,22 +1392,24 @@ void Generator::GeneratePrint(StatementModel& statement)
         const ExpressionModel& expr = *it;
         assert(!it->IsEmpty());
         const ExpressionNode& root = expr.nodes[expr.root];
-        if (root.token.IsKeyword(KeywordAT))
+        if (root.token.IsKeyword(KeywordAT))  // AT(col,row)
         {
             GeneratePrintAt(expr);
         }
-        else if (root.token.IsKeyword(KeywordTAB))
+        else if (root.token.IsKeyword(KeywordTAB))  // TAB(pos)
         {
             assert(root.args.size() == 1);
             const ExpressionModel& expr1 = root.args[0];
             GenerateExpression(expr1);
             AddRuntimeCall(RuntimeWRTAB, "PRINT tab");
         }
-        else if (root.token.IsKeyword(KeywordSPC))
+        else if (root.token.IsKeyword(KeywordSPC))  // SPC(num)
         {
             assert(root.args.size() == 1);
             const ExpressionModel& expr1 = root.args[0];
-            if (!expr1.IsConstExpression() || (int)expr1.GetConstExpressionDValue() > 0)  // skip SPC(0)
+            if (expr1.IsConstExpression() && (int)expr1.GetConstExpressionDValue() <= 0)
+                ;  // skip SPC(0) or SPC(-1)
+            else
             {
                 GenerateExpression(expr1);
                 AddRuntimeCall(RuntimeWRSPC, "PRINT spaces");
@@ -1468,7 +1473,7 @@ void Generator::GeneratePrintAt(const ExpressionModel& expr)
     }
     else
     {
-        AddLine("stat1 + -(SP)\t; PUSH column");
+        AddLine(stat1 + "-(SP)\t; PUSH column");
         GenerateExpression(expr2);  // R0
         AddLine("\tMOV\t(SP)+, R1\t; POP R1");  // column -> R1
     }
@@ -1493,7 +1498,7 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
         {
             //TODO: char to int conversion depends on encoding
             char ch = svalue[0];
-            string line = "\tMOV\t#" + std::to_string((unsigned int)ch) + "., R0";
+            string line = "\tMOV\t#" + std::to_string((unsigned char)ch) + "., R0";
             if (ch >= ' ' && ch <= 127) line += string("\t; '") + ch + "'";
             AddLine(line);
             AddRuntimeCall(RuntimeWRCHR, "PRINT char");

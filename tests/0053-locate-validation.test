@@ -1,0 +1,20 @@
+-q
+----------------------------------------------------------------------
+66 LOCATE "A"
+67 LOCATE A$
+68 LOCATE -1
+69 LOCATE 256
+70 LOCATE ,-1
+71 LOCATE ,256
+72 LOCATE ,, "A"
+73 LOCATE ,, A$
+----------------------------------------------------------------------
+ERROR in line 66 at 1:11 - Expression should be of type Integer or Single.
+ERROR in line 67 at 2:11 - Expression should be of type Integer or Single.
+ERROR in line 68 - Parameter value (-1) is out of range 0..255.
+ERROR in line 69 - Parameter value (256) is out of range 0..255.
+ERROR in line 70 - Parameter value (-1) is out of range 0..255.
+ERROR in line 71 - Parameter value (256) is out of range 0..255.
+ERROR in line 72 at 7:14 - Expression should be of type Integer or Single.
+ERROR in line 73 at 8:14 - Expression should be of type Integer or Single.
+Validation ERRORS: 8
