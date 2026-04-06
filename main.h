@@ -121,28 +121,29 @@ enum RuntimeSymbol
     RuntimeCURSR        = 11,
     RuntimeREADI        = 12,
     RuntimeINKEY        = 13,
-    RuntimeIDIV         = 14,
-    RuntimeITOF         = 15,
-    RuntimeFTOI         = 16,  // for CINT and FIX
-    RuntimeFUNPK        = 17,  // print float to buffer
-    RuntimeFFIX         = 18,
-    RuntimeFINT         = 19,
-    RuntimeREADF        = 20,
-    RuntimeFCMP         = 21,  // Compare two floats
-    RuntimeFADD         = 22,  // FIS
-    RuntimeFSUB         = 23,  // FIS
-    RuntimeFMUL         = 24,  // FIS
-    RuntimeFDIV         = 25,  // FIS
-    RuntimeFRND         = 26,  // Random number
-    RuntimeFPWR         = 27,
-    RuntimeFSQR         = 28,
-    RuntimeFCOS         = 29,
-    RuntimeFSIN         = 30,
-    RuntimeFTAN         = 31,
-    RuntimeFATN         = 32,
-    RuntimeFEXP         = 33,
-    RuntimeFLOG         = 34,
-    RuntimeSTRCP        = 35,
+    RuntimeIMUL         = 14,
+    RuntimeIDIV         = 15,
+    RuntimeITOF         = 16,
+    RuntimeFTOI         = 17,  // for CINT and FIX
+    RuntimeFUNPK        = 18,  // print float to buffer
+    RuntimeFFIX         = 19,
+    RuntimeFINT         = 20,
+    RuntimeREADF        = 21,
+    RuntimeFCMP         = 22,  // Compare two floats
+    RuntimeFADD         = 23,  // FIS
+    RuntimeFSUB         = 24,  // FIS
+    RuntimeFMUL         = 25,  // FIS
+    RuntimeFDIV         = 26,  // FIS
+    RuntimeFRND         = 27,  // Random number
+    RuntimeFPWR         = 28,
+    RuntimeFSQR         = 29,
+    RuntimeFCOS         = 30,
+    RuntimeFSIN         = 31,
+    RuntimeFTAN         = 32,
+    RuntimeFATN         = 33,
+    RuntimeFEXP         = 34,
+    RuntimeFLOG         = 35,
+    RuntimeSTRCP        = 36,
 };
 
 
@@ -247,6 +248,7 @@ public:
     int GetOperationPriority() const;
     void Dump(std::ostream& out) const;
     string GetNodeVTypeStr() const;
+    int GetConstIntegerValue() const;
 };
 
 struct ExpressionModel

@@ -284,6 +284,13 @@ string ExpressionNode::GetNodeVTypeStr() const
     }
 }
 
+int ExpressionNode::GetConstIntegerValue() const
+{
+    assert(constval);
+    int ivalue = (int)std::floor(token.dvalue);
+    return ivalue;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // ExpressionModel
@@ -567,7 +574,7 @@ const char* RuntimeSymbolNames[] = {
     "GETCR", "CURSR",
     "READI",
     "INKEY",
-    "IDIV",
+    "IMUL", "IDIV",
     "ITOF", "FTOI", "FUNPK", "FFIX", "FINT",
     "READF", "FCMP",
     "FADD", "FSUB", "FMUL", "FDIV",  // FIS

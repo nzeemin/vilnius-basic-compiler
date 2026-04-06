@@ -1484,9 +1484,11 @@ void Generator::GeneratePrintAt(const ExpressionModel& expr)
 
 void Generator::GeneratePrintString(const ExpressionModel& expr)
 {
+    assert(expr.GetExpressionValueType() == ValueTypeString);
     assert(!expr.IsEmpty());
     const ExpressionNode& root = expr.nodes[expr.root];
 
+    // Const string
     if (root.constval)
     {
         string svalue = root.token.svalue;
@@ -1496,7 +1498,7 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
 
         if (svalue.length() == 1)  // one-char string, no use of const string
         {
-            //TODO: char to int conversion depends on encoding
+            //NOTE: char to int conversion depends on encoding
             char ch = svalue[0];
             string line = "\tMOV\t#" + std::to_string((unsigned char)ch) + "., R0";
             if (ch >= ' ' && ch <= 127) line += string("\t; '") + ch + "'";
@@ -1517,6 +1519,7 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
         return;
     }
 
+    // Variable
     if (root.token.type == TokenTypeIdentifier)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(root.token.text));
@@ -1561,7 +1564,7 @@ void Generator::GenerateScreen(StatementModel& statement)
 
 void Generator::GenerateStop(StatementModel& statement)
 {
-    AddLine("\tHALT");
+    AddLine("\tHALT\t; STOP");
 }
 
 void Generator::GenerateWidth(StatementModel& statement)
@@ -1591,8 +1594,12 @@ void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNo
         AddRuntimeCall(RuntimeFADD, "Operation \'+\'");  // result on stack
         return;
     }
-
-    //TODO: String operands
+    else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
+    {
+        //TODO
+        AddComment("TODO String + String");
+        return;
+    }
 
     GenerateExpression(expr, nodeleft);  // result in R0
 
@@ -1699,21 +1706,191 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
     assert(nodeleft.vtype == ValueTypeInteger);
     assert(noderight.vtype == ValueTypeInteger);
 
+    if (noderight.constval && noderight.vtype == ValueTypeInteger)
+    {
+        int ivalue = noderight.GetConstIntegerValue();
+
+        // Special case for some const values
+        switch (ivalue)
+        {
+        case -4:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tNEG\tR0\t; *-1");
+            AddLine("\tASL\tR0");
+            AddLine("\tASL\tR0\t; *4");
+            return;
+        case -2:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tNEG\tR0\t; *-1");
+            AddLine("\tASL\tR0\t; *2");
+            return;
+        case -1:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tNEG\tR0\t; *-1");
+            return;
+        case 0:
+            AddLine("\tCLR\tR0\t; *0");
+            Warning(noderight.token, "Multiplication by 0 reduced to 0, consider to remove the multiplication.");
+            return;
+        case 1:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            Warning(noderight.token, "Multiplication by 1 reduced to nothing, consider to remove the multiplication.");
+            return;
+        case 2:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tASL\tR0\t; *2");
+            return;
+        case 3:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tMOV\tR0, R1");
+            AddLine("\tASL\tR0");
+            AddLine("\tADD\tR1, R0\t; *3");
+            return;
+        case 4:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tASL\tR0");
+            AddLine("\tASL\tR0\t; *4");
+            return;
+        case 8:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            if (g_platform == PlatformUKNC)  // no EIS
+                AddLine("\tASH\t#3, R0\t; *8.");
+            else  // no EIS
+            {
+                AddLine("\tASL\tR0");
+                AddLine("\tASL\tR0");
+                AddLine("\tASL\tR0\t; *8.");
+            }
+            return;
+        case 16:
+            if (g_platform != PlatformUKNC)  // no EIS
+                break;
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tASH\t#4, R0\t; *16.");
+            return;
+        case 32:
+            if (g_platform != PlatformUKNC)  // no EIS
+                break;
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tASH\t#5, R0\t; *32.");
+            return;
+        case 64:
+            if (g_platform != PlatformUKNC)  // no EIS
+                break;
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tASH\t#6, R0\t; *64.");
+            return;
+        }
+
+        GenerateExpression(expr, nodeleft);
+        if (g_platform != PlatformUKNC)  // no EIS
+        {
+            AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
+            AddRuntimeCall(RuntimeIMUL, "Operation \'*\'");
+        }
+        else // EIS
+        {
+            AddLine("\tMUL\t#" + std::to_string(ivalue) + "., R0" + comment);  // POP & MUL; MUL result in R0:R1
+            AddLine("\tMOV\tR1, R0");  // result in R0
+        }
+        return;
+    }
+
     GenerateExpression(expr, nodeleft);  // result in R0
-
-    //TODO: Special case for MUL 2/4/8/16/32/64
-
     AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
     GenerateExpression(expr, noderight);
-    //TODO if no EIS
-    AddLine("\tMUL\t(SP)+, R0" + comment);  // POP & MUL; MUL result in R0:R1
-    AddLine("\tMOV\tR1, R0");  // result in R0
+
+    if (g_platform != PlatformUKNC)  // no EIS
+    {
+        AddLine("\tMOV\t(SP)+, R1");
+        AddRuntimeCall(RuntimeIMUL, "Operation \'*\'");
+    }
+    else  // EIS
+    {
+        AddLine("\tMUL\t(SP)+, R0" + comment);  // POP & MUL; MUL result in R0:R1
+        AddLine("\tMOV\tR1, R0");  // result in R0
+    }
 }
 
 void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     assert(nodeleft.vtype != ValueTypeString);
     assert(noderight.vtype != ValueTypeString);
+
+    // Both parts are Integer, result is Integer
+    if (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeInteger)
+    {
+        if (noderight.constval)
+        {
+            int ivalue = noderight.GetConstIntegerValue();
+
+            // Special case for some const values
+            switch (ivalue)
+            {
+            case -4:
+                GenerateExpression(expr, nodeleft);  // result in R0
+                AddLine("\tNEG\tR0\t; * -1");
+                AddLine("\tASR\tR0");
+                AddLine("\tASR\tR0\t; / 4");
+                return;
+            case -2:
+                GenerateExpression(expr, nodeleft);  // result in R0
+                AddLine("\tNEG\tR0\t; * -1");
+                AddLine("\tASR\tR0\t; / 2");
+                return;
+            case -1:
+                GenerateExpression(expr, nodeleft);  // result in R0
+                AddLine("\tNEG\tR0\t; / -1");
+                return;
+            case 0:
+                std::cerr << "ERROR in expression at " << node.token.line << ":" << node.token.pos << " - Division by 0." << std::endl;
+                m_line->error = true;
+                RegisterError();
+                return;
+            case 1:
+                GenerateExpression(expr, nodeleft);  // result in R0
+                Warning(noderight.token, "Division by 1 reduced to nothing, consider to remove the Division.");
+                return;
+            case 2:
+                GenerateExpression(expr, nodeleft);  // result in R0
+                AddLine("\tASR\tR0\t; / 2");
+                return;
+            case 4:
+                GenerateExpression(expr, nodeleft);  // result in R0
+                AddLine("\tASR\tR0");
+                AddLine("\tASR\tR0\t; / 4");
+                return;
+            case 8:
+                GenerateExpression(expr, nodeleft);  // result in R0
+                if (g_platform == PlatformUKNC)  // no EIS
+                    AddLine("\tASH\t#-3, R0\t; / 8.");
+                else  // no EIS
+                {
+                    AddLine("\tASR\tR0");
+                    AddLine("\tASR\tR0");
+                    AddLine("\tASR\tR0\t; / 8.");
+                }
+                return;
+            //TODO: Special cases: divide by 16/32/64
+            }
+
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tMOV\tR0, R1");
+            AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R0");  // divider
+            AddRuntimeCall(RuntimeIDIV, "Operation \'/\'");  // result in R0
+            return;
+        }
+
+        // Usual division, Integer by Integer
+        GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
+        GenerateExpression(expr, noderight);  // result in R0, divider
+        AddLine("\tMOV\t(SP)+, R1\t; POP R1");
+        AddRuntimeCall(RuntimeIDIV, "Operation \'/\'");  // result in R0
+        return;
+    }
+
+    // One or both parts are Single, result is Single
 
     GenerateExpression(expr, nodeleft);
     if (nodeleft.vtype == ValueTypeInteger)

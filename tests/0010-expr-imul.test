@@ -1,0 +1,126 @@
+-q
+----------------------------------------------------------------------
+1 B% = 10%
+5 ? B% * -5%
+6 ? B% * -4%
+7 ? B% * -2%
+8 ? B% * -1%
+9 ? B% * 0%
+10 ? B% * 1%
+20 ? B% * 2%
+30 ? B% * 3%
+40 ? B% * 4%
+50 ? B% * 5%
+80 ? B% * 8%
+160 ? B% * 16%
+320 ? B% * 32%
+640 ? B% * 64%
+----------------------------------------------------------------------
+WARNING: at 6:10 line 9 - Multiplication by 0 reduced to 0, consider to remove the multiplication.
+WARNING: at 7:11 line 10 - Multiplication by 1 reduced to nothing, consider to remove the multiplication.
+----------------------------------------------------------------------
+START:
+	MOV	SP, SAVESP
+; 1 B% = 10%
+N1:
+	MOV	#10., VARIB	; var B% assignment
+; 5 ? B% * -5%
+N5:
+	MOV	VARIB, R0	; var B%
+	MUL	#-5., R0	; Operation '*'
+	MOV	R1, R0
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 6 ? B% * -4%
+N6:
+	MOV	VARIB, R0	; var B%
+	NEG	R0		; *-1
+	ASL	R0
+	ASL	R0		; *4
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 7 ? B% * -2%
+N7:
+	MOV	VARIB, R0	; var B%
+	NEG	R0		; *-1
+	ASL	R0		; *2
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 8 ? B% * -1%
+N8:
+	MOV	VARIB, R0	; var B%
+	NEG	R0		; *-1
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 9 ? B% * 0%
+N9:
+	CLR	R0		; *0
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 10 ? B% * 1%
+N10:
+	MOV	VARIB, R0	; var B%
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 20 ? B% * 2%
+N20:
+	MOV	VARIB, R0	; var B%
+	ASL	R0		; *2
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 30 ? B% * 3%
+N30:
+	MOV	VARIB, R0	; var B%
+	MOV	R0, R1
+	ASL	R0
+	ADD	R1, R0		; *3
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 40 ? B% * 4%
+N40:
+	MOV	VARIB, R0	; var B%
+	ASL	R0
+	ASL	R0		; *4
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 50 ? B% * 5%
+N50:
+	MOV	VARIB, R0	; var B%
+	MUL	#5., R0		; Operation '*'
+	MOV	R1, R0
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 80 ? B% * 8%
+N80:
+	MOV	VARIB, R0	; var B%
+	ASH	#3, R0		; *8.
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 160 ? B% * 16%
+N160:
+	MOV	VARIB, R0	; var B%
+	ASH	#4, R0		; *16.
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 320 ? B% * 32%
+N320:
+	MOV	VARIB, R0	; var B%
+	ASH	#5, R0		; *32.
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 640 ? B% * 64%
+N640:
+	MOV	VARIB, R0	; var B%
+	ASH	#6, R0		; *64.
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+LEND:
+SAVESP = . + 2
+	MOV	#776, SP	; restore SP
+	EMT	350		; .EXIT
+; VARIABLES
+	.EVEN
+VARIB:	.WORD	0	; B%
+; RUNTIME CALLS
+	.GLOBL	WREOL, WRINT
+	.END	START
