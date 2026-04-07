@@ -2500,7 +2500,63 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
 
 // Function generation ///////////////////////////////////////////////
 
+// X=CINT(<АРГУМЕНТ>)
+// result is Integer
+void Generator::GenerateFuncCint(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        return;  // already Integer
+
+    GenerateExpression(expr1);
+
+    AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+}
+
+// X=FIX(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
+void Generator::GenerateFuncFix(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);  // result on stack
+
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddRuntimeCall(RuntimeFFIX, "FIX");
+}
+
+// X=INT(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
+void Generator::GenerateFuncInt(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);  // result on stack
+
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddRuntimeCall(RuntimeFINT, "INT");
+}
+
 // X=ABS(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Integer if arguments is Integer
+// result is Single if arguments is Single
 void Generator::GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(node.args.size() == 1);
@@ -2525,6 +2581,7 @@ void Generator::GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNod
 }
 
 // X=RND(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
 void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(node.args.size() == 1);
@@ -2542,6 +2599,7 @@ void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNod
 }
 
 // X=PEEK(<АРГУМЕНТ>)
+// result is Integer
 void Generator::GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(node.args.size() == 1);
@@ -2569,6 +2627,7 @@ void Generator::GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNo
 }
 
 // X=INP(<АДРЕС>,<МАСКА>)
+// result is Integer
 void Generator::GenerateFuncInp(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(node.args.size() == 2);
@@ -2595,31 +2654,8 @@ void Generator::GenerateFuncInp(const ExpressionModel& expr, const ExpressionNod
     AddLine("\tMOV\tR1, R0\t; INP"); // result in R0
 }
 
-// X=LEN(<СИМВОЛЬНОЕ ВЫРАЖЕНИЕ>)
-void Generator::GenerateFuncLen(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(node.args.size() == 1);
-
-    //TODO: Special case for const expression and variable expression
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() == ValueTypeString);
-
-    GenerateExpression(expr1);  // R0 = string address
-
-    AddLine("\tMOV\tR0, R1\t");
-    AddLine("\tCLR\tR0\t");
-    AddLine("\tBISB\t(R1), R0\t; LEN");  // get byte of the string length
-}
-
-void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    AddRuntimeCall(RuntimeINKEY, "get input key");  // R0 = symbol or 0
-    AddComment("TODO INKEY$");
-    //TODO: form a string
-    m_notimplemented.insert(KeywordINKEY);
-}
-
 // X=CSRLIN[(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)]
+// result is Integer
 void Generator::GenerateFuncCsrlin(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(node.args.size() <= 1);
@@ -2639,6 +2675,7 @@ void Generator::GenerateFuncCsrlin(const ExpressionModel& expr, const Expression
 }
 
 // X=POS[(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)]
+// result is Integer
 void Generator::GenerateFuncPos(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(node.args.size() <= 1);
@@ -2657,6 +2694,25 @@ void Generator::GenerateFuncPos(const ExpressionModel& expr, const ExpressionNod
     AddLine("\tMOV\tR1, R0\t; column");
 }
 
+// X=LEN(<СИМВОЛЬНОЕ ВЫРАЖЕНИЕ>)
+// result is Integer
+void Generator::GenerateFuncLen(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() == 1);
+
+    //TODO: Special case for const expression and variable expression
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() == ValueTypeString);
+
+    GenerateExpression(expr1);  // R0 = string address
+
+    AddLine("\tMOV\tR0, R1\t");
+    AddLine("\tCLR\tR0\t");
+    AddLine("\tBISB\t(R1), R0\t; LEN");  // get byte of the string length
+}
+
+// X=SQR(<АРГУМЕНТ>)
+// result is Single
 void Generator::GenerateFuncSqr(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(expr.GetExpressionValueType() != ValueTypeString);
@@ -2666,159 +2722,11 @@ void Generator::GenerateFuncSqr(const ExpressionModel& expr, const ExpressionNod
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
     GenerateExpression(expr1);
+
     if (expr1.GetExpressionValueType() == ValueTypeInteger)
         AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
 
     AddRuntimeCall(RuntimeFSQR, "square root");  // result on stack
-}
-
-void Generator::GenerateFuncCos(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(expr.GetExpressionValueType() != ValueTypeString);
-    assert(node.args.size() == 1);
-
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() != ValueTypeString);
-
-    GenerateExpression(expr1);
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-
-    AddRuntimeCall(RuntimeFCOS, "cos(X)");  // result on stack
-}
-
-void Generator::GenerateFuncSin(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(expr.GetExpressionValueType() != ValueTypeString);
-    assert(node.args.size() == 1);
-
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() != ValueTypeString);
-
-    GenerateExpression(expr1);
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-
-    AddRuntimeCall(RuntimeFSIN, "sin(X)");  // result on stack
-}
-
-void Generator::GenerateFuncTan(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(expr.GetExpressionValueType() != ValueTypeString);
-    assert(node.args.size() == 1);
-
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() != ValueTypeString);
-
-    GenerateExpression(expr1);
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-
-    AddRuntimeCall(RuntimeFTAN, "tan(X)");  // result on stack
-}
-
-void Generator::GenerateFuncAtn(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(expr.GetExpressionValueType() != ValueTypeString);
-    assert(node.args.size() == 1);
-
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() != ValueTypeString);
-
-    GenerateExpression(expr1);
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-
-    AddRuntimeCall(RuntimeFATN, "arctan(X)");  // result on stack
-}
-
-void Generator::GenerateFuncExp(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(expr.GetExpressionValueType() != ValueTypeString);
-    assert(node.args.size() == 1);
-
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() != ValueTypeString);
-
-    GenerateExpression(expr1);
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-
-    AddRuntimeCall(RuntimeFEXP, "exp(X)");  // result on stack
-}
-
-void Generator::GenerateFuncLog(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(expr.GetExpressionValueType() != ValueTypeString);
-    assert(node.args.size() == 1);
-
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() != ValueTypeString);
-
-    GenerateExpression(expr1);
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-
-    AddRuntimeCall(RuntimeFLOG, "log(X)");  // result on stack
-}
-
-// CINT
-void Generator::GenerateFuncCint(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(expr.GetExpressionValueType() != ValueTypeString);
-    assert(node.args.size() == 1);
-
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() != ValueTypeString);
-
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-        return;  // already Integer
-
-    GenerateExpression(expr1);
-
-    AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
-}
-
-// X=FIX(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
-// result is Single
-void Generator::GenerateFuncFix(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(expr.GetExpressionValueType() != ValueTypeString);
-    assert(node.args.size() == 1);
-
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() != ValueTypeString);
-
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-    {
-        AddRuntimeCall(RuntimeITOF, "to Single");
-        //TODO: WARN
-        return;
-    }
-
-    GenerateExpression(expr1);  // result on stack
-
-    AddRuntimeCall(RuntimeFFIX, "FIX");
-}
-
-// X=INT(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
-// result is Single
-void Generator::GenerateFuncInt(const ExpressionModel& expr, const ExpressionNode& node)
-{
-    assert(expr.GetExpressionValueType() != ValueTypeString);
-    assert(node.args.size() == 1);
-
-    const ExpressionModel& expr1 = node.args[0];
-    assert(expr1.GetExpressionValueType() != ValueTypeString);
-
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-    {
-        AddRuntimeCall(RuntimeITOF, "to Single");
-        //TODO: WARN
-        return;
-    }
-
-    AddRuntimeCall(RuntimeFINT, "INT");
 }
 
 // X=SGN(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
@@ -2838,6 +2746,8 @@ void Generator::GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNod
     AddRuntimeCall(RuntimeFSGN, "SGN");
 }
 
+// X=CSNG(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
 void Generator::GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(expr.GetExpressionValueType() != ValueTypeString);
@@ -2849,9 +2759,124 @@ void Generator::GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNo
     GenerateExpression(expr1);
 
     if (expr1.GetExpressionValueType() == ValueTypeSingle)
-        return;  // already Integer
+    {
+        Warning(node.token, "CSNG function call has no effect, value already has Single type.");
+        return;
+    }
 
     AddRuntimeCall(RuntimeITOF, "CSNG");  // result on stack
+}
+
+// X=SIN(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
+void Generator::GenerateFuncSin(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddRuntimeCall(RuntimeFSIN, "sin(X)");  // result on stack
+}
+
+// X=COS(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
+void Generator::GenerateFuncCos(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddRuntimeCall(RuntimeFCOS, "cos(X)");  // result on stack
+}
+
+// X=TAN(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
+void Generator::GenerateFuncTan(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddRuntimeCall(RuntimeFTAN, "tan(X)");  // result on stack
+}
+
+// X=ATN(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
+void Generator::GenerateFuncAtn(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddRuntimeCall(RuntimeFATN, "arctan(X)");  // result on stack
+}
+
+// X=EXP(<АРГУМЕНТ>)
+// result is Single
+void Generator::GenerateFuncExp(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddRuntimeCall(RuntimeFEXP, "exp(X)");  // result on stack
+}
+
+// X=LOG(<АРГУМЕНТ>)
+// result is Single
+void Generator::GenerateFuncLog(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddRuntimeCall(RuntimeFLOG, "log(X)");  // result on stack
+}
+
+// X¤=INKEY¤
+// result is String
+void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    AddRuntimeCall(RuntimeINKEY, "get input key");  // R0 = symbol or 0
+    AddComment("TODO INKEY$");
+    //TODO: form a string
+    m_notimplemented.insert(KeywordINKEY);
 }
 
 
