@@ -1,0 +1,58 @@
+-q
+----------------------------------------------------------------------
+5 B% = 32767%
+10 ? B% MOD 1%
+20 ? B% MOD 2%
+40 ? B% MOD 4%
+50 ? B% MOD 5%
+80 ? B% MOD 8%
+----------------------------------------------------------------------
+WARNING: at 2:9 line 10 - MOD 1 reduced to 0; consider to remove this MOD.
+----------------------------------------------------------------------
+START:
+	MOV	SP, SAVESP
+; 5 B% = 32767%
+N5:
+	MOV	#32767., VARIB	; var B% assignment
+; 10 ? B% MOD 1%
+N10:
+	CLR	R0		; MOD 1
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 20 ? B% MOD 2%
+N20:
+	MOV	VARIB, R0	; var B%
+	BIC	#177776, R0	; MOD 2
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 40 ? B% MOD 4%
+N40:
+	MOV	VARIB, R0	; var B%
+	BIC	#177774, R0	; MOD 4
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 50 ? B% MOD 5%
+N50:
+	MOV	VARIB, R0	; var B%
+	MOV	R0, R1
+	MOV	#5., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 80 ? B% MOD 8%
+N80:
+	MOV	VARIB, R0	; var B%
+	BIC	#177770, R0	; MOD 8
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+LEND:
+SAVESP = . + 2
+	MOV	#776, SP	; restore SP
+	EMT	350		; .EXIT
+; VARIABLES
+	.EVEN
+VARIB:	.WORD	0	; B%
+; RUNTIME CALLS
+	.GLOBL	WREOL, WRINT, IDIV
+	.END	START
