@@ -1798,6 +1798,8 @@ void Validator::ValidateFuncInt(ExpressionModel& expr, ExpressionNode& node)
     }
 }
 
+// X=SGN(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
 void Validator::ValidateFuncSgn(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
@@ -1807,7 +1809,7 @@ void Validator::ValidateFuncSgn(ExpressionModel& expr, ExpressionNode& node)
     if (!CheckIntegerOrSingleExpression(expr1))
         return;
 
-    node.vtype = ValueTypeInteger;
+    node.vtype = ValueTypeSingle;
     node.constval = expr1.IsConstExpression();
 
     if (node.constval)

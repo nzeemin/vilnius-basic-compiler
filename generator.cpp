@@ -2512,7 +2512,7 @@ void Generator::GenerateFuncAbs(const ExpressionModel& expr, const ExpressionNod
     {
     case ValueTypeInteger:
         GenerateExpression(expr1);  // result in R0
-        AddLine("\tBPL\t.+2");
+        AddLine("\tBPL\t.+4");
         AddLine("\tNEG\tR0");
         return;
     case ValueTypeSingle:
@@ -2821,6 +2821,8 @@ void Generator::GenerateFuncInt(const ExpressionModel& expr, const ExpressionNod
     AddRuntimeCall(RuntimeFINT, "INT");
 }
 
+// X=SGN(<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single
 void Generator::GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(expr.GetExpressionValueType() != ValueTypeString);
@@ -2829,9 +2831,11 @@ void Generator::GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNod
     const ExpressionModel& expr1 = node.args[0];
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
-    //TODO
-    AddLine(";TODO SGN function");
-    m_notimplemented.insert(KeywordSGN);
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddRuntimeCall(RuntimeFSGN, "SGN");
 }
 
 void Generator::GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNode& node)
@@ -2842,12 +2846,12 @@ void Generator::GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNo
     const ExpressionModel& expr1 = node.args[0];
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
+    GenerateExpression(expr1);
+
     if (expr1.GetExpressionValueType() == ValueTypeSingle)
         return;  // already Integer
 
-    GenerateExpression(expr1);
-
-    AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+    AddRuntimeCall(RuntimeITOF, "CSNG");  // result on stack
 }
 
 

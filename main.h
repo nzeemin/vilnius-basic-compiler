@@ -130,20 +130,21 @@ enum RuntimeSymbol
     RuntimeFINT         = 20,
     RuntimeREADF        = 21,
     RuntimeFCMP         = 22,  // Compare two floats
-    RuntimeFADD         = 23,  // FIS
-    RuntimeFSUB         = 24,  // FIS
-    RuntimeFMUL         = 25,  // FIS
-    RuntimeFDIV         = 26,  // FIS
-    RuntimeFRND         = 27,  // Random number
-    RuntimeFPWR         = 28,
-    RuntimeFSQR         = 29,
-    RuntimeFCOS         = 30,
-    RuntimeFSIN         = 31,
-    RuntimeFTAN         = 32,
-    RuntimeFATN         = 33,
-    RuntimeFEXP         = 34,
-    RuntimeFLOG         = 35,
-    RuntimeSTRCP        = 36,
+    RuntimeFSGN         = 23,
+    RuntimeFADD         = 24,  // FIS
+    RuntimeFSUB         = 25,  // FIS
+    RuntimeFMUL         = 26,  // FIS
+    RuntimeFDIV         = 27,  // FIS
+    RuntimeFRND         = 28,  // Random number
+    RuntimeFPWR         = 29,
+    RuntimeFSQR         = 30,
+    RuntimeFCOS         = 31,
+    RuntimeFSIN         = 32,
+    RuntimeFTAN         = 33,
+    RuntimeFATN         = 34,
+    RuntimeFEXP         = 35,
+    RuntimeFLOG         = 36,
+    RuntimeSTRCP        = 37,
 };
 
 
