@@ -1,0 +1,71 @@
+-q
+----------------------------------------------------------------------
+05 B = 0
+10 ? FIX(B), INT(B)
+15 B = 3.5
+20 ? FIX(B), INT(B)
+25 B = -4.5
+30 ? FIX(B), INT(B)
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+START:
+	MOV	SP, SAVESP
+; 05 B = 0
+N5:
+	CLR	VARFB		; var B! = const 0.
+	CLR	VARFB+2
+; 10 ? FIX(B), INT(B)
+N10:
+	MOV	VARFB,   -(SP)	; var B!
+	MOV	VARFB+2, -(SP)
+	CALL	FFIX		; FIX
+	CALL	WRSNG		; PRINT Single
+	CALL	WRCOM		; PRINT comma
+	MOV	VARFB,   -(SP)	; var B!
+	MOV	VARFB+2, -(SP)
+	CALL	FINT		; INT
+	CALL	WRSNG		; PRINT Single
+	CALL	WREOL
+; 15 B = 3.5
+N15:
+	CLR	VARFB		; var B! = const 3.5
+	MOV	#040540, VARFB+2
+; 20 ? FIX(B), INT(B)
+N20:
+	MOV	VARFB,   -(SP)	; var B!
+	MOV	VARFB+2, -(SP)
+	CALL	FFIX		; FIX
+	CALL	WRSNG		; PRINT Single
+	CALL	WRCOM		; PRINT comma
+	MOV	VARFB,   -(SP)	; var B!
+	MOV	VARFB+2, -(SP)
+	CALL	FINT		; INT
+	CALL	WRSNG		; PRINT Single
+	CALL	WREOL
+; 25 B = -4.5
+N25:
+	CLR	VARFB		; var B! = const -4.5
+	MOV	#140620, VARFB+2
+; 30 ? FIX(B), INT(B)
+N30:
+	MOV	VARFB,   -(SP)	; var B!
+	MOV	VARFB+2, -(SP)
+	CALL	FFIX		; FIX
+	CALL	WRSNG		; PRINT Single
+	CALL	WRCOM		; PRINT comma
+	MOV	VARFB,   -(SP)	; var B!
+	MOV	VARFB+2, -(SP)
+	CALL	FINT		; INT
+	CALL	WRSNG		; PRINT Single
+	CALL	WREOL
+LEND:
+SAVESP = . + 2
+	MOV	#776, SP	; restore SP
+	EMT	350		; .EXIT
+; VARIABLES
+	.EVEN
+VARFB:	.WORD	0,0	; B!
+; RUNTIME CALLS
+	.GLOBL	WREOL, WRCOM, WRSNG, FFIX
+	.GLOBL	FINT
+	.END	START

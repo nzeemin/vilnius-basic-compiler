@@ -109,10 +109,10 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordATN,       &Generator::GenerateFuncAtn },
     { KeywordEXP,       &Generator::GenerateFuncExp },
     { KeywordLOG,       &Generator::GenerateFuncLog },
-    { KeywordFIX,       &Generator::GenerateFuncCint },
+    { KeywordCINT,      &Generator::GenerateFuncCint },
+    { KeywordFIX,       &Generator::GenerateFuncFix },
     { KeywordINT,       &Generator::GenerateFuncInt },
     { KeywordSGN,       &Generator::GenerateFuncSgn },
-    { KeywordCINT,      &Generator::GenerateFuncFix },
     { KeywordCSNG,      &Generator::GenerateFuncCsng },
 };
 
