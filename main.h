@@ -122,8 +122,8 @@ enum RuntimeSymbol
     RuntimeReserved2    = 12,
     RuntimeGETCR        = 13,
     RuntimeCURSR        = 14,
-    RuntimeREADI        = 15,
-    RuntimeReserved3    = 16,
+    RuntimeINPUT        = 15,  // INPUT read to buffer
+    RuntimeINPI         = 16,  // INPUT Integer
     RuntimeIMUL         = 17,
     RuntimeIDIV         = 18,
     RuntimeITOF         = 19,
@@ -140,7 +140,7 @@ enum RuntimeSymbol
     RuntimeFMUL         = 30,  // FIS
     RuntimeFDIV         = 31,  // FIS
     RuntimeReserved6    = 32,
-    RuntimeREADF        = 33,
+    RuntimeINPF         = 33,  // INPUT Single
     RuntimeReserved7    = 34,
     RuntimeFRND         = 35,  // Random number
     RuntimeFPWR         = 36,

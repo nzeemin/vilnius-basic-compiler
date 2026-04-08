@@ -575,8 +575,8 @@ const char* RuntimeSymbolNames[] = {
     "ERROR",
     "",  // Reserved
     "GETCR", "CURSR",
-    "READI",
-    "",  // Reserved
+    "INPUT",
+    "INPI",
     "IMUL", "IDIV",
     "ITOF", "FTOI",
     "",  // Reserved
@@ -585,7 +585,7 @@ const char* RuntimeSymbolNames[] = {
     "",  // Reserved
     "FADD", "FSUB", "FMUL", "FDIV",  // FIS
     "",  // Reserved
-    "READF",
+    "INPF",
     "",  // Reserved
     "FRND", "FPWR", "FSQR", "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
     "",  // Reserved

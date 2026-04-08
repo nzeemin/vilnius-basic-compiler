@@ -1089,6 +1089,8 @@ void Parser::ParseIf(StatementModel& statement)
         MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
 }
 
+// INPUT [<АРГУМЕНТ>;][<СПИСОК>]
+// INPUT # [<СПИСОК>]
 void Parser::ParseInput(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();

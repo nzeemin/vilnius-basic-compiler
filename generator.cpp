@@ -225,6 +225,12 @@ void Generator::AddRuntimeCall(RuntimeSymbol rtsymbol, string comment)
 void Generator::ProcessBegin()
 {
     AddLine("START:");
+    if (g_platform == PlatformUKNC)
+    {
+        AddLine("\tMTPS\t#340\t; disable interrupts");
+        AddLine("\tCLR\t@#177560");
+        AddLine("\tMTPS\t#0\t; enable interrupts");
+    }
     AddLine("\tMOV\tSP, SAVESP");
 }
 
@@ -989,7 +995,7 @@ void Generator::GenerateInput(StatementModel& statement)
     {
         Token& param = statement.params[0];
         int strindex = m_source->GetConstStringIndex(param.text);
-        string strdeco = "ST" + std::to_string(strindex);
+        string strdeco = "#ST" + std::to_string(strindex);
         AddLine("\tMOV\t" + strdeco + ", R0");
         AddRuntimeCall(RuntimeWRSTR, "PRINT the prompt");
     }
@@ -1001,12 +1007,11 @@ void Generator::GenerateInput(StatementModel& statement)
         switch (vtype)
         {
         case ValueTypeInteger:
-
-            AddRuntimeCall(RuntimeREADI, "read Integer");
+            AddRuntimeCall(RuntimeINPI, "input Integer");
             AddLine("\tMOV\tR0, " + deconame);
             break;
         case ValueTypeSingle:
-            AddRuntimeCall(RuntimeREADF, "read Single");
+            AddRuntimeCall(RuntimeINPF, "input Single");
             AddLine("\tMOV\t(SP)+, " + deconame + "+2");
             AddLine("\tMOV\t(SP)+, " + deconame);
             break;
