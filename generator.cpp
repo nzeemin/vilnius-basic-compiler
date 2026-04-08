@@ -591,12 +591,9 @@ void Generator::GenerateExprUnaryMinus(const ExpressionModel& expr, const Expres
     GenerateExpression(expr, noderight);
 
     if (noderight.vtype == ValueTypeInteger)
-        AddLine("\tCOM\tR0" + comment);
+        AddLine("\tNEG\tR0" + comment);
     else if (noderight.vtype == ValueTypeSingle)
-    {
-        AddLine("\tMOV\t#100000, R0");  // sign bit in high word of Single
-        AddLine("\tXOR\tR0, (SP)" + comment);  // invert sign
-    }
+        AddLine("\tADD\t#100000, (SP)" + comment);  // invert sign
 }
 
 void Generator::GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node)
@@ -1841,85 +1838,19 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
     }
 }
 
+// result is Single
 void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     assert(nodeleft.vtype != ValueTypeString);
     assert(noderight.vtype != ValueTypeString);
 
-    // Both parts are Integer, result is Integer
-    if (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeInteger)
+    if (noderight.constval && noderight.token.dvalue == 0.0)
     {
-        if (noderight.constval)
-        {
-            int ivalue = noderight.GetConstIntegerValue();
-
-            // Special case for some const values
-            switch (ivalue)
-            {
-            case -4:
-                GenerateExpression(expr, nodeleft);  // result in R0
-                AddLine("\tNEG\tR0\t; * -1");
-                AddLine("\tASR\tR0");
-                AddLine("\tASR\tR0\t; / 4");
-                return;
-            case -2:
-                GenerateExpression(expr, nodeleft);  // result in R0
-                AddLine("\tNEG\tR0\t; * -1");
-                AddLine("\tASR\tR0\t; / 2");
-                return;
-            case -1:
-                GenerateExpression(expr, nodeleft);  // result in R0
-                AddLine("\tNEG\tR0\t; / -1");
-                return;
-            case 0:
-                std::cerr << "ERROR in expression at " << node.token.line << ":" << node.token.pos << " - Division by 0." << std::endl;
-                m_line->error = true;
-                RegisterError();
-                return;
-            case 1:
-                GenerateExpression(expr, nodeleft);  // result in R0
-                Warning(noderight.token, "Division by 1 reduced to nothing, consider to remove the Division.");
-                return;
-            case 2:
-                GenerateExpression(expr, nodeleft);  // result in R0
-                AddLine("\tASR\tR0\t; / 2");
-                return;
-            case 4:
-                GenerateExpression(expr, nodeleft);  // result in R0
-                AddLine("\tASR\tR0");
-                AddLine("\tASR\tR0\t; / 4");
-                return;
-            case 8:
-                GenerateExpression(expr, nodeleft);  // result in R0
-                if (g_platform == PlatformUKNC)  // no EIS
-                    AddLine("\tASH\t#-3, R0\t; / 8.");
-                else  // no EIS
-                {
-                    AddLine("\tASR\tR0");
-                    AddLine("\tASR\tR0");
-                    AddLine("\tASR\tR0\t; / 8.");
-                }
-                return;
-            //TODO: Special cases: divide by 16/32/64
-            }
-
-            GenerateExpression(expr, nodeleft);  // result in R0
-            AddLine("\tMOV\tR0, R1");
-            AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R0");  // divider
-            AddRuntimeCall(RuntimeIDIV, "Operation \'/\'");  // result in R0
-            return;
-        }
-
-        // Usual division, Integer by Integer
-        GenerateExpression(expr, nodeleft);  // result in R0
-        AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
-        GenerateExpression(expr, noderight);  // result in R0, divider
-        AddLine("\tMOV\t(SP)+, R1\t; POP R1");
-        AddRuntimeCall(RuntimeIDIV, "Operation \'/\'");  // result in R0
+        std::cerr << "ERROR in expression at " << node.token.line << ":" << node.token.pos << " - Division by 0." << std::endl;
+        m_line->error = true;
+        RegisterError();
         return;
     }
-
-    // One or both parts are Single, result is Single
 
     GenerateExpression(expr, nodeleft);
     if (nodeleft.vtype == ValueTypeInteger)
@@ -1932,6 +1863,7 @@ void Generator::GenerateOperDiv(const ExpressionModel& expr, const ExpressionNod
     AddRuntimeCall(RuntimeFDIV, "Operation \'/\'");  // result on stack
 }
 
+// resuilt is Integer
 void Generator::GenerateOperDivInt(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     assert(nodeleft.vtype != ValueTypeString);
@@ -1941,23 +1873,67 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
     {
         int ivalue = (int)std::floor(noderight.token.dvalue);
         
-        if (ivalue == 0)  // check if divider is zero
+        // Special case for some const values
+        switch (ivalue)
         {
-            std::cerr << "ERROR in expression at " << node.token.line << ":" << node.token.pos << " - DIV didiver is zero." << std::endl;
+        case -4:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tNEG\tR0\t; * -1");
+            AddLine("\tASR\tR0");
+            AddLine("\tASR\tR0\t; / 4");
+            return;
+        case -2:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tNEG\tR0\t; * -1");
+            AddLine("\tASR\tR0\t; / 2");
+            return;
+        case -1:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tNEG\tR0\t; / -1");
+            return;
+        case 0:
+            std::cerr << "ERROR in expression at " << node.token.line << ":" << node.token.pos << " - Didiver is zero." << std::endl;
             m_line->error = true;
             RegisterError();
             return;
+        case 1:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            Warning(noderight.token, "Division by 1 reduced to nothing, consider to remove the Division.");
+            return;
+        case 2:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tASR\tR0\t; / 2");
+            return;
+        case 4:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tASR\tR0");
+            AddLine("\tASR\tR0\t; / 4");
+            return;
+        case 8:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            if (g_platform == PlatformUKNC)  // no EIS
+                AddLine("\tASH\t#-3, R0\t; / 8.");
+            else  // no EIS
+            {
+                AddLine("\tASR\tR0");
+                AddLine("\tASR\tR0");
+                AddLine("\tASR\tR0\t; / 8.");
+            }
+            return;
+        //TODO: Special cases: divide by 16/32/64
         }
 
-        // Special case for const expression at right
+        // Const expression at right
         GenerateExpression(expr, nodeleft);  // result in R0
-        AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
+        AddLine("\tMOV\tR0, R1");
+        AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R0");
     }
     else if (noderight.token.type == TokenTypeIdentifier && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
         // Special case for variable at right
         string deconame = DecorateVariableName(GetCanonicVariableName(noderight.token.text));
         GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tMOV\tR0, R1");
         AddLine("\tMOV\t" + deconame + ", R1");
     }
     else
@@ -1965,6 +1941,7 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
         GenerateExpression(expr, nodeleft);  // result in R0
         AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
         GenerateExpression(expr, noderight);  // result in R0
+        AddLine("\tMOV\t(SP)+, R1\t; POP R1");
     }
 
     //TODO: Special cases for const/variable expressions at left
@@ -2003,7 +1980,11 @@ void Generator::GenerateOperMod(const ExpressionModel& expr, const ExpressionNod
             GenerateExpression(expr, nodeleft);  // result in R0
             AddLine("\tBIC\t#177770, R0\t; MOD 8");
             return;
-        //TODO: MOD by 16/32/64/128/256
+        case 16:
+            GenerateExpression(expr, nodeleft);  // result in R0
+            AddLine("\tBIC\t#177760, R0\t; MOD 16");
+            return;
+        //TODO: MOD by 32/64/128/256
         }
 
         // Const expression at right

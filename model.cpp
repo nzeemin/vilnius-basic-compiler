@@ -573,12 +573,13 @@ const char* RuntimeSymbolNames[] = {
     "WRINT", "WRSNG", "WRSTR",
     "GETCR", "CURSR",
     "READI",
-    "INKEY",
     "IMUL", "IDIV",
     "ITOF", "FTOI", "FUNPK", "FFIX", "FINT",
-    "READF", "FCMP", "FSGN",
+    "FCMP", "FSGN",
     "FADD", "FSUB", "FMUL", "FDIV",  // FIS
+    "READF",
     "FRND", "FPWR", "FSQR", "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
+    "INKEY",
     "STRCP",
 };
 

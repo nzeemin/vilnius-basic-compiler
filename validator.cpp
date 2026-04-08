@@ -1259,20 +1259,15 @@ void Validator::ValidateOperMul(ExpressionModel& expr, ExpressionNode& node, con
     }
 }
 
+// result is Single
 void Validator::ValidateOperDiv(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
 
     if (nodeleft.vtype == ValueTypeString || noderight.vtype == ValueTypeString)
         EXPR_ERROR("Operation \'/\' not applicable to strings.");
-    if (nodeleft.vtype == noderight.vtype)
-        node.vtype = nodeleft.vtype;
-    else if ((nodeleft.vtype == ValueTypeSingle && noderight.vtype == ValueTypeInteger) ||
-        (nodeleft.vtype == ValueTypeInteger && noderight.vtype == ValueTypeSingle))
-        node.vtype = ValueTypeSingle;
-    else
-        EXPR_ERROR("Value types are incompatible.");
 
+    node.vtype = ValueTypeSingle;
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
@@ -1283,6 +1278,7 @@ void Validator::ValidateOperDiv(ExpressionModel& expr, ExpressionNode& node, con
     }
 }
 
+// resuilt is Integer
 void Validator::ValidateOperDivInt(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
     EXPR_CHECK_OPERANDS_VTYPE_NONE;
