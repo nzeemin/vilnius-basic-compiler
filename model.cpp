@@ -571,14 +571,24 @@ const char* RuntimeSymbolNames[] = {
     "", // None
     "WRCHR", "WREOL", "WRAT", "WRSPC", "WRTAB", "WRCOM",
     "WRINT", "WRSNG", "WRSTR",
+    "",  // Reserved
+    "ERROR",
+    "",  // Reserved
     "GETCR", "CURSR",
     "READI",
+    "",  // Reserved
     "IMUL", "IDIV",
-    "ITOF", "FTOI", "FUNPK", "FFIX", "FINT",
+    "ITOF", "FTOI",
+    "",  // Reserved
+    "FUNPK", "FFIX", "FINT",
     "FCMP", "FSGN",
+    "",  // Reserved
     "FADD", "FSUB", "FMUL", "FDIV",  // FIS
+    "",  // Reserved
     "READF",
+    "",  // Reserved
     "FRND", "FPWR", "FSQR", "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
+    "",  // Reserved
     "INKEY",
     "STRCP",
 };

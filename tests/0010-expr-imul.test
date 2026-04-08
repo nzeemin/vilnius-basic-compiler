@@ -27,23 +27,22 @@ N1:
 ; 5 ? B% * -5%
 N5:
 	MOV	VARIB, R0	; var B%
-	MUL	#-5., R0	; Operation '*'
-	MOV	R1, R0
+	MOV	#-5., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 6 ? B% * -4%
 N6:
 	MOV	VARIB, R0	; var B%
-	NEG	R0		; *-1
-	ASL	R0
-	ASL	R0		; *4
+	MOV	#-4., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 7 ? B% * -2%
 N7:
 	MOV	VARIB, R0	; var B%
-	NEG	R0		; *-1
-	ASL	R0		; *2
+	MOV	#-2., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 8 ? B% * -1%
@@ -65,53 +64,57 @@ N10:
 ; 20 ? B% * 2%
 N20:
 	MOV	VARIB, R0	; var B%
-	ASL	R0		; *2
+	MOV	#2., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 30 ? B% * 3%
 N30:
 	MOV	VARIB, R0	; var B%
-	MOV	R0, R1
-	ASL	R0
-	ADD	R1, R0		; *3
+	MOV	#3., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 40 ? B% * 4%
 N40:
 	MOV	VARIB, R0	; var B%
-	ASL	R0
-	ASL	R0		; *4
+	MOV	#4., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 50 ? B% * 5%
 N50:
 	MOV	VARIB, R0	; var B%
-	MUL	#5., R0		; Operation '*'
-	MOV	R1, R0
+	MOV	#5., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 80 ? B% * 8%
 N80:
 	MOV	VARIB, R0	; var B%
-	ASH	#3, R0		; *8.
+	MOV	#8., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 160 ? B% * 16%
 N160:
 	MOV	VARIB, R0	; var B%
-	ASH	#4, R0		; *16.
+	MOV	#16., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 320 ? B% * 32%
 N320:
 	MOV	VARIB, R0	; var B%
-	ASH	#5, R0		; *32.
+	MOV	#32., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 640 ? B% * 64%
 N640:
 	MOV	VARIB, R0	; var B%
-	ASH	#6, R0		; *64.
+	MOV	#64., R1
+	CALL	IMUL		; Operation '*'
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 LEND:
@@ -122,5 +125,5 @@ SAVESP = . + 2
 	.EVEN
 VARIB:	.WORD	0	; B%
 ; RUNTIME CALLS
-	.GLOBL	WREOL, WRINT
+	.GLOBL	WREOL, WRINT, IMUL
 	.END	START

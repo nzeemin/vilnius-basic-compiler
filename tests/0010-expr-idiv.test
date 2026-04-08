@@ -25,7 +25,8 @@ N1:
 ; 5 ? B% \ -5%
 N5:
 	MOV	VARIB, R0	; var B%
-	MOV	#-5., R1
+	MOV	R0, R1
+	MOV	#-5., R0
 	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
@@ -64,7 +65,8 @@ N20:
 ; 30 ? B% \ 3%
 N30:
 	MOV	VARIB, R0	; var B%
-	MOV	#3., R1
+	MOV	R0, R1
+	MOV	#3., R0
 	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
@@ -78,7 +80,8 @@ N40:
 ; 50 ? B% \ 5%
 N50:
 	MOV	VARIB, R0	; var B%
-	MOV	#5., R1
+	MOV	R0, R1
+	MOV	#5., R0
 	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
@@ -91,21 +94,24 @@ N80:
 ; 160 ? B% \ 16%
 N160:
 	MOV	VARIB, R0	; var B%
-	MOV	#16., R1
+	MOV	R0, R1
+	MOV	#16., R0
 	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 320 ? B% \ 32%
 N320:
 	MOV	VARIB, R0	; var B%
-	MOV	#32., R1
+	MOV	R0, R1
+	MOV	#32., R0
 	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 640 ? B% \ 64%
 N640:
 	MOV	VARIB, R0	; var B%
-	MOV	#64., R1
+	MOV	R0, R1
+	MOV	#64., R0
 	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL

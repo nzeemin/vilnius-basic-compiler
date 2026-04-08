@@ -1739,17 +1739,6 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
         // Special case for some const values
         switch (ivalue)
         {
-        case -4:
-            GenerateExpression(expr, nodeleft);  // result in R0
-            AddLine("\tNEG\tR0\t; *-1");
-            AddLine("\tASL\tR0");
-            AddLine("\tASL\tR0\t; *4");
-            return;
-        case -2:
-            GenerateExpression(expr, nodeleft);  // result in R0
-            AddLine("\tNEG\tR0\t; *-1");
-            AddLine("\tASL\tR0\t; *2");
-            return;
         case -1:
             GenerateExpression(expr, nodeleft);  // result in R0
             AddLine("\tNEG\tR0\t; *-1");
@@ -1762,80 +1751,19 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
             GenerateExpression(expr, nodeleft);  // result in R0
             Warning(noderight.token, "Multiplication by 1 reduced to nothing, consider to remove the multiplication.");
             return;
-        case 2:
-            GenerateExpression(expr, nodeleft);  // result in R0
-            AddLine("\tASL\tR0\t; *2");
-            return;
-        case 3:
-            GenerateExpression(expr, nodeleft);  // result in R0
-            AddLine("\tMOV\tR0, R1");
-            AddLine("\tASL\tR0");
-            AddLine("\tADD\tR1, R0\t; *3");
-            return;
-        case 4:
-            GenerateExpression(expr, nodeleft);  // result in R0
-            AddLine("\tASL\tR0");
-            AddLine("\tASL\tR0\t; *4");
-            return;
-        case 8:
-            GenerateExpression(expr, nodeleft);  // result in R0
-            if (g_platform == PlatformUKNC)  // no EIS
-                AddLine("\tASH\t#3, R0\t; *8.");
-            else  // no EIS
-            {
-                AddLine("\tASL\tR0");
-                AddLine("\tASL\tR0");
-                AddLine("\tASL\tR0\t; *8.");
-            }
-            return;
-        case 16:
-            if (g_platform != PlatformUKNC)  // no EIS
-                break;
-            GenerateExpression(expr, nodeleft);  // result in R0
-            AddLine("\tASH\t#4, R0\t; *16.");
-            return;
-        case 32:
-            if (g_platform != PlatformUKNC)  // no EIS
-                break;
-            GenerateExpression(expr, nodeleft);  // result in R0
-            AddLine("\tASH\t#5, R0\t; *32.");
-            return;
-        case 64:
-            if (g_platform != PlatformUKNC)  // no EIS
-                break;
-            GenerateExpression(expr, nodeleft);  // result in R0
-            AddLine("\tASH\t#6, R0\t; *64.");
-            return;
         }
 
         GenerateExpression(expr, nodeleft);
-        if (g_platform != PlatformUKNC)  // no EIS
-        {
-            AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
-            AddRuntimeCall(RuntimeIMUL, "Operation \'*\'");
-        }
-        else // EIS
-        {
-            AddLine("\tMUL\t#" + std::to_string(ivalue) + "., R0" + comment);  // POP & MUL; MUL result in R0:R1
-            AddLine("\tMOV\tR1, R0");  // result in R0
-        }
+        AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
+        AddRuntimeCall(RuntimeIMUL, "Operation \'*\'");  // result in R0
         return;
     }
 
     GenerateExpression(expr, nodeleft);  // result in R0
     AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
     GenerateExpression(expr, noderight);
-
-    if (g_platform != PlatformUKNC)  // no EIS
-    {
-        AddLine("\tMOV\t(SP)+, R1");
-        AddRuntimeCall(RuntimeIMUL, "Operation \'*\'");
-    }
-    else  // EIS
-    {
-        AddLine("\tMUL\t(SP)+, R0" + comment);  // POP & MUL; MUL result in R0:R1
-        AddLine("\tMOV\tR1, R0");  // result in R0
-    }
+    AddLine("\tMOV\t(SP)+, R1");
+    AddRuntimeCall(RuntimeIMUL, "Operation \'*\'");  // result in R0
 }
 
 // result is Single

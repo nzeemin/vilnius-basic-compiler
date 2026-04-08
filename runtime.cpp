@@ -99,34 +99,47 @@ RuntimeBlock RuntimeGenerator::FindRuntimeBlock(RuntimeSymbol rtsymbol)
 
 void RuntimeGenerator::GenerateRuntime()
 {
-    std::vector<RuntimeSymbol> listneeds;
-    std::copy(m_needs.begin(), m_needs.end(), std::back_inserter(listneeds));
-
-    // First collect all dependencies in m_needs
-    for (RuntimeSymbol rtsymbol : listneeds)
+    std::vector<RuntimeSymbol> listnewneeds;
+    std::copy(m_needs.begin(), m_needs.end(), std::back_inserter(listnewneeds));
+    while (true)
     {
-        string rtsymbolname = GetRuntimeSymbolName(rtsymbol);
+        std::vector<RuntimeSymbol> listneeds;
+        std::copy(listnewneeds.begin(), listnewneeds.end(), std::back_inserter(listneeds));
+        listnewneeds.clear();
 
-        // Find symbol block
-        RuntimeBlock rtblock = FindRuntimeBlock(rtsymbol);
-        if (rtblock.rtsymbol == RuntimeNone)
+        // First collect all dependencies in m_needs
+        for (RuntimeSymbol rtsymbol : listneeds)
         {
-            //TODO: error
+            string rtsymbolname = GetRuntimeSymbolName(rtsymbol);
+
+            // Find symbol block
+            RuntimeBlock rtblock = FindRuntimeBlock(rtsymbol);
+            if (rtblock.rtsymbol == RuntimeNone)
+            {
+                //TODO: error
+            }
+
+            for (RuntimeSymbol need : rtblock.needs)
+            {
+                if (m_needs.find(need) == m_needs.end())
+                {
+                    listnewneeds.push_back(need);
+                    m_needs.insert(need);
+                }
+            }
         }
 
-        for (RuntimeSymbol need : rtblock.needs)
-            m_needs.insert(need);
-        //TODO: this should be recursive
+        if (listnewneeds.empty())
+            break;
+        // Still have newly added needs, repeat
     }
 
     //NOTE: Now we have all the dependencies in m_needs
 
     // Prepare for the second pass
-    listneeds.clear();
     
     // Generate all the runtime code
-    std::copy(m_needs.begin(), m_needs.end(), std::back_inserter(listneeds));
-    for (RuntimeSymbol rtsymbol : listneeds)
+    for (RuntimeSymbol rtsymbol : m_needs)
     {
         string rtsymbolname = GetRuntimeSymbolName(rtsymbol);
         m_final->AddRuntimeLine("");
