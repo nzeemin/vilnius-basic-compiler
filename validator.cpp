@@ -1958,6 +1958,8 @@ void Validator::ValidateFuncCsng(ExpressionModel& expr, ExpressionNode& node)
     }
 }
 
+// X=ASC(<АРГУМЕНТ>)
+// result is Integer
 void Validator::ValidateFuncAsc(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 1)
@@ -1975,7 +1977,7 @@ void Validator::ValidateFuncAsc(ExpressionModel& expr, ExpressionNode& node)
         string svalue = expr1.GetConstExpressionSValue();
         if (svalue.empty())
             EXPR_ERROR("Function ASC parameter is empty.");
-        node.token.dvalue = (int)svalue[0];  //TODO: depends on charset
+        node.token.dvalue = (int)svalue[0];  //NOTE: depends on encoding
     }
 }
 

@@ -13,6 +13,9 @@ WARNING: at 5:8 line 205 - POS argument calculated but value not used; consider 
 WARNING: at 6:8 line 210 - POS argument calculated but value not used; consider to remove the argument
 ----------------------------------------------------------------------
 START:
+	MTPS	#340		; disable interrupts
+	CLR	@#177560
+	MTPS	#0		; enable interrupts
 	MOV	SP, SAVESP
 ; 100 Y%=CSRLIN
 N100:

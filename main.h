@@ -734,6 +734,7 @@ private:
     void GenerateFuncInt(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncAsc(const ExpressionModel& expr, const ExpressionNode& node);
 };
 
 class RuntimeGenerator

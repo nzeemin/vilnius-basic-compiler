@@ -10,6 +10,9 @@
 WARNING: at 2:9 line 10 - MOD 1 reduced to 0; consider to remove this MOD.
 ----------------------------------------------------------------------
 START:
+	MTPS	#340		; disable interrupts
+	CLR	@#177560
+	MTPS	#0		; enable interrupts
 	MOV	SP, SAVESP
 ; 5 B% = 32767%
 N5:

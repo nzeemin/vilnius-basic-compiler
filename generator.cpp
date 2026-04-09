@@ -114,6 +114,7 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordINT,       &Generator::GenerateFuncInt },
     { KeywordSGN,       &Generator::GenerateFuncSgn },
     { KeywordCSNG,      &Generator::GenerateFuncCsng },
+    { KeywordASC,       &Generator::GenerateFuncAsc },
 };
 
 
@@ -1123,7 +1124,7 @@ void Generator::GenerateLocate(StatementModel& statement)
         }
 
         // R1 = column, R0 = row
-        AddRuntimeCall(RuntimeWRAT, "PRINT AT");
+        AddRuntimeCall(RuntimeWRAT, "LOCATE");
     }
     // Second case: 1st argument present, no 2nd argument
     else if (statement.args.size() >= 1 && !expr1.IsEmpty() &&
@@ -1149,7 +1150,7 @@ void Generator::GenerateLocate(StatementModel& statement)
         }
 
         // R1 = column, R0 = row
-        AddRuntimeCall(RuntimeWRAT, "PRINT AT");
+        AddRuntimeCall(RuntimeWRAT, "LOCATE");
     }
     // Third case: no 1st argument, 2nd argument present
     else if (statement.args.size() >= 2 && expr1.IsEmpty() && !statement.args[1].IsEmpty())
@@ -1174,7 +1175,7 @@ void Generator::GenerateLocate(StatementModel& statement)
         }
 
         // R1 = column, R0 = row
-        AddRuntimeCall(RuntimeWRAT, "PRINT AT");
+        AddRuntimeCall(RuntimeWRAT, "LOCATE");
     }
     // Last case: no 1st, no 2nd argument
     else
@@ -2791,6 +2792,21 @@ void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionN
     AddComment("TODO INKEY$");
     //TODO: form a string
     m_notimplemented.insert(KeywordINKEY);
+}
+
+// X=ASC(<АРГУМЕНТ>)
+// result is Integer
+void Generator::GenerateFuncAsc(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    //TODO: Special case for const expression and variable expression
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() == ValueTypeString);
+
+    GenerateExpression(expr1);  // R0 = string address
+
+    AddLine("\tMOV\tR0, R1\t");
+    AddLine("\tCLR\tR0\t");
+    AddLine("\tBISB\t1(R1), R0\t; ASC");  // get first byte of the string
 }
 
 
