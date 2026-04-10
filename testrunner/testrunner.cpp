@@ -43,6 +43,7 @@ HANDLE g_hConsole;
 const char* TESTS_SUB_DIR = "tests";
 const char* TESTS_TEMP_SUB_DIR = "tests.temp";  // Temporary folder for all the fenerated files
 const char* COMPILER_PATH = "Debug\\vibasc.exe";
+const char* MACROASSEMBLER_PATH = "x-tools\\macro11.exe";
 const char* PATH_SEPARATOR = "\\";
 #else
 const char* TESTS_SUB_DIR = "tests/";
@@ -200,10 +201,10 @@ void process_test_run(const string& workingdir, const string& modulename, const 
     si.dwFlags |= STARTF_USESTDHANDLES;
     PROCESS_INFORMATION pi;  memset(&pi, 0, sizeof(pi));
     if (!::CreateProcess(
-        modulename.c_str(), command, NULL, NULL, TRUE,
+        NULL, command, NULL, NULL, TRUE,
         CREATE_NO_WINDOW, NULL, workingdir.c_str(), &si, &pi))
     {
-        std::cout << "Failed to run the test: error " << ::GetLastError() << std::endl;
+        std::cout << "Failed to run the process: error " << ::GetLastError() << std::endl;
         ::CloseHandle(hOutFile);
         return;
     }
@@ -386,6 +387,32 @@ void process_test(const string& testfilename)
         g_failedtests++;
         return;
     }
+
+#ifdef _MSC_VER
+    // Try to compile .MAC file with macro11.exe
+    string assembleroutfilename = testname + ".outas";
+    remove_file_if_exists(testdirpath, assembleroutfilename);
+    {
+        string assemblerpath(MACROASSEMBLER_PATH);
+        string assemblerparams = testname + ".MAC -l " + testname + ".lst -o " + testname + ".obj -rt11";
+        process_test_run(testdirpath, assemblerpath, assemblerparams, assembleroutfilename);
+    }
+
+    // Read .outas file to check if we have any errors/warnings
+    {
+        std::ifstream fsoutas(testdirpath + PATH_SEPARATOR + assembleroutfilename);
+        while (!fsoutas.eof())
+        {
+            fsoutas.getline(buffer, sizeof(buffer));
+            if (*buffer == 0)  // skip empty lines
+                continue;
+
+            std::cout << "  FAILED: assembler output file contains ERRORs or WARNINGs" << std::endl;
+            g_failedtests++;
+            return;
+        }
+    }
+#endif
 
     // read .MAC file and check if we have TODOs there
     bool machastodos = false;

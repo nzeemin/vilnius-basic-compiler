@@ -15,12 +15,12 @@ if errorlevel 1 (
 	exit /b
 )
 
-x-tools\macro11.exe 1.MAC -l 1.LST -o 1.OBJ -rt11
+x-tools\macro11.exe 1.MAC -l 1.lst -o 1.obj -rt11
 if errorlevel 1 (
 	exit /b
 )
 
-x-tools\pclink11.exe 1.OBJ
+x-tools\pclink11.exe 1.obj
 if errorlevel 1 (
 	exit /b
 )
