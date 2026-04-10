@@ -122,7 +122,7 @@ enum RuntimeSymbol
     RuntimeReserved2    = 12,
     RuntimeGETCR        = 13,
     RuntimeCURSR        = 14,
-    RuntimeINPUT        = 15,  // INPUT read to buffer
+    RuntimeINPU         = 15,  // INPUT read to buffer
     RuntimeINPI         = 16,  // INPUT Integer
     RuntimeIMUL         = 17,
     RuntimeIDIV         = 18,
@@ -154,6 +154,7 @@ enum RuntimeSymbol
     RuntimeReserved8    = 44,
     RuntimeINKEY        = 45,
     RuntimeSTRCP        = 46,
+    RuntimeCOLR         = 47,  // COLOR
 };
 
 

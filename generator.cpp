@@ -788,9 +788,79 @@ void Generator::GenerateCls(StatementModel&)
 
 void Generator::GenerateColor(StatementModel& statement)
 {
-    //TODO
-    AddComment("TODO COLOR");
-    m_notimplemented.insert(KeywordCOLOR);
+    assert(statement.args.size() > 0);
+
+    ExpressionModel& expr1 = statement.args[0];  // foreground color number
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+    string stat1;
+    if (expr1.IsEmpty())
+        stat1 = "\tMOV\t#-1, ";
+    else
+    {
+        if (expr1.IsConstExpression())
+            stat1 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr1);
+        else if (expr1.IsVariableExpression() && expr1.GetExpressionValueType() == ValueTypeInteger)
+            stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
+        else
+        {
+            GenerateExpression(expr1);
+            stat1 = "\tMOV\tR0, ";
+        }
+    }
+
+    string stat2;
+    if (statement.args.size() < 2 || statement.args[1].IsEmpty())
+        stat2 = "\tMOV\t#-1, ";
+    else
+    {
+        ExpressionModel& expr2 = statement.args[1];
+        assert(expr2.GetExpressionValueType() != ValueTypeString);
+        if (expr2.IsConstExpression())
+            stat2 = GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr2);
+        else if (expr2.IsVariableExpression() && expr2.GetExpressionValueType() == ValueTypeInteger)
+            stat2 = "\tMOV\t" + expr2.GetVariableExpressionDecoratedName() + ", ";
+        else
+        {
+            AddLine(stat1 + "-(SP)");  // PUSH
+            stat1 = "\tMOV\t(SP)+, ";
+            GenerateExpression(expr2);  // result in R0
+            stat2 = "\tMOV\tR0, ";
+        }
+    }
+
+    if (statement.args.size() < 3 || statement.args[2].IsEmpty())
+    {
+        AddLine(stat1 + "R0");
+        AddLine(stat2 + "R1");
+        AddLine("\tMOV\t#-1, R2");
+    }
+    else
+    {
+        ExpressionModel& expr3 = statement.args[2];
+        assert(expr3.GetExpressionValueType() != ValueTypeString);
+        if (expr3.IsConstExpression())
+        {
+            AddLine(stat1 + "R0");
+            AddLine(stat2 + "R1");
+            AddLine(GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(expr3) + "R2");
+        }
+        else if (expr3.IsVariableExpression() && expr3.GetExpressionValueType() == ValueTypeInteger)
+        {
+            AddLine(stat1 + "R0");
+            AddLine(stat2 + "R1");
+            AddLine("\tMOV\t" + expr3.GetVariableExpressionDecoratedName() + ", R2");
+        }
+        else
+        {
+            AddLine(stat2 + "-(SP)");  // PUSH
+            GenerateExpression(expr3);  // result in R0
+            AddLine("\tMOV\tR0, R2");
+            AddLine("\tMOV\t(SP)+, R1");  // POP R1
+            AddLine(stat1 + "R0");
+        }
+    }
+
+    AddRuntimeCall(RuntimeCOLR, "COLOR");
 }
 
 void Generator::GenerateData(StatementModel& statement)
@@ -1049,29 +1119,30 @@ void Generator::GenerateLet(StatementModel& statement)
     GenerateAssignment(var, expr);
 }
 
+// ON <ВЫРАЖЕНИЕ> GOTO <СПИСОК>
+// ON <ВЫРАЖЕНИЕ> GOSUB <СПИСОК>
 void Generator::GenerateOn(StatementModel& statement)
 {
     ExpressionModel& expr = statement.args[0];
     assert(expr.GetExpressionValueType() != ValueTypeString);
+
+    string comment = string("ON .. ") + (statement.gotogosub ? "GOTO" : "GOSUB");
 
     GenerateExpression(expr);
 
     int numofcases = statement.params.size();
     string nextline = m_source->GetNextLineLabel(m_line->linenum);
     AddLine("\tDEC\tR0");
-    AddLine("\tBLO\t" + nextline);
-    AddLine("\tCMP\t#" + std::to_string(numofcases) + ", R0");
+    AddLine("\tBMI\t" + nextline);
+    AddLine("\tCMP\tR0, #" + std::to_string(numofcases) + ".");
     AddLine("\tBGE\t" + nextline);
     AddLine("\tASL\tR0");
-    if (statement.gotogosub)
-        AddLine("\tJMP\t@10$(R0)");
-    else
-    {
-        AddLine("\tCALL\t@10$(R0)");
-        AddLine("\tBR\t" + nextline);
-    }
+    AddLine("\tMOV\t10$(R0), R0\t; get jump addr");
+    if (!statement.gotogosub)
+        AddLine("\tMOV\t#" + nextline + ", -(SP)\t; return address");
+    AddLine("\tJMP\t@R0\t; " + comment);
     int linenum = (int)statement.params[0].dvalue;
-    AddLine("10$:\t.WORD\tN" + std::to_string(linenum));
+    AddLine("10$:\t; " + comment + " jump table");
     for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
     {
         linenum = (int)it->dvalue;

@@ -40,4 +40,4 @@
 WARNING: at 2:4 line 20 - WIDTH statement is ignored
 WARNING: at 3:4 line 30 - SCREEN statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
-CIRCLE, COLOR, LINE, PAINT, PSET
+CIRCLE, LINE, PAINT, PSET

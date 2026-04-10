@@ -238,6 +238,3 @@
 3350 ?AT(X%,Y%+3);E$
 3360 ?AT(X%,Y%+4);E$
 3370 RETURN
-----------------------------------------------------------------------
-WARNING: The following statements/functions have not yet been implemented:
-COLOR

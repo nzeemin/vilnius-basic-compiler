@@ -234,4 +234,4 @@
 WARNING: at 2:4 line 20 - WIDTH statement is ignored
 WARNING: at 119:6 line 1145 - LOAD statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
-COLOR, DATA, READ, RESTORE
+DATA, READ, RESTORE

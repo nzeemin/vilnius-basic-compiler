@@ -933,6 +933,8 @@ void Validator::ValidateNext(StatementModel& statement)
     }
 }
 
+// ON <ВЫРАЖЕНИЕ> GOTO <СПИСОК>
+// ON <ВЫРАЖЕНИЕ> GOSUB <СПИСОК>
 void Validator::ValidateOn(StatementModel& statement)
 {
     if (statement.args.size() != 1)

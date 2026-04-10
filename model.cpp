@@ -575,7 +575,7 @@ const char* RuntimeSymbolNames[] = {
     "ERROR",
     "",  // Reserved
     "GETCR", "CURSR",
-    "INPUT",
+    "INPU",
     "INPI",
     "IMUL", "IDIV",
     "ITOF", "FTOI",
@@ -591,6 +591,7 @@ const char* RuntimeSymbolNames[] = {
     "",  // Reserved
     "INKEY",
     "STRCP",
+    "COLR",
 };
 
 string GetRuntimeSymbolName(RuntimeSymbol rtsymbol)
