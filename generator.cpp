@@ -301,6 +301,8 @@ void Generator::GenerateStrings()
 
     AddComment("STRINGS");
     AddLine("\t.EVEN");
+    AddLine("ST0:\t.WORD\t0\t; empty string");
+
     for (size_t stno = 0; stno < m_source->conststrings.size(); ++stno)
     {
         string strdeco = "ST" + std::to_string(stno + 1);
@@ -916,29 +918,38 @@ void Generator::GenerateFor(StatementModel& statement)
     }
     else if (expr2.IsVariableExpression())
     {
+        //TODO: register variable
         string svalue = expr2.GetVariableExpressionDecoratedName();
         AddLine("\tMOV\t" + svalue + ", @#<R" + std::to_string(m_line->linenum) + "+2>");
     }
     else
     {
         GenerateExpression(expr2);
+        if (expr2.GetExpressionValueType() == ValueTypeSingle)
+            AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
         AddLine("\tMOV\tR0, @#<R" + std::to_string(m_line->linenum) + "+2>");  //  Save "to" value
     }
 
     if (statement.args.size() > 2)  // has STEP expression
     {
-        // Calculate expression for "step"
         ExpressionModel& expr3 = statement.args[2];
         assert(expr3.GetExpressionValueType() != ValueTypeString);
-
-        GenerateExpression(expr3);
-        // Save "step" value
-        AddLine("\tMOV\tR0, @#<R" + std::to_string(statement.paramline) + "+2>");
+        if (expr3.IsConstExpression())
+            ;  //NOTE: const STEP expression will be set in NEXT statement
+        else
+        {
+            // Calculate expression for "step"
+            GenerateExpression(expr3);
+            if (expr3.GetExpressionValueType() == ValueTypeSingle)
+                AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+            // Save "step" value
+            AddLine("\tMOV\tR0, @#<S" + std::to_string(m_line->linenum) + "+2>");
+        }
     }
 
     string nextlinelabel = m_source->GetNextLineLabel(m_line->linenum);
     AddLine("R" + std::to_string(m_line->linenum) + ":\tCMP\t" + tovalue + ", " + deconame);
-    AddLine("\tBHIS\t" + nextlinelabel);
+    AddLine("\tBHIS\t.+6\t; to loop body");
     AddLine("\tJMP\tX" + std::to_string(m_line->linenum));  // label after NEXT
 }
 
@@ -955,12 +966,25 @@ void Generator::GenerateNext(StatementModel& statement)
     if (linefor.statement.args.size() < 3)
         AddLine("\tINC\t" + deconame);
     else
-        AddLine("\tADD\t#1, " + deconame);
+    {
+        ExpressionModel& forexpr3 = linefor.statement.args[2];
+        if (forexpr3.IsConstExpression())
+        {
+            //TODO: Warning if Single STEP value for Integer FOR variable
+            int ivalue = (int)std::floor(forexpr3.GetConstExpressionDValue());
+            AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame + "\t; STEP");
+        }
+        else
+        {
+            //NOTE: "#1" here will be replaced at run-time with calculated STEP value
+            AddLine("S" + std::to_string(forlinenum) + ":\tADD\t#1, " + deconame + "\t; STEP");
+        }
+    }
 
     // JMP to continue loop
-    AddLine("\tJMP\tR" + std::to_string(forlinenum));
+    AddLine("\tJMP\tR" + std::to_string(forlinenum) + "\t; continue loop");
     // Label after NEXT
-    AddLine("X" + std::to_string(forlinenum) + ":");
+    AddLine("X" + std::to_string(forlinenum) + ":\t; FOR exit addr");
 }
 
 void Generator::GenerateGosub(StatementModel& statement)
@@ -1123,23 +1147,22 @@ void Generator::GenerateLet(StatementModel& statement)
 // ON <ВЫРАЖЕНИЕ> GOSUB <СПИСОК>
 void Generator::GenerateOn(StatementModel& statement)
 {
+    string comment = string("ON..") + (statement.gotogosub ? "GOTO" : "GOSUB");
+
     ExpressionModel& expr = statement.args[0];
     assert(expr.GetExpressionValueType() != ValueTypeString);
-
-    string comment = string("ON .. ") + (statement.gotogosub ? "GOTO" : "GOSUB");
 
     GenerateExpression(expr);
 
     int numofcases = statement.params.size();
-    string nextline = m_source->GetNextLineLabel(m_line->linenum);
     AddLine("\tDEC\tR0");
-    AddLine("\tBMI\t" + nextline);
+    AddLine("\tBMI\t20$");
     AddLine("\tCMP\tR0, #" + std::to_string(numofcases) + ".");
-    AddLine("\tBGE\t" + nextline);
+    AddLine("\tBGE\t20$");
     AddLine("\tASL\tR0");
     AddLine("\tMOV\t10$(R0), R0\t; get jump addr");
     if (!statement.gotogosub)
-        AddLine("\tMOV\t#" + nextline + ", -(SP)\t; return address");
+        AddLine("\tMOV\t#20$, -(SP)\t; return address");
     AddLine("\tJMP\t@R0\t; " + comment);
     int linenum = (int)statement.params[0].dvalue;
     AddLine("10$:\t; " + comment + " jump table");
@@ -1148,6 +1171,7 @@ void Generator::GenerateOn(StatementModel& statement)
         linenum = (int)it->dvalue;
         AddLine("\t.WORD\tN" + std::to_string(linenum));
     }
+    AddLine("20$:\t; " + comment + " end addr");
 }
 
 // LOCATE [<АРГ1>][,<АРГ2>][,<АРГ3>]
@@ -1659,7 +1683,9 @@ void Generator::GenerateScreen(StatementModel& statement)
 
 void Generator::GenerateStop(StatementModel& statement)
 {
-    AddLine("\tHALT\t; STOP");
+    AddLine(m_line->linenum == 0 ? string("\tCLR\tR0") : string("\tMOV\t#" + std::to_string(m_line->linenum) + "., R0"));
+    AddLine("\tMOV\t#" + std::to_string(m_line->srclinenum) + "., R1");
+    AddRuntimeCall(RuntimeSTOP, "STOP");
 }
 
 void Generator::GenerateWidth(StatementModel& statement)

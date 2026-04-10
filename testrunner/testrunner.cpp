@@ -44,6 +44,7 @@ const char* TESTS_SUB_DIR = "tests";
 const char* TESTS_TEMP_SUB_DIR = "tests.temp";  // Temporary folder for all the fenerated files
 const char* COMPILER_PATH = "Debug\\vibasc.exe";
 const char* MACROASSEMBLER_PATH = "x-tools\\macro11.exe";
+const char* LINKER_PATH = "x-tools\\pclink11.exe";
 const char* PATH_SEPARATOR = "\\";
 #else
 const char* TESTS_SUB_DIR = "tests/";
@@ -389,7 +390,7 @@ void process_test(const string& testfilename)
     }
 
 #ifdef _MSC_VER
-    // Try to compile .MAC file with macro11.exe
+    // Compile .MAC file with macro11.exe
     string assembleroutfilename = testname + ".outas";
     remove_file_if_exists(testdirpath, assembleroutfilename);
     {
@@ -410,6 +411,58 @@ void process_test(const string& testfilename)
             std::cout << "  FAILED: assembler output file contains ERRORs or WARNINGs" << std::endl;
             g_failedtests++;
             return;
+        }
+    }
+
+    // Compile runtime file VIBAS.MAC with macro11.exe
+    string assembleroutfile2name = testname + ".outasrt";
+    remove_file_if_exists(testdirpath, assembleroutfile2name);
+    {
+        string assemblerpath(MACROASSEMBLER_PATH);
+        string assemblerparams = "VIBAS.MAC -l VIBAS.lst -o VIBAS.obj -rt11";
+        process_test_run(testdirpath, assemblerpath, assemblerparams, assembleroutfile2name);
+    }
+
+    // Read .outasrt file to check if we have any errors/warnings
+    {
+        std::ifstream fsoutas2(testdirpath + PATH_SEPARATOR + assembleroutfile2name);
+        while (!fsoutas2.eof())
+        {
+            fsoutas2.getline(buffer, sizeof(buffer));
+            if (*buffer == 0)  // skip empty lines
+                continue;
+
+            std::cout << "  FAILED: assembler output file for runtime contains ERRORs or WARNINGs" << std::endl;
+            g_failedtests++;
+            return;
+        }
+    }
+
+    // Link the object files with pclink11.exe
+    string linkeroutfilename = testname + ".outln";
+    remove_file_if_exists(testdirpath, linkeroutfilename);
+    {
+        string linkerpath(LINKER_PATH);
+        string linkerparams = testname + ".obj VIBAS.obj -EXECUTE:" + testname.substr(0, 4) + ".SAV";
+        process_test_run(testdirpath, linkerpath, linkerparams, linkeroutfilename);
+    }
+
+    // Read .outln file to check if we have any errors/warnings
+    {
+        std::ifstream fsoutln(testdirpath + PATH_SEPARATOR + linkeroutfilename);
+        while (!fsoutln.eof())
+        {
+            fsoutln.getline(buffer, sizeof(buffer));
+            if (*buffer == 0)  // skip empty lines
+                continue;
+
+            string line(buffer);
+            if (line.find("Undefined globals:") != string::npos)
+            {
+                std::cout << "  FAILED: linker found Undefined globals" << std::endl;
+                g_failedtests++;
+                return;
+            }
         }
     }
 #endif

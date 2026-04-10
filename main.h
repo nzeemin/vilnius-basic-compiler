@@ -117,7 +117,7 @@ enum RuntimeSymbol
     RuntimeWRINT        = 7,
     RuntimeWRSNG        = 8,
     RuntimeWRSTR        = 9,
-    RuntimeReserved1    = 10,
+    RuntimeSTOP         = 10,
     RuntimeERROR        = 11,
     RuntimeReserved2    = 12,
     RuntimeGETCR        = 13,

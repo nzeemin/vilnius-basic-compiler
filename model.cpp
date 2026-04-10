@@ -503,11 +503,8 @@ SourceLineModel& SourceModel::GetSourceLine(int linenumber)
 
 void SourceModel::RegisterConstString(const string& str)
 {
-    if (str.empty())
-    {
-        assert(false);  // Trying to register an empty string
+    if (str.empty())  // We're not registering an empty string, always have one
         return;
-    }
     if (str.length() < 2)  // one-char strings will be assigned inline, no need for const string
         return;
 
@@ -523,7 +520,7 @@ void SourceModel::RegisterConstString(const string& str)
 int SourceModel::GetConstStringIndex(const string& str)
 {
     if (str.empty())
-        return -1;
+        return 0;
 
     for (size_t i = 0; i < conststrings.size(); ++i)
     {
@@ -571,7 +568,7 @@ const char* RuntimeSymbolNames[] = {
     "", // None
     "WRCHR", "WREOL", "WRAT", "WRSPC", "WRTAB", "WRCOM",
     "WRINT", "WRSNG", "WRSTR",
-    "",  // Reserved
+    "STOP",
     "ERROR",
     "",  // Reserved
     "GETCR", "CURSR",
