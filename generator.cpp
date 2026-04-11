@@ -115,6 +115,7 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordSGN,       &Generator::GenerateFuncSgn },
     { KeywordCSNG,      &Generator::GenerateFuncCsng },
     { KeywordASC,       &Generator::GenerateFuncAsc },
+    { KeywordIIF,       &Generator::GenerateFuncIif },
 };
 
 
@@ -2904,6 +2905,38 @@ void Generator::GenerateFuncAsc(const ExpressionModel& expr, const ExpressionNod
     AddLine("\tMOV\tR0, R1\t");
     AddLine("\tCLR\tR0\t");
     AddLine("\tBISB\t1(R1), R0\t; ASC");  // get first byte of the string
+}
+
+// X=IIF(<ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single or Integer
+void Generator::GenerateFuncIif(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(expr.GetExpressionValueType() != ValueTypeString);
+    assert(node.args.size() == 3);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    AddLine("\tBEQ\t10$\t; false =>");
+    AddComment("IIF true expression");
+
+    const ExpressionModel& expr2 = node.args[1];
+    assert(expr2.GetExpressionValueType() != ValueTypeString);
+    GenerateExpression(expr2);
+    if (expr.GetExpressionValueType() == ValueTypeSingle && expr2.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddLine("\tBR\t20$");
+    AddLine("10$:\t; IIF false expression");
+
+    const ExpressionModel& expr3 = node.args[2];
+    assert(expr3.GetExpressionValueType() != ValueTypeString);
+    GenerateExpression(expr3);
+    if (expr.GetExpressionValueType() == ValueTypeSingle && expr3.GetExpressionValueType() == ValueTypeInteger)
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+
+    AddLine("20$:\t; end of IIF");
 }
 
 

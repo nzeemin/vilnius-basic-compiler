@@ -16,7 +16,7 @@ const char* Keywords[] = {
     "GOSUB",
     "GOTO",
     "HEX$",
-    "IF", "IMP", "INKEY$", "INP", "INPUT", "INT",
+    "IF", "IIF", "IMP", "INKEY$", "INP", "INPUT", "INT",
     "KEY",
     "LEN", "LET", "LIST", "LLIST", "LOAD", "LOCATE", "LOG", "LPOS", "LPRINT", "LINE",
     "MID$", "MOD", "MERGE",
@@ -37,7 +37,8 @@ bool IsFunctionKeyword(KeywordIndex keyword)
     return keyword == KeywordSQR ||
         keyword == KeywordSIN || keyword == KeywordCOS || keyword == KeywordTAN || keyword == KeywordATN ||
         keyword == KeywordPI || keyword == KeywordEXP || keyword == KeywordLOG || keyword == KeywordABS ||
-        keyword == KeywordFIX || keyword == KeywordINT || keyword == KeywordSGN || keyword == KeywordRND || keyword == KeywordFRE ||
+        keyword == KeywordFIX || keyword == KeywordIIF || keyword == KeywordINT ||
+        keyword == KeywordSGN || keyword == KeywordRND || keyword == KeywordFRE ||
         keyword == KeywordCINT || keyword == KeywordCSNG || keyword == KeywordCDBL ||
         keyword == KeywordPEEK || keyword == KeywordINP ||
         keyword == KeywordASC || keyword == KeywordCHR || keyword == KeywordLEN || keyword == KeywordMID ||

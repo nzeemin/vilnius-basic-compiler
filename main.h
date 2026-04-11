@@ -45,7 +45,7 @@ enum KeywordIndex
     KeywordGOSUB,
     KeywordGOTO,
     KeywordHEX,
-    KeywordIF, KeywordIMP, KeywordINKEY, KeywordINP, KeywordINPUT, KeywordINT,
+    KeywordIF, KeywordIIF, KeywordIMP, KeywordINKEY, KeywordINP, KeywordINPUT, KeywordINT,
     KeywordKEY,
     KeywordLEN, KeywordLET, KeywordLIST, KeywordLLIST, KeywordLOAD, KeywordLOCATE, KeywordLOG, KeywordLPOS, KeywordLPRINT, KeywordLINE,
     KeywordMID, KeywordMOD, KeywordMERGE,
@@ -600,6 +600,7 @@ private:
     void ValidateFuncCsrlinPosLpos(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncEof(ExpressionModel& expr, ExpressionNode& node);
     void ValidateFuncPoint(ExpressionModel& expr, ExpressionNode& node);
+    void ValidateFuncIif(ExpressionModel& expr, ExpressionNode& node);
 };
 
 class Generator;
@@ -737,6 +738,7 @@ private:
     void GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncAsc(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncIif(const ExpressionModel& expr, const ExpressionNode& node);
 };
 
 class RuntimeGenerator

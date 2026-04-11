@@ -120,6 +120,7 @@ const ValidatorFuncSpec Validator::m_funcspecs[] =
     { KeywordLPOS,      &Validator::ValidateFuncCsrlinPosLpos },
     { KeywordEOF,       &Validator::ValidateFuncEof },
     { KeywordPOINT,     &Validator::ValidateFuncPoint },
+    { KeywordIIF,       &Validator::ValidateFuncIif },
 };
 
 Validator::Validator(SourceModel* source)
@@ -2268,6 +2269,34 @@ void Validator::ValidateFuncPoint(ExpressionModel& expr, ExpressionNode& node)
         return;
 
     node.vtype = ValueTypeInteger;
+    node.constval = false;
+}
+
+// X=IIF(<ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
+// result is Single or Integer
+void Validator::ValidateFuncIif(ExpressionModel& expr, ExpressionNode& node)
+{
+    if (node.args.size() != 3)
+        EXPR_ERROR("Three arguments expected.");
+
+    ExpressionModel& expr1 = node.args[0];
+    if (!CheckIntegerOrSingleExpression(expr1))
+        return;
+
+    ExpressionModel& expr2 = node.args[1];
+    if (!CheckIntegerOrSingleExpression(expr2))
+        return;
+
+    ExpressionModel& expr3 = node.args[1];
+    if (!CheckIntegerOrSingleExpression(expr3))
+        return;
+
+    if (expr2.GetExpressionValueType() == ValueTypeInteger &&
+        expr3.GetExpressionValueType() == ValueTypeInteger)
+        node.vtype = ValueTypeInteger;
+    else
+        node.vtype = ValueTypeSingle;
+
     node.constval = false;
 }
 

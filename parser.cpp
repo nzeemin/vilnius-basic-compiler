@@ -101,6 +101,7 @@ const ParserFunctionSpec Parser::m_funcspecs[] =
     //NOTE: FN has special syntax
     //NOTE: USR has special syntax
     { KeywordPOINT,     2, 2, ValueTypeInteger },
+    { KeywordIIF,       3, 3, ValueTypeSingle },  //NOTE: IIF could have Single or Integer return type
 };
 
 const char* MSG_UNEXPECTED = "Unexpected text.";
