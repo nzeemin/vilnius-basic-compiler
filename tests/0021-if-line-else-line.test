@@ -4,3 +4,6 @@
 12 IF 0 THEN 21 ELSE 10
 14 IF A THEN 21 ELSE 10
 21 BEEP
+----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - Constant condition under IF.
+WARNING: at 2:4 line 12 - Constant condition under IF.

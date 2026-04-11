@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <cstring>
+#include <string>
 #include <iostream>
 #include <limits.h>
 #include <vector>
@@ -628,7 +629,8 @@ class Generator
     SourceModel*    m_source;
     FinalModel*     m_final;
     int             m_lineindex;
-    SourceLineModel* m_line;  // Curent line being generated
+    SourceLineModel* m_line;    // Curent line being generated
+    int             m_local;    // Counter for local labels within the current line
     std::set<RuntimeSymbol> m_runtimeneeds;
     std::set<KeywordIndex> m_notimplemented;  // Statements/functions used but not implemented
 public:
@@ -652,6 +654,8 @@ private:
     void AddLine(const string& str) { m_final->AddLine(str); }
     void AddComment(const string& str) { m_final->AddComment(str); }
     void AddRuntimeCall(RuntimeSymbol need, string comment = "");
+    string GetNextLocalLabel() { return std::to_string(++m_local) + "$"; }
+    void GenerateStatement(StatementModel& statement);
     void GenerateExpression(const ExpressionModel& expr);
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);

@@ -1,7 +1,5 @@
 ﻿
 #include <cassert>
-#include <string>
-#include <algorithm>
 #include <sstream>
 
 #include "main.h"
@@ -433,6 +431,7 @@ bool Generator::ProcessLine()
     }
 
     m_line = &(m_source->lines[m_lineindex]);
+    m_local = 0;  // reset local labels counter
 
     // Show the line text and line number, unless it's a comment line without line number
     if (m_line->linenum != 0 ||
@@ -443,16 +442,7 @@ bool Generator::ProcessLine()
         AddLine(linenumlabel);
     }
 
-    // Find keyword generator implementation
-    KeywordIndex keyword = m_line->statement.token.keyword;
-    GeneratorMethodRef methodref = FindGeneratorMethodRef(keyword);
-    if (methodref == nullptr)
-    {
-        Error("Generator for keyword " + GetKeywordString(keyword) + " not found.");
-        return true;
-    }
-
-    (this->*methodref)(m_line->statement);
+    GenerateStatement(m_line->statement);
 
     return true;
 }
@@ -470,6 +460,20 @@ void Generator::Warning(const Token& token, const string& message)
     if (m_line->linenum != 0)
         std::cerr << " line " << m_line->linenum;
     std::cerr << " - " << message << std::endl;
+}
+
+void Generator::GenerateStatement(StatementModel& statement)
+{
+    // Find keyword generator implementation
+    KeywordIndex keyword = statement.token.keyword;
+    GeneratorMethodRef methodref = FindGeneratorMethodRef(keyword);
+    if (methodref == nullptr)
+    {
+        Error("Generator for keyword " + GetKeywordString(keyword) + " not found.");
+        return;
+    }
+
+    (this->*methodref)(statement);
 }
 
 void Generator::GenerateExpression(const ExpressionModel& expr)
@@ -996,8 +1000,8 @@ void Generator::GenerateGosub(StatementModel& statement)
 
 void Generator::GenerateGoto(StatementModel& statement)
 {
-    string linenum = "\tJMP\tN" + std::to_string(statement.paramline);
-    AddLine(linenum);
+    string linestr = std::to_string(statement.paramline);
+    AddLine("\tJMP\tN" + linestr + "\t; GOTO " + linestr);
 }
 
 void Generator::GenerateIf(StatementModel& statement)
@@ -1008,13 +1012,15 @@ void Generator::GenerateIf(StatementModel& statement)
     
     if (expr.IsConstExpression())
     {
+        Warning(statement.token, "Constant condition under IF.");
+
         int ivalue = (int)expr.GetConstExpressionDValue();
         if (ivalue != 0)  // TRUE - generate THEN only
         {
             if (statement.stthen == nullptr)  // THEN linenum
             {
                 int linenum = (int)statement.params[0].dvalue;
-                AddLine("\tJMP\tN" + std::to_string(linenum) + "\t; THEN");
+                AddLine("\tJMP\tN" + std::to_string(linenum) + "\t; THEN " + std::to_string(linenum));
             }
             else  // Statement under THEN
             {
@@ -1026,8 +1032,8 @@ void Generator::GenerateIf(StatementModel& statement)
                 }
                 else
                 {
-                    //TODO
-                    AddComment("TODO statement under THEN");
+                    AddComment("THEN");
+                    GenerateStatement(*pstthen);
                 }
             }
         }
@@ -1040,7 +1046,7 @@ void Generator::GenerateIf(StatementModel& statement)
                 else
                 {
                     int linenum2 = (int)statement.params[1].dvalue;
-                    AddLine("\tJMP\tN" + std::to_string(linenum2) + "\t; ELSE");
+                    AddLine("\tJMP\tN" + std::to_string(linenum2) + "\t; ELSE " + std::to_string(linenum2));
                 }
                 //TODO
             }
@@ -1054,8 +1060,8 @@ void Generator::GenerateIf(StatementModel& statement)
                 }
                 else
                 {
-                    //TODO
-                    AddComment("TODO statement under ELSE");
+                    AddComment("ELSE");
+                    GenerateStatement(*pstelse);
                 }
             }
         }
@@ -1065,24 +1071,45 @@ void Generator::GenerateIf(StatementModel& statement)
     GenerateExpression(expr);
     //TODO: set flags: Z=0 for TRUE, Z=1 for FALSE
 
-    //TODO: Statement under THEN
-    //TODO: Statement under ELSE
+    bool haveelse = (statement.stelse != nullptr) || (statement.params.size() >= 2);
 
-    if (statement.params.size() == 1)  // IF expr THEN linenum
+    string labelelse = GetNextLocalLabel();  // local label for ELSE branch
+    string labelend = GetNextLocalLabel();  // local label for end of IF statement address
+    AddLine("\tBEQ\t" + (haveelse ? labelelse : labelend));
+    AddComment("THEN");
+
+    if (statement.stthen == nullptr)  // no THEN statement, so it's THEN linenum
     {
-        string nextlinelabel = m_source->GetNextLineLabel(m_line->linenum);
-        AddLine("\tBEQ\t" + nextlinelabel);
-        int linenum = (int)statement.params[0].dvalue;
-        AddLine("\tJMP\tN" + std::to_string(linenum));
+        assert(statement.params.size() >= 1);
+        int linenum1 = (int)std::floor(statement.params[0].dvalue);  // THEN line number
+        AddLine("\tJMP\tN" + std::to_string(linenum1) + "\t; THEN " + std::to_string(linenum1));
     }
-    else  // IF expr THEN linenum ELSE linenum
+    else  // have THEN statement
     {
-        AddLine("\tBEQ\t10$");
-        int linenum1 = (int)statement.params[0].dvalue;
-        AddLine("\tJMP\tN" + std::to_string(linenum1));
-        int linenum2 = (int)statement.params[1].dvalue;
-        AddLine("10$:\tJMP\tN" + std::to_string(linenum2));
+        StatementModel* pstthen = statement.stthen;
+        GenerateStatement(*pstthen);
+        if (haveelse)
+            AddLine("\tBR\t" + labelend);
     }
+
+    if (haveelse)
+        AddLine(labelelse + ":\t; ELSE");
+
+    if (statement.stelse == nullptr)  // no ELSE, or ELSE linenum
+    {
+        if (statement.params.size() >= 2)  // ELSE linenum
+        {
+            int linenum2 = (int)std::floor(statement.params[1].dvalue);
+            AddLine("\tJMP\tN" + std::to_string(linenum2) + "\t; ELSE " + std::to_string(linenum2));
+        }
+    }
+    else  // have ELSE statement
+    {
+        StatementModel* pstelse = statement.stelse;
+        GenerateStatement(*pstelse);
+    }
+
+    AddLine(labelend + ":\t; end IF");
 }
 
 void Generator::GenerateInput(StatementModel& statement)
@@ -1155,24 +1182,27 @@ void Generator::GenerateOn(StatementModel& statement)
 
     GenerateExpression(expr);
 
+    string labeltable = GetNextLocalLabel();  // local label for jump table
+    string labelend = GetNextLocalLabel();  // local label for statement end address
+
     int numofcases = statement.params.size();
     AddLine("\tDEC\tR0");
-    AddLine("\tBMI\t20$");
+    AddLine("\tBMI\t" + labelend);
     AddLine("\tCMP\tR0, #" + std::to_string(numofcases) + ".");
-    AddLine("\tBGE\t20$");
+    AddLine("\tBGE\t" + labelend);
     AddLine("\tASL\tR0");
-    AddLine("\tMOV\t10$(R0), R0\t; get jump addr");
+    AddLine("\tMOV\t" + labeltable + "(R0), R0\t; get jump addr");
     if (!statement.gotogosub)
-        AddLine("\tMOV\t#20$, -(SP)\t; return address");
+        AddLine("\tMOV\t#" + labelend + ", -(SP)\t; return address");
     AddLine("\tJMP\t@R0\t; " + comment);
     int linenum = (int)statement.params[0].dvalue;
-    AddLine("10$:\t; " + comment + " jump table");
+    AddLine(labeltable + ":\t; " + comment + " jump table");
     for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
     {
         linenum = (int)it->dvalue;
         AddLine("\t.WORD\tN" + std::to_string(linenum));
     }
-    AddLine("20$:\t; " + comment + " end addr");
+    AddLine(labelend + ":\t; " + comment + " end");
 }
 
 // LOCATE [<АРГ1>][,<АРГ2>][,<АРГ3>]
@@ -2914,11 +2944,14 @@ void Generator::GenerateFuncIif(const ExpressionModel& expr, const ExpressionNod
     assert(expr.GetExpressionValueType() != ValueTypeString);
     assert(node.args.size() == 3);
 
+    string labelfalse = GetNextLocalLabel();  // local label for false expression
+    string labelend = GetNextLocalLabel();  // local label for end of IIF
+
     const ExpressionModel& expr1 = node.args[0];
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
     GenerateExpression(expr1);
-    AddLine("\tBEQ\t10$\t; false =>");
+    AddLine("\tBEQ\t" + labelfalse + "\t; false =>");
     AddComment("IIF true expression");
 
     const ExpressionModel& expr2 = node.args[1];
@@ -2927,8 +2960,8 @@ void Generator::GenerateFuncIif(const ExpressionModel& expr, const ExpressionNod
     if (expr.GetExpressionValueType() == ValueTypeSingle && expr2.GetExpressionValueType() == ValueTypeInteger)
         AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
 
-    AddLine("\tBR\t20$");
-    AddLine("10$:\t; IIF false expression");
+    AddLine("\tBR\t" + labelend);
+    AddLine(labelfalse + ":\t; IIF false expression");
 
     const ExpressionModel& expr3 = node.args[2];
     assert(expr3.GetExpressionValueType() != ValueTypeString);
@@ -2936,7 +2969,7 @@ void Generator::GenerateFuncIif(const ExpressionModel& expr, const ExpressionNod
     if (expr.GetExpressionValueType() == ValueTypeSingle && expr3.GetExpressionValueType() == ValueTypeInteger)
         AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
 
-    AddLine("20$:\t; end of IIF");
+    AddLine(labelend + ":\t; end of IIF");
 }
 
 

@@ -5,3 +5,8 @@
 30 IF 1% THEN 10 ' comment
 50 IF 1 THEN 65535
 65535 END
+----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - Constant condition under IF.
+WARNING: at 2:4 line 20 - Constant condition under IF.
+WARNING: at 3:4 line 30 - Constant condition under IF.
+WARNING: at 4:4 line 50 - Constant condition under IF.

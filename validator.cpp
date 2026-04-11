@@ -574,9 +574,8 @@ void Validator::ValidateIf(StatementModel& statement)
 
     if (statement.stthen == nullptr)
     {
-        // Line number for THEN
-        Token& param1 = statement.params[0];
-        int linenum1 = (int)param1.dvalue;
+        Token& param1 = statement.params[0];  // Line number for THEN
+        int linenum1 = (int)std::floor(param1.dvalue);
         if (!m_source->IsLineNumberExists(linenum1))
             MODEL_ERROR("Invalid line number " + std::to_string(linenum1) + ".");
     }
@@ -596,7 +595,7 @@ void Validator::ValidateIf(StatementModel& statement)
         {
             // Line number for ELSE
             Token& param2 = statement.params[1];
-            int linenum2 = (int)param2.dvalue;
+            int linenum2 = (int)std::floor(param2.dvalue);
             if (!m_source->IsLineNumberExists(linenum2))
                 MODEL_ERROR("Invalid line number " + std::to_string(linenum2) + ".");
         }

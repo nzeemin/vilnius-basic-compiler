@@ -9,3 +9,6 @@
 80 IF A% THEN IF B% THEN ? B% ELSE ? A%
 100 IF I% GOTO 10 ELSE PRINT A;" AND ";B
 65535 IF C THEN C = C ELSE C = C
+----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - Constant condition under IF.
+WARNING: at 2:4 line 20 - Constant condition under IF.

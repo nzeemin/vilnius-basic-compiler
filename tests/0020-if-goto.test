@@ -8,3 +8,6 @@
 65 IF A <> A GOTO 10
 70 IF A=B THEN 65535
 65535 IF C GOTO 10 ELSE 20
+----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - Constant condition under IF.
+WARNING: at 2:4 line 20 - Constant condition under IF.
