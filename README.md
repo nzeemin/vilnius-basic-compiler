@@ -30,14 +30,14 @@ Current state of the project: **prototype**
 
 Ближайшая цель это **версия 0.1**, в которой:
  - подмножество языка с типами Integer и Single, без массивов, строки только константные
- - полноценный парсинг всех конструкций языка, кроме оператора DATA
+ - полноценный парсинг всех конструкций языка, кроме оператора `DATA`
  - вычисление Integer и Single выражений, вычисление константных String выражений
- - PRINT для Integer/Single и константных строк, INPUT только для целых чисел
- - упрощённый IF: без полноценных операторов под THEN/ELSE, только GOTO
- - функции: PI, ABS, FIX, INT, SGN, CINT, CSNG, PEEK, INP, CSRLIN, POS
- - операторы: LET, GOTO, GOSUB, RETURN, IF/THEN/ELSE (частично), FOR, NEXT, ON, STOP, END, REM, PRINT (включая AT, TAB, SPC, запятая), INPUT, POKE, OUT, CLS, COLOR, LOCATE, BEEP
- - без работы со строками, без работы с файлами, без графики, без DATA/READ/RESTORE
- - НЕ реализованы операторы: `LET MID$`, `IF` с операторами под `THEN`/`ELSE`, `DIM`, `KEY`, `CLEAR`, `DATA`, `READ`, `RESTORE`, `DEF USR`, `DEF FN`, `PRINT` для строковых выражений, `INPUT` для Single и строк, `OPEN`, `CLOSE`, `SCREEN`, `PSET`, `PRESET`, `LINE`, `CIRCLE`, `PAINT`, `DRAW`, `TRON`, `TROFF`, `WIDTH`, `SYSTEM`, `MONIT`
+ - `PRINT` для Integer/Single и константных строк, `INPUT` только для целых чисел
+ - функции: `PI`, `ABS`, `FIX`, `INT`, `SGN`, `CINT`, `CSNG`, `PEEK`, `INP`, CSRLIN, POS
+ - операторы: `LET` (кроме `LET MID$`), `GOTO`, `GOSUB`, `RETURN`, `IF/THEN/ELSE`, `FOR`, `NEXT`, `ON/GOTO/GOSUB`, `STOP`, `END`, `REM`, `PRINT` (включая `AT`, `TAB`, `SPC`, запятая), `INPUT` (только для Integer), `POKE`, `OUT`, `CLS`, `COLOR`, `LOCATE`, `BEEP`
+ - без работы со строками, без работы с файлами, без графики, без `DATA`/`READ`/`RESTORE`
+ - НЕ реализованы операторы: `LET MID$`, `DIM`, `KEY`, `CLEAR`, `DATA`, `READ`, `RESTORE`, `DEF USR`, `DEF FN`, `PRINT` для строковых выражений, `INPUT` для Single и строк, `OPEN`, `CLOSE`, `SCREEN`, `PSET`, `PRESET`, `LINE`, `CIRCLE`, `PAINT`, `DRAW`, `TRON`, `TROFF`, `WIDTH`, `SYSTEM`, `MONIT`
+ - НЕ реализованы функции: `SQR`, `SIN`, `COS`, `TAN`, `ATN`, `EXP`, `LOG`, `RND`, `FRE`, `CDBL`, `ASC`, `CHR$`, `LRN`, `MID$`, S`TRING$`, `VAL`, `INKEY$`, `STR$`, `BIN$`, `OCT$`, `HEX$`, `LPOS`, `EOF`, `FN`, `USR`
 
 Возможные сценарии использования компилятора:
 

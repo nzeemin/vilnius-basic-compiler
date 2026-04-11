@@ -778,7 +778,7 @@ void Generator::GenerateIgnoredStatement(StatementModel& statement)
 void Generator::GenerateBeep(StatementModel&)
 {
     AddLine("\tMOV\t#7, R0\t; bell");
-    AddRuntimeCall(RuntimeWRCHR, "PRINT char");
+    AddRuntimeCall(RuntimeWRCH, "PRINT char");
 }
 
 void Generator::GenerateClear(StatementModel& statement)
@@ -790,7 +790,7 @@ void Generator::GenerateClear(StatementModel& statement)
 void Generator::GenerateCls(StatementModel&)
 {
     AddLine("\tMOV\t#14, R0");
-    AddRuntimeCall(RuntimeWRCHR, "PRINT char");
+    AddRuntimeCall(RuntimeWRCH, "PRINT char");
 }
 
 void Generator::GenerateColor(StatementModel& statement)
@@ -1068,13 +1068,14 @@ void Generator::GenerateIf(StatementModel& statement)
         return;
     }
 
-    GenerateExpression(expr);
-    //TODO: set flags: Z=0 for TRUE, Z=1 for FALSE
-
     bool haveelse = (statement.stelse != nullptr) || (statement.params.size() >= 2);
-
     string labelelse = GetNextLocalLabel();  // local label for ELSE branch
     string labelend = GetNextLocalLabel();  // local label for end of IF statement address
+
+    GenerateExpression(expr);
+    if (expr.GetExpressionValueType() == ValueTypeSingle)
+        AddLine("\tTST\t(SP)");  // check float value high word for 0
+    // set flags: Z=0 for TRUE, Z=1 for FALSE
     AddLine("\tBEQ\t" + (haveelse ? labelelse : labelend));
     AddComment("THEN");
 
@@ -1120,7 +1121,7 @@ void Generator::GenerateInput(StatementModel& statement)
         int strindex = m_source->GetConstStringIndex(param.text);
         string strdeco = "#ST" + std::to_string(strindex);
         AddLine("\tMOV\t" + strdeco + ", R0");
-        AddRuntimeCall(RuntimeWRSTR, "PRINT the prompt");
+        AddRuntimeCall(RuntimeWRST, "PRINT the prompt");
     }
 
     for (auto it = std::begin(statement.variables); it != std::end(statement.variables); ++it)
@@ -1653,7 +1654,7 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
             string line = "\tMOV\t#" + std::to_string((unsigned char)ch) + "., R0";
             if (ch >= ' ' && ch <= 127) line += string("\t; '") + ch + "'";
             AddLine(line);
-            AddRuntimeCall(RuntimeWRCHR, "PRINT char");
+            AddRuntimeCall(RuntimeWRCH, "PRINT char");
             return;
         }
 
@@ -1665,7 +1666,7 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
         }
 
         AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
-        AddRuntimeCall(RuntimeWRSTR, "PRINT string");
+        AddRuntimeCall(RuntimeWRST, "PRINT string");
         return;
     }
 
@@ -1674,7 +1675,7 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
     {
         string deconame = DecorateVariableName(GetCanonicVariableName(root.token.text));
         AddLine("\tMOV\t#" + deconame + ", R0");
-        AddRuntimeCall(RuntimeWRSTR, "PRINT string");
+        AddRuntimeCall(RuntimeWRST, "PRINT string");
         return;
     }
 

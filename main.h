@@ -109,7 +109,7 @@ enum TargetPlatform
 enum RuntimeSymbol
 {
     RuntimeNone         = 0,
-    RuntimeWRCHR        = 1,
+    RuntimeWRCH         = 1,
     RuntimeWREOL        = 2,
     RuntimeWRAT         = 3,
     RuntimeWRSPC        = 4,
@@ -117,9 +117,9 @@ enum RuntimeSymbol
     RuntimeWRCOM        = 6,
     RuntimeWRINT        = 7,
     RuntimeWRSNG        = 8,
-    RuntimeWRSTR        = 9,
-    RuntimeSTOP         = 10,
-    RuntimeERROR        = 11,
+    RuntimeWRST         = 9,   // Write String
+    RuntimeSTOP         = 10,  // Show stop message and stop
+    RuntimeERRR         = 11,  // Show error message and stop
     RuntimeReserved1    = 12,
     RuntimeGETCR        = 13,
     RuntimeCURSR        = 14,
@@ -127,13 +127,13 @@ enum RuntimeSymbol
     RuntimeINPI         = 16,  // INPUT Integer
     RuntimeIMUL         = 17,
     RuntimeIDIV         = 18,
-    RuntimeITOF         = 19,
-    RuntimeFTOI         = 20,  // for CINT
+    RuntimeITOF         = 19,  // Integer to Single conversion
+    RuntimeFTOI         = 20,  // Single to Integer conversion
     RuntimeReserved2    = 21,
-    RuntimeFUNPK        = 22,  // print float to buffer
+    RuntimeFUNPK        = 22,  // Print Single to buffer
     RuntimeFFIX         = 23,
     RuntimeFINT         = 24,
-    RuntimeFCMP         = 25,  // Compare two floats
+    RuntimeFCMP         = 25,  // Compare two Single values
     RuntimeFSGN         = 26,
     RuntimeReserved3    = 27,
     RuntimeFADD         = 28,  // FIS

@@ -566,10 +566,10 @@ void FinalModel::AddRuntimeLine(const string& str)
 // The table has the same procedures in the same order as RuntimeSymbol enum
 const char* RuntimeSymbolNames[] = {
     "", // None
-    "WRCHR", "WREOL", "WRAT", "WRSPC", "WRTAB", "WRCOM",
-    "WRINT", "WRSNG", "WRSTR",
+    "WRCH", "WREOL", "WRAT", "WRSPC", "WRTAB", "WRCOM",
+    "WRINT", "WRSNG", "WRST",
     "STOP",
-    "ERROR",
+    "ERRR",
     "",  // Reserved
     "GETCR", "CURSR",
     "INPU",
