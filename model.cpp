@@ -584,7 +584,8 @@ const char* RuntimeSymbolNames[] = {
     "",  // Reserved
     "INPF",
     "",  // Reserved
-    "FRND", "FPWR", "FSQR", "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
+    "FRND", "FSQR", "FPWF", "FPWI",
+    "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
     "",  // Reserved
     "INKEY",
     "STRCP",

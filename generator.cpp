@@ -2051,29 +2051,29 @@ void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionN
     assert(nodeleft.vtype != ValueTypeString);
     assert(noderight.vtype != ValueTypeString);
 
-    const string comment = "\t; Operation \'^\'";
+    const string comment = "Operation \'^\'";
 
-    // Single operands
-    if (nodeleft.vtype == ValueTypeSingle || noderight.vtype == ValueTypeSingle)
+    // Single ^ Integer or Integer ^ Integer => call FPWI
+    if (noderight.vtype == ValueTypeInteger)
     {
         GenerateExpression(expr, nodeleft);
         if (nodeleft.vtype == ValueTypeInteger)
             AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-
-        GenerateExpression(expr, noderight);
-        if (noderight.vtype == ValueTypeInteger)
-            AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-
-        AddRuntimeCall(RuntimeFPWR, "Operation \'^\'");  // result on stack
-        return;
+        GenerateExpression(expr, noderight);  // result in R0
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+        AddRuntimeCall(RuntimeFPWI, comment);  // result on stack
     }
-
-    assert(nodeleft.vtype == ValueTypeInteger);
-    assert(noderight.vtype == ValueTypeInteger);
-
-    GenerateExpression(expr, nodeleft);  // result in R0
-    AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-    AddRuntimeCall(RuntimeFPWR, "Operation \'^\'");  // result on stack
+    // Single ^ Single or Integer ^ Single => call FPWF
+    else if (noderight.vtype == ValueTypeSingle)
+    {
+        GenerateExpression(expr, nodeleft);
+        if (nodeleft.vtype == ValueTypeInteger)
+            AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+        GenerateExpression(expr, noderight);
+        AddRuntimeCall(RuntimeFPWF, comment);  // result on stack
+    }
+    else
+        assert(false);
 }
 
 void Generator::GenerateLogicOperArguments(const ExpressionModel& expr, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
