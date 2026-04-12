@@ -715,7 +715,7 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             //TODO: Special case for one-char string
             AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
             AddLine("\tMOV\t#" + deconame + ", R1");
-            AddRuntimeCall(RuntimeSTRCP, comment);
+            AddRuntimeCall(RuntimeSTCP, comment);
         }
     }
     else if (expr.IsVariableExpression())
@@ -961,35 +961,45 @@ void Generator::GenerateFor(StatementModel& statement)
 // NEXT [<ПАРАМЕТР>[,< ПАРАМЕТР >...]]
 void Generator::GenerateNext(StatementModel& statement)
 {
-    assert(statement.paramline != 0);
-    SourceLineModel& linefor = m_source->GetSourceLine(statement.paramline);
+    assert(statement.variables.size() > 0);
 
-    string varname = linefor.statement.ident.text;
-    string deconame = DecorateVariableName(GetCanonicVariableName(varname));
-    int forlinenum = statement.paramline;
-
-    if (linefor.statement.args.size() < 3)
-        AddLine("\tINC\t" + deconame);
-    else
+    for (VariableModel& variable : statement.variables)
     {
-        ExpressionModel& forexpr3 = linefor.statement.args[2];
-        if (forexpr3.IsConstExpression())
-        {
-            //TODO: Warning if Single STEP value for Integer FOR variable
-            int ivalue = (int)std::floor(forexpr3.GetConstExpressionDValue());
-            AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame + "\t; STEP");
-        }
+        SourceLineModel* plinefor = variable.psourceline;
+        assert(plinefor != nullptr);
+        StatementModel& forstatement = plinefor->statement;
+
+        string canoname = variable.GetVariableCanonicName();
+        string deconame = DecorateVariableName(canoname);
+        int forlinenum = plinefor->linenum;
+        assert(forlinenum > 0);
+        string comment = "NEXT " + canoname;
+
+        // Increment FOR variable by 1 or by STEP value
+        //TODO: Single variable increment or STEP
+        if (forstatement.args.size() < 3)
+            AddLine("\tINC\t" + deconame + "\t; " + comment);
         else
         {
-            //NOTE: "#1" here will be replaced at run-time with calculated STEP value
-            AddLine("S" + std::to_string(forlinenum) + ":\tADD\t#1, " + deconame + "\t; STEP");
+            ExpressionModel& forexpr3 = forstatement.args[2];
+            if (forexpr3.IsConstExpression())
+            {
+                //TODO: Warning if Single STEP value for Integer FOR variable
+                int ivalue = (int)std::floor(forexpr3.GetConstExpressionDValue());
+                AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame + "\t; " + comment);
+            }
+            else
+            {
+                //NOTE: "#1" here will be replaced at run-time with calculated STEP value
+                AddLine("S" + std::to_string(forlinenum) + ":\tADD\t#1, " + deconame + "\t; " + comment);
+            }
         }
-    }
 
-    // JMP to continue loop
-    AddLine("\tJMP\tR" + std::to_string(forlinenum) + "\t; continue loop");
-    // Label after NEXT
-    AddLine("X" + std::to_string(forlinenum) + ":\t; FOR exit addr");
+        // JMP to continue loop
+        AddLine("\tJMP\tR" + std::to_string(forlinenum) + "\t; continue loop");
+        // Label after NEXT
+        AddLine("X" + std::to_string(forlinenum) + ":\t; FOR exit addr");
+    }
 }
 
 void Generator::GenerateGosub(StatementModel& statement)
@@ -2692,7 +2702,7 @@ void Generator::GenerateFuncInp(const ExpressionModel& expr, const ExpressionNod
 
     GenerateExpression(expr2);
     //TODO: For Single expression, convert to Integer
-    AddLine("\tCPL\tR0");  // invert the mask
+    AddLine("\tCOM\tR0");  // invert the mask
 
     AddLine("\tBIC\tR0, R1\t; INP mask");  // apply the mask
     AddLine("\tMOV\tR1, R0\t; INP"); // result in R0

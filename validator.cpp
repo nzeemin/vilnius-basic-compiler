@@ -884,8 +884,11 @@ void Validator::ValidatePsetPreset(StatementModel& statement)
         MODEL_ERROR("Too many parameters.");
 }
 
+// NEXT [<ПАРАМЕТР>[,< ПАРАМЕТР >...]]
 void Validator::ValidateNext(StatementModel& statement)
 {
+    //NOTE: Filling statement.variables with list of NEXT variables plus link to FOR statement for each
+
     if (statement.params.empty())  // NEXT without parameters
     {
         if (m_fornextstack.empty())
@@ -899,17 +902,18 @@ void Validator::ValidateNext(StatementModel& statement)
         tokenvar.text = forspec.varname;
         statement.params.push_back(tokenvar);
 
-        // link NEXT to the corresponding FOR
-        statement.paramline = forspec.linenum;
-
         // link FOR to the NEXT line number
         SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
         linefor.statement.paramline = m_line->linenum;
 
+        VariableModel variable;
+        variable.name = forspec.varname;
+        variable.psourceline = &linefor;
+        statement.variables.push_back(variable);
+
         return;
     }
 
-    //TODO: need to change the model for case of several NEXT variables
     for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
     {
         string varname = GetCanonicVariableName(it->text);
@@ -924,12 +928,14 @@ void Validator::ValidateNext(StatementModel& statement)
         if (forspec.varname != varname)
             MODEL_ERROR("NEXT variable expected: " + forspec.varname + ", found:" + varname + ".");
 
-        // link NEXT to the corresponding FOR
-        statement.paramline = forspec.linenum;
-
         // link FOR to the NEXT line number
         SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
         linefor.statement.paramline = m_line->linenum;
+
+        VariableModel variable;
+        variable.name = varname;
+        variable.psourceline = &linefor;
+        statement.variables.push_back(variable);
     }
 }
 

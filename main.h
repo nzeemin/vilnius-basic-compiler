@@ -155,7 +155,7 @@ enum RuntimeSymbol
     RuntimeFLOG         = 44,
     RuntimeReserved6    = 45,
     RuntimeINKEY        = 46,
-    RuntimeSTRCP        = 47,
+    RuntimeSTCP         = 47,  // String copy
     RuntimeCOLR         = 48,  // COLOR
 };
 
@@ -239,9 +239,14 @@ public:
     string GetVariableDecoratedName() const { return DecorateVariableName(GetCanonicVariableName(name)); }
 };
 
+struct SourceLineModel;
+
 struct VariableModel : VariableBaseModel
 {
     std::vector<int> indices;  // List of variable indices if any
+    SourceLineModel* psourceline;  // Source line, used for FOR..NEXT linkage
+public:
+    VariableModel() : indices(), psourceline(nullptr) {}
 };
 
 struct ExpressionModel;

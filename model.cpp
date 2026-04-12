@@ -588,7 +588,7 @@ const char* RuntimeSymbolNames[] = {
     "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
     "",  // Reserved
     "INKEY",
-    "STRCP",
+    "STCP",
     "COLR",
 };
 
