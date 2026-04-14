@@ -954,7 +954,7 @@ void Generator::GenerateFor(StatementModel& statement)
 
     string nextlinelabel = m_source->GetNextLineLabel(m_line->linenum);
     AddLine("R" + std::to_string(m_line->linenum) + ":\tCMP\t" + tovalue + ", " + deconame);
-    AddLine("\tBHIS\t.+6\t; to loop body");
+    AddLine("\tBGE\t.+6\t; to loop body");
     AddLine("\tJMP\tX" + std::to_string(m_line->linenum));  // label after NEXT
 }
 

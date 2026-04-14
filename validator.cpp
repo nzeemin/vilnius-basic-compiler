@@ -916,17 +916,19 @@ void Validator::ValidateNext(StatementModel& statement)
 
     for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
     {
-        string varname = GetCanonicVariableName(it->text);
-        if (!m_source->IsVariableRegistered(varname))
-            MODEL_ERROR("Variable not found:" + varname + ".");
-        
-        //TODO: Check for numeric variable type?
+        if (m_fornextstack.empty())
+            MODEL_ERROR("NEXT without FOR.");
 
         ValidatorForSpec forspec = m_fornextstack.back();
-        m_fornextstack.pop_back();
 
+        string varname = GetCanonicVariableName(it->text);
         if (forspec.varname != varname)
-            MODEL_ERROR("NEXT variable expected: " + forspec.varname + ", found:" + varname + ".");
+            MODEL_ERROR("NEXT variable expected: " + forspec.varname + ", found: " + varname + ".");
+        assert(m_source->IsVariableRegistered(varname));
+
+        //TODO: Check for numeric variable type?
+
+        m_fornextstack.pop_back();
 
         // link FOR to the NEXT line number
         SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
