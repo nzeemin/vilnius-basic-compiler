@@ -2645,9 +2645,7 @@ void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNod
 
     GenerateExpression(expr1);
     if (expr1.GetExpressionValueType() == ValueTypeInteger)
-    {
-        //TODO: For Integer expression, convert to Single
-    }
+        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
 
     AddRuntimeCall(RuntimeFRND, "random number");  // result on stack
 }
