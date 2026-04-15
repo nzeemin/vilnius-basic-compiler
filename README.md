@@ -33,11 +33,11 @@ Current state of the project: **prototype**
  - полноценный парсинг всех конструкций языка, кроме оператора `DATA`
  - вычисление Integer и Single выражений, вычисление константных String выражений
  - `PRINT` для Integer/Single и константных строк, `INPUT` только для целых чисел
- - функции: `PI`, `ABS`, `FIX`, `INT`, `SGN`, `CINT`, `CSNG`, `PEEK`, `INP`, CSRLIN, POS
+ - функции: `PI`, `ABS`, `FIX`, `INT`, `SGN`, `CINT`, `CSNG`, `PEEK`, `INP`, `SQR`, `SIN`, `COS`, `TAN`, `ATN`, `RND`
  - операторы: `LET` (кроме `LET MID$`), `GOTO`, `GOSUB`, `RETURN`, `IF/THEN/ELSE`, `FOR`, `NEXT`, `ON/GOTO/GOSUB`, `STOP`, `END`, `REM`, `PRINT` (включая `AT`, `TAB`, `SPC`, запятая), `INPUT` (только для Integer), `POKE`, `OUT`, `CLS`, `COLOR`, `LOCATE`, `BEEP`
  - без работы со строками, без работы с файлами, без графики, без `DATA`/`READ`/`RESTORE`
+ - НЕ реализованы функции:, `CSRLIN`, `POS`, `EXP`, `LOG`, `FRE`, `CDBL`, `ASC`, `CHR$`, `LRN`, `MID$`, `STRING$`, `VAL`, `INKEY$`, `STR$`, `BIN$`, `OCT$`, `HEX$`, `LPOS`, `EOF`, `FN`, `USR`
  - НЕ реализованы операторы: `LET MID$`, `DIM`, `KEY`, `CLEAR`, `DATA`, `READ`, `RESTORE`, `DEF USR`, `DEF FN`, `PRINT` для строковых выражений, `INPUT` для Single и строк, `OPEN`, `CLOSE`, `SCREEN`, `PSET`, `PRESET`, `LINE`, `CIRCLE`, `PAINT`, `DRAW`, `TRON`, `TROFF`, `WIDTH`, `SYSTEM`, `MONIT`
- - НЕ реализованы функции: `SQR`, `SIN`, `COS`, `TAN`, `ATN`, `EXP`, `LOG`, `RND`, `FRE`, `CDBL`, `ASC`, `CHR$`, `LRN`, `MID$`, `STRING$`, `VAL`, `INKEY$`, `STR$`, `BIN$`, `OCT$`, `HEX$`, `LPOS`, `EOF`, `FN`, `USR`
 
 Возможные сценарии использования компилятора:
 

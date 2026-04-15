@@ -2643,6 +2643,15 @@ void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNod
     const ExpressionModel& expr1 = node.args[0];
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
+    // Special case for RND(0): return RNDSAV value
+    if (expr1.IsConstExpression() && std::floor(expr1.GetConstExpressionDValue()) == 0.0)
+    {
+        AddLine("\tMOV\tRNDSAV+2, -(SP)\t; RND(0)");
+        AddLine("\tMOV\tRNDSAV, -(SP)");
+        m_runtimeneeds.insert(RuntimeFRND);
+        return;
+    }
+
     GenerateExpression(expr1);
     if (expr1.GetExpressionValueType() == ValueTypeInteger)
         AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
