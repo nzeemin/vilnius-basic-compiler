@@ -33,12 +33,13 @@ typedef std::string string;
 //////////////////////////////////////////////////////////////////////
 // Enums
 
+//NOTE: This enum should be in the same order as Keywords array in tokenizer.cpp
 enum KeywordIndex
 {
     KeywordNone = 0,
     KeywordABS, KeywordAND, KeywordASC, KeywordAT, KeywordATN, KeywordAUTO,
     KeywordBEEP, KeywordBLOAD, KeywordBSAVE, KeywordBIN,
-    KeywordCDBL, KeywordCHR, KeywordCINT, KeywordCIRCLE, KeywordCLEAR, KeywordCLOAD, KeywordCLS,
+    KeywordCALL, KeywordCDBL, KeywordCHR, KeywordCINT, KeywordCIRCLE, KeywordCLEAR, KeywordCLOAD, KeywordCLS,
     KeywordCOLOR, KeywordCONT, KeywordCOS, KeywordCSAVE, KeywordCSNG, KeywordCSRLIN, KeywordCLOSE, KeywordSCREEN,
     KeywordDELETE, KeywordDIM, KeywordDRAW, KeywordDATA, KeywordDEF,
     KeywordELSE, KeywordEND, KeywordEOF, KeywordEQV, KeywordEXP,
@@ -293,7 +294,7 @@ struct VariableExpressionModel : VariableBaseModel
 struct StatementModel
 {
     Token	token;      // Token for the statement keyword
-    Token	ident;	    // LET identifier at left, FOR variable
+    Token	ident;	    // LET identifier at left, FOR variable, CALL label
     int		paramline;	// Line number parameter for GOTO, GOSUB, RESTORE
     bool    inner;      // Is it inner statement under THEN or ELSE
     bool    relative;   // PSET, PRESET, LINE, CIRCLE, PAINT with '@' sign
@@ -471,6 +472,7 @@ private:
     void ParseRestore(StatementModel& statement);
     void ParseScreen(StatementModel& statement);
     void ParseWidth(StatementModel& statement);
+    void ParseCall(StatementModel& statement);
 };
 
 class Validator;
@@ -553,6 +555,7 @@ private:
     void ValidateRestore(StatementModel& statement);
     void ValidateScreen(StatementModel& statement);
     void ValidateWidth(StatementModel& statement);
+    void ValidateCall(StatementModel& statement);
 private:
     void ValidateUnaryPlus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight);
     void ValidateUnaryMinus(ExpressionModel& expr, ExpressionNode& node, const ExpressionNode& noderight);
@@ -709,6 +712,7 @@ private:
     void GenerateScreen(StatementModel& statement);
     void GenerateStop(StatementModel& statement);
     void GenerateWidth(StatementModel& statement);
+    void GenerateCall(StatementModel& statement);
 private:
     void GenerateOperPlus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);
     void GenerateOperMinus(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight);

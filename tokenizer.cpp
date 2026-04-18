@@ -8,7 +8,7 @@
 const char* Keywords[] = {
     "ABS", "AND", "ASC", "AT", "ATN", "AUTO",
     "BEEP", "BLOAD", "BSAVE", "BIN$",
-    "CDBL", "CHR$", "CINT", "CIRCLE", "CLEAR", "CLOAD", "CLS",
+    "CALL", "CDBL", "CHR$", "CINT", "CIRCLE", "CLEAR", "CLOAD", "CLS",
     "COLOR", "CONT", "COS", "CSAVE", "CSNG", "CSRLIN", "CLOSE", "SCREEN",
     "DELETE", "DIM", "DRAW", "DATA", "DEF",
     "ELSE", "END", "EOF", "EQV", "EXP",

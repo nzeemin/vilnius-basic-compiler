@@ -57,6 +57,7 @@ const ValidatorKeywordSpec Validator::m_keywordspecs[] =
     { KeywordTRON,      &Validator::ValidateNothing },
     { KeywordDEF,       &Validator::ValidateDef },
     { KeywordWIDTH,     &Validator::ValidateWidth },
+    { KeywordCALL,      &Validator::ValidateCall },
 };
 
 const ValidatorOperSpec Validator::m_operspecs[] =
@@ -1160,6 +1161,13 @@ void Validator::ValidateWidth(StatementModel& statement)
     //NOTE: Ignored for now
 }
 
+// Extension: calls assembler procedure
+// CALL <LABEL>
+void Validator::ValidateCall(StatementModel& statement)
+{
+    if (statement.ident.type != TokenTypeIdentifier)
+        MODEL_ERROR("Identifier expected.");
+}
 
 // Operation validation //////////////////////////////////////////////
 // Every operation validator function should:
@@ -2290,6 +2298,7 @@ void Validator::ValidateFuncPoint(ExpressionModel& expr, ExpressionNode& node)
     node.constval = false;
 }
 
+// Extension: conditional function
 // X=IIF(<ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
 // result is Single or Integer
 void Validator::ValidateFuncIif(ExpressionModel& expr, ExpressionNode& node)

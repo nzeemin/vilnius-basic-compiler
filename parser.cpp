@@ -57,6 +57,7 @@ const ParserKeywordSpec Parser::m_keywordspecs[] =
     { KeywordTROFF,     &Parser::ParseStatementNoParams },
     { KeywordTRON,      &Parser::ParseStatementNoParams },
     { KeywordWIDTH,     &Parser::ParseWidth },
+    { KeywordCALL,      &Parser::ParseCall },
 };
 
 const ParserFunctionSpec Parser::m_funcspecs[] =
@@ -2016,6 +2017,22 @@ void Parser::ParseWidth(StatementModel& statement)
     if (token.type != TokenTypeNumber)
         MODEL_ERROR("Numeric argument expected.");
     statement.params.push_back(token);
+
+    token = PeekNextTokenSkipDivider();
+    if (!token.IsEndOfStatement())
+        MODEL_ERROR(MSG_UNEXPECTED_AT_END_OF_STATEMENT);
+}
+
+// Extension: calls assembler procedure
+// CALL <LABEL>
+void Parser::ParseCall(StatementModel& statement)
+{
+    Token token = PeekNextTokenSkipDivider();
+    if (token.type != TokenTypeIdentifier)
+        MODEL_ERROR("CALL label expected.");
+    GetNextToken();
+
+    statement.ident = token;
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsEndOfStatement())

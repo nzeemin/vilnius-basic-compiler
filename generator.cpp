@@ -53,6 +53,7 @@ const GeneratorKeywordSpec Generator::m_keywordspecs[] =
     { KeywordTRON,      &Generator::GenerateIgnoredStatement },
     { KeywordTROFF,     &Generator::GenerateIgnoredStatement },
     { KeywordWIDTH,     &Generator::GenerateWidth },
+    { KeywordCALL,      &Generator::GenerateCall },
 };
 
 GeneratorMethodRef Generator::FindGeneratorMethodRef(KeywordIndex keyword)
@@ -1734,6 +1735,15 @@ void Generator::GenerateWidth(StatementModel& statement)
 {
     AddComment("WIDTH statement is ignored");
     Warning(statement.token, "WIDTH statement is ignored");
+}
+
+// Extension: calls assembler procedure
+// CALL <LABEL>
+void Generator::GenerateCall(StatementModel& statement)
+{
+    if (!g_turbo8)
+        AddLine("\t.GLOBL\t" + statement.ident.text);
+    AddLine("\tCALL\t" + statement.ident.text + "\t; CALL label");
 }
 
 
