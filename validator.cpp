@@ -130,6 +130,8 @@ Validator::Validator(SourceModel* source)
 
     m_lineindex = -1;
     m_line = nullptr;
+
+    m_forcount = 0;
 }
 
 bool Validator::ProcessLine()
@@ -144,22 +146,28 @@ bool Validator::ProcessLine()
 
     if (m_lineindex >= (int)m_source->lines.size())
     {
-        //ProcessEnd();
+        ProcessEnd();
         m_lineindex = INT_MAX;
         return false;
     }
 
     m_line = &(m_source->lines[m_lineindex]);
 
-    // Spectial case: line with FOR statement should have line number
-    if (m_line->linenum == 0 && m_line->statement.token.keyword == KeywordFOR)
-    {
-        Error("Line with FOR statement should have line number.");
-    }
-
     ValidateStatement(m_line->statement);
 
     return true;
+}
+
+void Validator::ProcessEnd()
+{
+    if (!m_fornextstack.empty())
+    {
+        const ValidatorForSpec& forspec = m_fornextstack.back();
+
+        std::cerr << "ERROR at " << forspec.srclinenum << " - FOR statement has no corresponding NEXT." << std::endl;
+        m_line->error = true;
+        RegisterError();
+    }
 }
 
 void Validator::ValidateStatement(StatementModel& statement)
@@ -527,10 +535,13 @@ void Validator::ValidateFor(StatementModel& statement)
     //TODO: check variable type
 
     // Add FOR variable to FOR/NEXT stack
+    m_forcount++;
     ValidatorForSpec forspec;
     forspec.varname = var.name;
-    forspec.linenum = m_line->linenum;
+    forspec.srclinenum = m_line->srclinenum;
     m_fornextstack.push_back(forspec);
+
+    statement.forindex = m_forcount;
 
     if (statement.args.size() < 2)
         MODEL_ERROR("Two parameters expected.");
@@ -551,6 +562,63 @@ void Validator::ValidateFor(StatementModel& statement)
 
         if (statement.args.size() > 3)
             MODEL_ERROR("Too many parameters.");
+    }
+}
+
+// NEXT [<ПАРАМЕТР>[,< ПАРАМЕТР >...]]
+void Validator::ValidateNext(StatementModel& statement)
+{
+    //NOTE: Filling statement.variables with list of NEXT variables plus link to FOR statement for each
+
+    if (statement.params.empty())  // NEXT without parameters
+    {
+        if (m_fornextstack.empty())
+            MODEL_ERROR("NEXT without FOR.");
+
+        ValidatorForSpec forspec = m_fornextstack.back();
+        m_fornextstack.pop_back();
+
+        Token tokenvar;
+        tokenvar.type = TokenTypeIdentifier;
+        tokenvar.text = forspec.varname;
+        statement.params.push_back(tokenvar);
+
+        // link FOR to the NEXT line number
+        SourceLineModel& linefor = m_source->GetSourceLine(forspec.srclinenum);
+        assert(linefor.statement.forindex != 0);
+
+        VariableModel variable;
+        variable.name = forspec.varname;
+        variable.psourceline = &linefor;
+        statement.variables.push_back(variable);
+
+        return;
+    }
+
+    for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
+    {
+        if (m_fornextstack.empty())
+            MODEL_ERROR("NEXT without FOR.");
+
+        ValidatorForSpec forspec = m_fornextstack.back();
+
+        string varname = GetCanonicVariableName(it->text);
+        if (forspec.varname != varname)
+            MODEL_ERROR("NEXT variable expected: " + forspec.varname + ", found: " + varname + ".");
+        assert(m_source->IsVariableRegistered(varname));
+
+        //TODO: Check for numeric variable type?
+
+        m_fornextstack.pop_back();
+
+        // link FOR to the NEXT line number
+        SourceLineModel& linefor = m_source->GetSourceLine(forspec.srclinenum);
+        assert(linefor.statement.forindex != 0);
+
+        VariableModel variable;
+        variable.name = varname;
+        variable.psourceline = &linefor;
+        statement.variables.push_back(variable);
     }
 }
 
@@ -882,63 +950,6 @@ void Validator::ValidatePsetPreset(StatementModel& statement)
 
     if (statement.args.size() > 3)
         MODEL_ERROR("Too many parameters.");
-}
-
-// NEXT [<ПАРАМЕТР>[,< ПАРАМЕТР >...]]
-void Validator::ValidateNext(StatementModel& statement)
-{
-    //NOTE: Filling statement.variables with list of NEXT variables plus link to FOR statement for each
-
-    if (statement.params.empty())  // NEXT without parameters
-    {
-        if (m_fornextstack.empty())
-            MODEL_ERROR("NEXT without FOR.");
-
-        ValidatorForSpec forspec = m_fornextstack.back();
-        m_fornextstack.pop_back();
-
-        Token tokenvar;
-        tokenvar.type = TokenTypeIdentifier;
-        tokenvar.text = forspec.varname;
-        statement.params.push_back(tokenvar);
-
-        // link FOR to the NEXT line number
-        SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
-        linefor.statement.paramline = m_line->linenum;
-
-        VariableModel variable;
-        variable.name = forspec.varname;
-        variable.psourceline = &linefor;
-        statement.variables.push_back(variable);
-
-        return;
-    }
-
-    for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
-    {
-        if (m_fornextstack.empty())
-            MODEL_ERROR("NEXT without FOR.");
-
-        ValidatorForSpec forspec = m_fornextstack.back();
-
-        string varname = GetCanonicVariableName(it->text);
-        if (forspec.varname != varname)
-            MODEL_ERROR("NEXT variable expected: " + forspec.varname + ", found: " + varname + ".");
-        assert(m_source->IsVariableRegistered(varname));
-
-        //TODO: Check for numeric variable type?
-
-        m_fornextstack.pop_back();
-
-        // link FOR to the NEXT line number
-        SourceLineModel& linefor = m_source->GetSourceLine(forspec.linenum);
-        linefor.statement.paramline = m_line->linenum;
-
-        VariableModel variable;
-        variable.name = varname;
-        variable.psourceline = &linefor;
-        statement.variables.push_back(variable);
-    }
 }
 
 // ON <ВЫРАЖЕНИЕ> GOTO <СПИСОК>

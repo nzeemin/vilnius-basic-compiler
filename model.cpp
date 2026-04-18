@@ -487,17 +487,17 @@ string SourceModel::GetNextLineLabel(int linenumber) const
     return "LEND";
 }
 
-SourceLineModel& SourceModel::GetSourceLine(int linenumber)
+SourceLineModel& SourceModel::GetSourceLine(int srclinenumber)
 {
-    assert(linenumber < MAX_LINE_NUMBER);
+    assert(srclinenumber > 0);
 
     for (auto it = std::begin(lines); it != std::end(lines); ++it)
     {
-        if (it->linenum == linenumber)
+        if (it->srclinenum == srclinenumber)
             return *it;
     }
 
-    assert(false);  // Line number not found
+    assert(false);  // Line not found
     exit(EXIT_FAILURE);
 }
 

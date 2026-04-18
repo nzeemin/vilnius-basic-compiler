@@ -301,6 +301,7 @@ struct StatementModel
     bool    gotogosub;  // true for ON GOTO, false for ON GOSUB
     bool    deffnorusr; // true for DEF FN, false for DEF USR
     bool    nocrlf;     // PRINT flag indicating we don't need CR/LF at the end
+    int     forindex;   // Index used to tie FOR..NEXT parts together
     FileMode filemode;  // File mode for OPEN
     std::vector<ExpressionModel> args;  // Statement arguments
     std::vector<Token> params;  // Statement params like list of variables
@@ -339,7 +340,7 @@ public:
     bool IsVariableRegistered(const string& varname) const;
     bool IsLineNumberExists(int linenumber) const;
     string GetNextLineLabel(int linenumber) const;
-    SourceLineModel& GetSourceLine(int linenumber);
+    SourceLineModel& GetSourceLine(int srclinenumber);
     void RegisterConstString(const string& str);
     int GetConstStringIndex(const string& str);
 };
@@ -494,7 +495,7 @@ struct ValidatorFuncSpec
 
 struct ValidatorForSpec
 {
-    int     linenum;  // FOR statement line number
+    int     srclinenum;  // FOR statement source line number
     string  varname;
 };
 
@@ -504,6 +505,7 @@ class Validator
     int             m_lineindex;
     SourceLineModel* m_line;  // Curent line being validated
     std::vector<ValidatorForSpec> m_fornextstack;
+    int             m_forcount;
 private:
     static const ValidatorKeywordSpec m_keywordspecs[];
     static const ValidatorOperSpec m_operspecs[];
@@ -512,6 +514,7 @@ public:
     Validator(SourceModel* source);
 public:
     bool ProcessLine();
+    void ProcessEnd();
 private:
     void ValidateStatement(StatementModel& statement);
     void Error(const string& message);

@@ -1,7 +1,8 @@
 -q
 ----------------------------------------------------------------------
+FOR J% = 1% TO 10%
 FOR I% = 1% TO 10%
-NEXT
+NEXT I%
 ----------------------------------------------------------------------
-ERROR at 1 - Line with FOR statement should have line number.
+ERROR at 1 - FOR statement has no corresponding NEXT.
 Validation ERRORS: 1

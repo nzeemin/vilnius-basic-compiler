@@ -905,6 +905,8 @@ void Generator::GenerateFor(StatementModel& statement)
     ExpressionModel& expr1 = statement.args[0];
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
+    assert(statement.forindex != 0);
+
     assert(statement.ident.type == TokenTypeIdentifier);
     VariableExpressionModel var;
     var.name = statement.ident.text;
@@ -925,14 +927,14 @@ void Generator::GenerateFor(StatementModel& statement)
     {
         //TODO: register variable
         string svalue = expr2.GetVariableExpressionDecoratedName();
-        AddLine("\tMOV\t" + svalue + ", @#<R" + std::to_string(m_line->linenum) + "+2>");
+        AddLine("\tMOV\t" + svalue + ", @#<F" + std::to_string(statement.forindex) + "+2>");
     }
     else
     {
         GenerateExpression(expr2);
         if (expr2.GetExpressionValueType() == ValueTypeSingle)
             AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
-        AddLine("\tMOV\tR0, @#<R" + std::to_string(m_line->linenum) + "+2>");  //  Save "to" value
+        AddLine("\tMOV\tR0, @#<F" + std::to_string(statement.forindex) + "+2>");  //  Save "to" value
     }
 
     if (statement.args.size() > 2)  // has STEP expression
@@ -948,14 +950,13 @@ void Generator::GenerateFor(StatementModel& statement)
             if (expr3.GetExpressionValueType() == ValueTypeSingle)
                 AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
             // Save "step" value
-            AddLine("\tMOV\tR0, @#<S" + std::to_string(m_line->linenum) + "+2>");
+            AddLine("\tMOV\tR0, @#<S" + std::to_string(statement.forindex) + "+2>");
         }
     }
 
-    string nextlinelabel = m_source->GetNextLineLabel(m_line->linenum);
-    AddLine("R" + std::to_string(m_line->linenum) + ":\tCMP\t" + tovalue + ", " + deconame);
+    AddLine("F" + std::to_string(statement.forindex) + ":\tCMP\t" + tovalue + ", " + deconame);
     AddLine("\tBGE\t.+6\t; to loop body");
-    AddLine("\tJMP\tX" + std::to_string(m_line->linenum));  // label after NEXT
+    AddLine("\tJMP\tX" + std::to_string(statement.forindex));  // label after NEXT
 }
 
 // NEXT [<ПАРАМЕТР>[,< ПАРАМЕТР >...]]
@@ -968,11 +969,10 @@ void Generator::GenerateNext(StatementModel& statement)
         SourceLineModel* plinefor = variable.psourceline;
         assert(plinefor != nullptr);
         StatementModel& forstatement = plinefor->statement;
+        assert(forstatement.forindex != 0);
 
         string canoname = variable.GetVariableCanonicName();
         string deconame = DecorateVariableName(canoname);
-        int forlinenum = plinefor->linenum;
-        assert(forlinenum > 0);
         string comment = "NEXT " + canoname;
 
         // Increment FOR variable by 1 or by STEP value
@@ -991,14 +991,14 @@ void Generator::GenerateNext(StatementModel& statement)
             else
             {
                 //NOTE: "#1" here will be replaced at run-time with calculated STEP value
-                AddLine("S" + std::to_string(forlinenum) + ":\tADD\t#1, " + deconame + "\t; " + comment);
+                AddLine("S" + std::to_string(forstatement.forindex) + ":\tADD\t#1, " + deconame + "\t; " + comment);
             }
         }
 
         // JMP to continue loop
-        AddLine("\tJMP\tR" + std::to_string(forlinenum) + "\t; continue loop");
+        AddLine("\tJMP\tF" + std::to_string(forstatement.forindex) + "\t; continue loop");
         // Label after NEXT
-        AddLine("X" + std::to_string(forlinenum) + ":\t; FOR exit addr");
+        AddLine("X" + std::to_string(forstatement.forindex) + ":\t; FOR exit addr");
     }
 }
 
