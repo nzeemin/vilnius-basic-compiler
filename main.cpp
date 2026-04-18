@@ -1,4 +1,5 @@
 ﻿
+#include <cassert>
 #include <cstdio>
 #include <iostream>
 #include <fstream>
@@ -49,7 +50,6 @@ TargetPlatform FindPlatformByName(const string& name)
     if (name == "UKNC") return PlatformUKNC;
     return PlatformNone;
 }
-
 
 void RegisterError()
 {
@@ -274,15 +274,6 @@ void ProcessFiles()
         exit(EXIT_FAILURE);
     }
 
-    // Generation
-    Generator generator(&g_source, &g_final);
-    g_errorcount = 0;
-    while (generator.ProcessLine())
-        ;
-
-    const std::set<RuntimeSymbol> runtimeneeds = generator.GetRuntimeNeeds();
-    RuntimeGenerator runtimegen(runtimeneeds, &g_final);
-
     // Read and parse the runtime template
     std::ifstream rttplstream;
     rttplstream.open(g_rttplfilepath);
@@ -291,11 +282,32 @@ void ProcessFiles()
         std::cerr << "Failed to open runtime template file " + g_rttplfilepath << std::endl;
         exit(EXIT_FAILURE);
     }
+    RuntimeGenerator runtimegen(&g_final);
     runtimegen.ParseRuntimeTemplate(&rttplstream);
     rttplstream.close();
 
+    // Generation
+    std::vector<string> initlines;
+    runtimegen.GetRuntimeBlock(RuntimeINIT, initlines);
+    std::vector<string> termlines;
+    runtimegen.GetRuntimeBlock(RuntimeTERM, termlines);
+
+    if (g_errorcount > 0)
+    {
+        std::cerr << "Generation ERRORS: " << g_errorcount << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    assert(!initlines.empty());
+    assert(!termlines.empty());
+
+    Generator generator(&g_source, &g_final, &initlines, &termlines);
+    g_errorcount = 0;
+    while (generator.ProcessLine())
+        ;
+
     // Generate runtime
-    runtimegen.GenerateRuntime();
+    const std::set<RuntimeSymbol> runtimeneeds = generator.GetRuntimeNeeds();
+    runtimegen.GenerateRuntime(runtimeneeds);
 
     if (g_errorcount > 0)
     {

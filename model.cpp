@@ -566,17 +566,16 @@ void FinalModel::AddRuntimeLine(const string& str)
 // The table has the same procedures in the same order as RuntimeSymbol enum
 const char* RuntimeSymbolNames[] = {
     "", // None
+    "INIT", "TERM",
     "WRCH", "WREOL", "WRAT", "WRSPC", "WRTAB", "WRCOM",
     "WRINT", "WRSNG", "WRST",
     "STOP",
     "ERRR",
-    "",  // Reserved
     "GETCR", "CURSR",
     "INPU",
     "INPI",
     "IMUL", "IDIV",
     "ITOF", "FTOI",
-    "",  // Reserved
     "FUNPK", "FFIX", "FINT",
     "FCMP", "FSGN",
     "",  // Reserved
@@ -594,6 +593,9 @@ const char* RuntimeSymbolNames[] = {
 
 string GetRuntimeSymbolName(RuntimeSymbol rtsymbol)
 {
+    // Make sure RuntimeSymbolNames array has the same size as RuntimeSymbol enum
+    assert(__RuntimeSymbol_SIZE__ == sizeof(RuntimeSymbolNames) / sizeof(const char*));
+
     if (rtsymbol < sizeof(RuntimeSymbolNames) / sizeof(const char*))
         return RuntimeSymbolNames[rtsymbol];
 

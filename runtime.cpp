@@ -8,8 +8,8 @@
 //////////////////////////////////////////////////////////////////////
 
 
-RuntimeGenerator::RuntimeGenerator(const std::set<RuntimeSymbol>& needs, FinalModel* intermed)
-    : m_needs(needs), m_final(intermed)
+RuntimeGenerator::RuntimeGenerator(FinalModel* intermed)
+    : m_final(intermed)
 {
     assert(intermed != nullptr);
 }
@@ -97,8 +97,25 @@ RuntimeBlock RuntimeGenerator::FindRuntimeBlock(RuntimeSymbol rtsymbol)
     return RuntimeBlock();  // empty block
 }
 
-void RuntimeGenerator::GenerateRuntime()
+void RuntimeGenerator::GetRuntimeBlock(RuntimeSymbol rtsymbol, std::vector<string>& copyto)
 {
+    RuntimeBlock rtblock = FindRuntimeBlock(rtsymbol);
+    if (rtblock.rtsymbol == RuntimeNone)
+    {
+        string rtsymbolname = GetRuntimeSymbolName(rtsymbol);
+        std::cerr << "Runtime block \'" << rtsymbolname << "\' not found." << std::endl;
+        RegisterError();
+        return;
+    }
+
+    std::copy(rtblock.lines.begin(), rtblock.lines.end(), std::back_inserter(copyto));
+}
+
+void RuntimeGenerator::GenerateRuntime(const std::set<RuntimeSymbol>& needs)
+{
+    for (RuntimeSymbol rtsymbol : needs)
+        m_needs.insert(rtsymbol);
+
     std::vector<RuntimeSymbol> listnewneeds;
     std::copy(m_needs.begin(), m_needs.end(), std::back_inserter(listnewneeds));
     while (true)

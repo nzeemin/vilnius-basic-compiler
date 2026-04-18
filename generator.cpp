@@ -195,12 +195,15 @@ static string GET_CONSTEXPR_INT_VALUE_AS_CLRMOV(ExpressionModel expr)
 //////////////////////////////////////////////////////////////////////
 
 
-Generator::Generator(SourceModel* source, FinalModel* final)
-    : m_source(source), m_final(final), m_lineindex(-1), m_line(nullptr),
-    m_runtimeneeds(), m_notimplemented()
+Generator::Generator(SourceModel* source, FinalModel* final,
+        const std::vector<string>* initlines, const std::vector<string>* termlines)
+    : m_source(source), m_final(final), m_initlines(initlines), m_termlines(termlines),
+    m_lineindex(-1), m_line(nullptr), m_local(0), m_runtimeneeds(), m_notimplemented()
 {
     assert(source != nullptr);
     assert(final != nullptr);
+    assert(initlines != nullptr);
+    assert(termlines != nullptr);
 }
 
 void Generator::AddRuntimeCall(RuntimeSymbol rtsymbol, string comment)
@@ -226,25 +229,14 @@ void Generator::AddRuntimeCall(RuntimeSymbol rtsymbol, string comment)
 void Generator::ProcessBegin()
 {
     AddLine("START:");
-    if (g_platform == PlatformUKNC)
-    {
-        AddLine("\tMTPS\t#340\t; disable interrupts");
-        AddLine("\tCLR\t@#177560");
-        AddLine("\tMTPS\t#0\t; enable interrupts");
-    }
-    AddLine("\tMOV\tSP, SAVESP");
+
+    // Copy initialization code from the runtime template
+    for (const string& line : *m_initlines)
+        m_final->AddLine(line);
 }
 
 void Generator::ProcessEnd()
 {
-    AddLine("LEND:");
-    AddLine("SAVESP = . + 2");
-    AddLine("\tMOV\t#776, SP\t; restore SP");
-    if (g_platform == PlatformBK0010)
-        AddLine("\tRETURN\t; return to Monitor/OS/etc.");
-    else if (g_platform == PlatformUKNC)
-        AddLine("\tEMT\t350\t; .EXIT");
-
     // Enumerate all the prepared lines to format them properly
     for (string& line : m_final->lines)
     {
@@ -269,6 +261,12 @@ void Generator::ProcessEnd()
                 pos++;
         }
     }
+
+    AddLine("LEND:");
+
+    // Copy termination code from the runtime template
+    for (const string& line : *m_termlines)
+        m_final->AddLine(line);
 
     GenerateStrings();
 

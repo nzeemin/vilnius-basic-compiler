@@ -67,9 +67,10 @@ Current state of the project: **prototype**
 Результат компиляции (только основной код, без рантайма):
 ```assembler
 START:
-	MTPS	#340		; disable interrupts
+; Инициализация программы
+	MTPS	#340			; disable interrupts
 	CLR	@#177560
-	MTPS	#0		; enable interrupts
+	MTPS	#0			; enable interrupts
 	MOV	SP, SAVESP
 ; 10 A%=23.42
 N10:
@@ -80,6 +81,7 @@ N20:
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 LEND:
+; Завершение программы
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350		; .EXIT

@@ -107,30 +107,31 @@ enum TargetPlatform
     PlatformUKNC        = 2,
 };
 
+//NOTE: This enum should be in the same order as RuntimeSymbolNames array in model.cpp
 enum RuntimeSymbol
 {
     RuntimeNone         = 0,
-    RuntimeWRCH         = 1,
-    RuntimeWREOL        = 2,
-    RuntimeWRAT         = 3,
-    RuntimeWRSPC        = 4,
-    RuntimeWRTAB        = 5,
-    RuntimeWRCOM        = 6,
-    RuntimeWRINT        = 7,
-    RuntimeWRSNG        = 8,
-    RuntimeWRST         = 9,   // Write String
-    RuntimeSTOP         = 10,  // Show stop message and stop
-    RuntimeERRR         = 11,  // Show error message and stop
-    RuntimeReserved1    = 12,
-    RuntimeGETCR        = 13,
-    RuntimeCURSR        = 14,
-    RuntimeINPU         = 15,  // INPUT read to buffer
-    RuntimeINPI         = 16,  // INPUT Integer
-    RuntimeIMUL         = 17,
-    RuntimeIDIV         = 18,
-    RuntimeITOF         = 19,  // Integer to Single conversion
-    RuntimeFTOI         = 20,  // Single to Integer conversion
-    RuntimeReserved2    = 21,
+    RuntimeINIT         = 1,   // Initialization code to copy into the assembly code
+    RuntimeTERM         = 2,   // Termination code to copy into the assembly code
+    RuntimeWRCH         = 3,
+    RuntimeWREOL        = 4,
+    RuntimeWRAT         = 5,
+    RuntimeWRSPC        = 6,
+    RuntimeWRTAB        = 7,
+    RuntimeWRCOM        = 8,
+    RuntimeWRINT        = 9,
+    RuntimeWRSNG        = 10,
+    RuntimeWRST         = 11,  // Write String
+    RuntimeSTOP         = 12,  // Show stop message and stop
+    RuntimeERRR         = 13,  // Show error message and stop
+    RuntimeGETCR        = 14,
+    RuntimeCURSR        = 15,
+    RuntimeINPU         = 16,  // INPUT read to buffer
+    RuntimeINPI         = 17,  // INPUT Integer
+    RuntimeIMUL         = 18,
+    RuntimeIDIV         = 19,
+    RuntimeITOF         = 20,  // Integer to Single conversion
+    RuntimeFTOI         = 21,  // Single to Integer conversion
     RuntimeFUNPK        = 22,  // Print Single to buffer
     RuntimeFFIX         = 23,
     RuntimeFINT         = 24,
@@ -158,6 +159,7 @@ enum RuntimeSymbol
     RuntimeINKEY        = 46,
     RuntimeSTCP         = 47,  // String copy
     RuntimeCOLR         = 48,  // COLOR
+    __RuntimeSymbol_SIZE__
 };
 
 
@@ -639,13 +641,16 @@ class Generator
 {
     SourceModel*    m_source;
     FinalModel*     m_final;
+    const std::vector<string>* m_initlines;
+    const std::vector<string>* m_termlines;
     int             m_lineindex;
     SourceLineModel* m_line;    // Curent line being generated
     int             m_local;    // Counter for local labels within the current line
     std::set<RuntimeSymbol> m_runtimeneeds;
     std::set<KeywordIndex> m_notimplemented;  // Statements/functions used but not implemented
 public:
-    Generator(SourceModel* source, FinalModel* intermed);
+    Generator(SourceModel* source, FinalModel* intermed,
+        const std::vector<string>* initlines, const std::vector<string>* termlines);
 public:
     void ProcessBegin();
     bool ProcessLine();
@@ -763,10 +768,11 @@ class RuntimeGenerator
     FinalModel* m_final;
     std::vector<RuntimeBlock> m_rtblocks;
 public:
-    RuntimeGenerator(const std::set<RuntimeSymbol>& needs, FinalModel* intermed);
+    RuntimeGenerator(FinalModel* intermed);
 public:
     void ParseRuntimeTemplate(std::istream* pInput);
-    void GenerateRuntime();
+    void GenerateRuntime(const std::set<RuntimeSymbol>& needs);
+    void GetRuntimeBlock(RuntimeSymbol rtsymbol, std::vector<string>& copyto);
 private:
     RuntimeBlock FindRuntimeBlock(RuntimeSymbol rtsymbol);
     void AddLine(const string& str) { m_final->AddRuntimeLine(str); }
