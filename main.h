@@ -156,9 +156,10 @@ enum RuntimeSymbol
     RuntimeFEXP         = 43,
     RuntimeFLOG         = 44,
     RuntimeReserved6    = 45,
-    RuntimeINKEY        = 46,
+    RuntimeINKEY        = 46,  // INKEY$ function
     RuntimeSTCP         = 47,  // String copy
-    RuntimeCOLR         = 48,  // COLOR
+    RuntimeSTCM         = 48,  // Compare two Strings
+    RuntimeCOLR         = 49,  // COLOR
     __RuntimeSymbol_SIZE__
 };
 

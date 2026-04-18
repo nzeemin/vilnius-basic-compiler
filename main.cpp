@@ -382,6 +382,8 @@ void ProcessFiles()
 
 void ParseCommandLine(int argc, char** argv)
 {
+    //TODO: if no arguments, show usage info
+
     for (int argn = 1; argn < argc; argn++)
     {
         const char* arg = argv[argn];

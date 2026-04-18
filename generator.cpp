@@ -522,12 +522,6 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
         }
     }
 
-    if (node.vtype == ValueTypeString)
-    {
-        AddComment("TODO calculate string expression");
-        return;
-    }
-
     // Function
     if (node.token.type == TokenTypeKeyword && IsFunctionKeyword(node.token.keyword))
     {
@@ -549,6 +543,12 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
         {
             AddLine("\tMOV\t" + deconame + ", R0\t; var " + canoname);
         }
+        return;
+    }
+
+    if (node.vtype == ValueTypeString)
+    {
+        AddComment("TODO calculate string expression");
         return;
     }
 
@@ -697,7 +697,7 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
                 AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
             }
         }
-        else if (vtype == ValueTypeSingle)
+        else if (vtype == ValueTypeSingle)  // const Single
         {
             float fvalue = static_cast<float>(expr.GetConstExpressionDValue());
             string comment = "\t; var " + canoname + " = const " + to_string_float(static_cast<float>(expr.GetConstExpressionDValue()));
@@ -707,14 +707,14 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             AddLine((wordlo == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordlo) + ", ") + deconame + comment);
             AddLine((wordhi == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordhi) + ", ") + deconame + "+2");
         }
-        else if (vtype == ValueTypeString)
+        else if (vtype == ValueTypeString)  // const String
         {
             string svalue = expr.GetConstExpressionSValue();
             int sindex = m_source->GetConstStringIndex(svalue);
             //TODO: Special case for one-char string
             AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
             AddLine("\tMOV\t#" + deconame + ", R1");
-            AddRuntimeCall(RuntimeSTCP, comment);
+            AddRuntimeCall(RuntimeSTCP, "var " + canoname + " assignment");
         }
     }
     else if (expr.IsVariableExpression())
@@ -722,7 +722,7 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
         string svalue = expr.GetVariableExpressionDecoratedName();
         AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
     }
-    else
+    else  // non-const, non-variable
     {
         ExpressionNode& root = expr.nodes[expr.root];
 
@@ -745,7 +745,7 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             else //if (!plusminus && ivalue != 1)
                 AddLine("\tSUB\t#" + std::to_string(ivalue) + "., " + deconame + comment);
         }
-        else if (vtype == ValueTypeSingle)
+        else if (vtype == ValueTypeSingle)  // non-const Single
         {
             GenerateExpression(expr);
             if (expr.GetExpressionValueType() == ValueTypeInteger)
@@ -753,17 +753,18 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             AddLine("\tMOV\t(SP)+, " + deconame + "+2" + comment);
             AddLine("\tMOV\t(SP)+, " + deconame);
         }
-        else if (vtype == ValueTypeInteger)
+        else if (vtype == ValueTypeInteger)  // non-const non-variable Integer
         {
             GenerateExpression(expr);
             if (expr.GetExpressionValueType() == ValueTypeSingle)
                 AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
             AddLine("\tMOV\tR0, " + deconame + comment);
         }
-        else
+        else  // non-const non-variable String
         {
             GenerateExpression(expr);
-            AddLine("\tMOV\tR0, " + deconame + comment);
+            AddLine("\tMOV\t" + deconame + ", R1");
+            AddRuntimeCall(RuntimeSTCP, "var " + canoname + " assignment");
         }
     }
 }
@@ -1865,7 +1866,7 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
     assert(nodeleft.vtype != ValueTypeString);
     assert(noderight.vtype != ValueTypeString);
 
-    const string comment = "\t; Operation \'*\'";
+    const string comment = "Operation \'*\'";
 
     // Single operands
     if (nodeleft.vtype == ValueTypeSingle || noderight.vtype == ValueTypeSingle)
@@ -1878,7 +1879,7 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
         if (noderight.vtype == ValueTypeInteger)
             AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
 
-        AddRuntimeCall(RuntimeFMUL, "Operation \'*\'");  // result on stack
+        AddRuntimeCall(RuntimeFMUL, comment);  // result on stack
         return;
     }
 
@@ -1908,7 +1909,7 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
 
         GenerateExpression(expr, nodeleft);
         AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
-        AddRuntimeCall(RuntimeIMUL, "Operation \'*\'");  // result in R0
+        AddRuntimeCall(RuntimeIMUL, comment);  // result in R0
         return;
     }
 
@@ -1916,7 +1917,7 @@ void Generator::GenerateOperMul(const ExpressionModel& expr, const ExpressionNod
     AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
     GenerateExpression(expr, noderight);
     AddLine("\tMOV\t(SP)+, R1");
-    AddRuntimeCall(RuntimeIMUL, "Operation \'*\'");  // result in R0
+    AddRuntimeCall(RuntimeIMUL, comment);  // result in R0
 }
 
 // result is Single
@@ -2191,7 +2192,9 @@ void Generator::GenerateLogicOperArguments(const ExpressionModel& expr, const Ex
         }
         else
         {
+            //TODO: Special cases "String equals empty String" and "String not equals empty String"
             assert(noderight.vtype == ValueTypeString);
+            AddRuntimeCall(RuntimeSTCM);
             AddComment("TODO compare String to String");
             //TODO
         }
@@ -2942,10 +2945,7 @@ void Generator::GenerateFuncLog(const ExpressionModel& expr, const ExpressionNod
 // result is String
 void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node)
 {
-    AddRuntimeCall(RuntimeINKEY, "get input key");  // R0 = symbol or 0
-    AddComment("TODO INKEY$");
-    //TODO: form a string
-    m_notimplemented.insert(KeywordINKEY);
+    AddRuntimeCall(RuntimeINKEY);  // R0 = string address
 }
 
 // X=ASC(<АРГУМЕНТ>)
@@ -2960,7 +2960,9 @@ void Generator::GenerateFuncAsc(const ExpressionModel& expr, const ExpressionNod
 
     AddLine("\tMOV\tR0, R1\t");
     AddLine("\tCLR\tR0\t");
-    AddLine("\tBISB\t1(R1), R0\t; ASC");  // get first byte of the string
+    AddLine("\tTSTB\t(R1)+\t");  // check string length
+    AddLine("\tBEQ\t.+4");
+    AddLine("\tBISB\t(R1), R0\t; ASC");  // get first byte of the string
 }
 
 // X=IIF(<ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
