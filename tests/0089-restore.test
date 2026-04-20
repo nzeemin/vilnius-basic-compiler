@@ -1,12 +1,9 @@
 -q
 ----------------------------------------------------------------------
-10 ?
+10 DATA 0
 20 DATA 1,2,3
 30 RESTORE
 40 RESTORE 10
 50 RESTORE 20
 60 RESTORE 65535
-65535 ?
-----------------------------------------------------------------------
-WARNING: The following statements/functions have not yet been implemented:
-DATA, RESTORE
+65535 DATA 65535

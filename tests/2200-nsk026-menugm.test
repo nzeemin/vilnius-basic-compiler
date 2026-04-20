@@ -207,4 +207,4 @@ WARNING: at 145:6 line 1500 - LOAD statement is ignored
 WARNING: at 158:6 line 1630 - LOAD statement is ignored
 WARNING: at 172:6 line 1770 - LOAD statement is ignored
 WARNING: The following statements/functions have not yet been implemented:
-CIRCLE, DRAW, DATA, LINE, PAINT, PSET, READ
+CIRCLE, DRAW, LINE, PAINT, PSET

@@ -272,6 +272,8 @@ void Generator::ProcessEnd()
 
     GenerateVariables();
 
+    GenerateDataBlock();
+
     GenerateRuntimeNeeds();
 
     //NOTE: .END instruction will be generated in main.cpp
@@ -292,6 +294,60 @@ void Generator::ProcessEnd()
     }
 }
 
+void Generator::GenerateConstString(string label, string str)
+{
+    string strlen = std::to_string(str.length());
+    if (str.length() > 7) strlen += '.';
+    if (str.length() % 2 == 0) str += '\0';  // to align strings to word boundary
+    // Mask special symbols, mask '/'
+    std::ostringstream oss;
+    if (!label.empty())
+        oss << label << ":";
+    oss << "\t.ASCII\t<" << strlen << ">";
+    bool mode = false;  // false = out of brackets, true = inside brackets
+    for (size_t i = 0; i < str.length(); i++)
+    {
+        char ch = str[i];
+        if ((ch >= 0 && ch < 32) || ch == '/')
+        {
+            if (mode)
+            {
+                oss << "/";
+                mode = false;
+            }
+            oss << "<" << std::oct << (unsigned int)ch << ">";
+        }
+        else
+        {
+            if (!mode)
+            {
+                oss << "/";
+                mode = true;
+            }
+            oss << ch;
+        }
+        if (oss.tellp() >= 93 - 6)
+        {
+            if (mode)
+            {
+                oss << "/";
+                mode = false;
+            }
+            AddLine(oss.str());
+            oss.str("");
+            oss.clear();
+            if (i < str.length() - 1)
+                oss << "\t.ASCII\t";
+        }
+    }
+    if (oss.tellp() > 0)
+    {
+        if (mode)
+            oss << "/";
+        AddLine(oss.str());
+    }
+}
+
 void Generator::GenerateStrings()
 {
     if (m_source->conststrings.empty())
@@ -305,54 +361,7 @@ void Generator::GenerateStrings()
     {
         string strdeco = "ST" + std::to_string(stno + 1);
         string& str = m_source->conststrings[stno];
-        string strlen = std::to_string(str.length());
-        if (str.length() > 7) strlen += '.';
-        if (str.length() % 2 == 0) str += '\0';  // to align strings to word boundary
-        // Mask special symbols, mask '/'
-        std::ostringstream oss;
-        oss << strdeco << ":\t.ASCII\t<" << strlen << ">";
-        bool mode = false;  // false = out of brackets, true = inside brackets
-        for (size_t i = 0; i < str.length(); i++)
-        {
-            char ch = str[i];
-            if ((ch >= 0 && ch < 32) || ch == '/')
-            {
-                if (mode)
-                {
-                    oss << "/";
-                    mode = false;
-                }
-                oss << "<" << std::oct << (unsigned int)ch << ">";
-            }
-            else
-            {
-                if (!mode)
-                {
-                    oss << "/";
-                    mode = true;
-                }
-                oss << ch;
-            }
-            if (oss.tellp() >= 93 - 6)
-            {
-                if (mode)
-                {
-                    oss << "/";
-                    mode = false;
-                }
-                AddLine(oss.str());
-                oss.str("");
-                oss.clear();
-                if (i < str.length() - 1)
-                    oss << "\t.ASCII\t";
-            }
-        }
-        if (oss.tellp() > 0)
-        {
-            if (mode)
-                oss << "/";
-            AddLine(oss.str());
-        }
+        GenerateConstString(strdeco, str);
     }
 }
 
@@ -384,6 +393,91 @@ void Generator::GenerateVariables()
             break;
         }
     }
+}
+
+void Generator::GenerateDataBlock()
+{
+    if (m_source->data.empty())
+        return;
+
+    AddComment("DATA BLOCK");
+    AddLine("\t.EVEN");
+
+    size_t firstdatacount = 0;
+    ValueType firstdatatype = ValueTypeNone;
+    size_t datacount = 0;
+    for (size_t i = 0; i < m_source->data.size(); i++)
+    {
+        const DataElementModel& dataelem = m_source->data[i];
+        string label;
+
+        if (datacount == 0)
+            AddLine("D" + std::to_string(i) + ":");
+
+        datacount++;
+        if (datacount >= 8000 ||
+            i == m_source->data.size() - 1 ||
+            (m_source->data[i + 1].vtype != dataelem.vtype || m_source->data[i + 1].fixed))
+        {
+            if (firstdatacount == 0)
+            {
+                firstdatacount = datacount;  // for DATACN initialization
+                firstdatatype = dataelem.vtype;  // for DATATY
+            }
+
+            // write data descriptor
+            uint16_t descriptor = (uint16_t)((dataelem.vtype << 13) | datacount);
+            AddLine("\t.WORD\t" + to_string_octal(descriptor) + "\t\t; " + GetValueTypeStr(dataelem.vtype) + " * " + std::to_string(datacount));
+
+            string line;
+            for (size_t k = 0; k < datacount; k++)
+            {
+                const DataElementModel& elem = m_source->data[i + 1 - datacount + k];
+                switch (elem.vtype)
+                {
+                case ValueTypeInteger:
+                    if (line.empty()) line = "\t.WORD\t"; else line += ", ";
+                    line += std::to_string((int)std::floor(elem.dvalue)) + ".";
+                    if (k % 8 == 7)
+                    {
+                        AddLine(line);
+                        line.clear();
+                    }
+                    break;
+                case ValueTypeSingle:
+                {
+                    if (line.empty()) line = "\t.WORD\t"; else line += ", ";
+                    uint32_t wvalue = float_to_dec_float((float)elem.dvalue);
+                    line += to_string_octal(wvalue & 0xFFFF) + "," + to_string_octal(wvalue >> 16);
+                    if (k % 4 == 3)
+                    {
+                        AddLine(line);
+                        line.clear();
+                    }
+                    break;
+                }
+                case ValueTypeString:
+                    GenerateConstString("", elem.svalue);
+                    break;
+                }
+
+                if (!line.empty() && k == datacount - 1)
+                {
+                    AddLine(line);
+                    line.clear();
+                }
+            }
+
+            datacount = 0;
+        }
+    }
+    AddLine("\t.WORD\t0\t\t; End of DATA");
+
+    if (!g_turbo8)
+        AddLine("\t.GLOBL\tDATAPT, DATATY, DATACN");
+    AddLine("DATAPT:\t.WORD\tD0+2\t\t; Data pointer");
+    AddLine("DATATY:\t.WORD\t" + to_string_octal(firstdatatype << 13) + "\t\t; Data type");
+    AddLine("DATACN:\t.WORD\t" + std::to_string(firstdatacount) + ".\t\t; Data counter");
 }
 
 void Generator::GenerateRuntimeNeeds()
@@ -432,6 +526,10 @@ bool Generator::ProcessLine()
     m_line = &(m_source->lines[m_lineindex]);
     m_local = 0;  // reset local labels counter
 
+    // Skip DATA lines completely, will process them in GenerateDataBlock
+    if (m_line->statement.token.keyword == KeywordDATA)
+        return true;
+
     // Show the line text and line number, unless it's a comment line without line number
     if (m_line->linenum != 0 ||
         m_line->statement.token.keyword != KeywordREM)
@@ -448,7 +546,12 @@ bool Generator::ProcessLine()
 
 void Generator::Error(const string& message)
 {
-    std::cerr << "ERROR in line " << m_line->linenum << " - " << message << std::endl;
+    std::cerr << "ERROR ";
+    if (m_line->linenum == 0)
+        std::cerr << "at " << m_line->srclinenum;
+    else
+        std::cerr << "in line " << m_line->linenum;
+    std::cerr << " - " << message << std::endl;
     m_line->error = true;
     RegisterError();
 }
@@ -872,9 +975,8 @@ void Generator::GenerateColor(StatementModel& statement)
 
 void Generator::GenerateData(StatementModel& statement)
 {
-    //TODO
-    AddComment("TODO DATA");
-    m_notimplemented.insert(KeywordDATA);
+    //NOTE: Data elements generated in DATA BLOCK
+    assert(false);  // should never fall down here
 }
 
 void Generator::GenerateDim(StatementModel&)
@@ -1695,9 +1797,34 @@ void Generator::GeneratePrintString(const ExpressionModel& expr)
 
 void Generator::GenerateRead(StatementModel& statement)
 {
-    //TODO
-    AddComment("TODO READ");
-    m_notimplemented.insert(KeywordREAD);
+    assert(!statement.varexprs.empty());
+
+    if (m_source->data.empty())
+    {
+        Error("READ statement without any DATA to read.");
+        return;
+    }
+
+    for (const VariableExpressionModel& varexpr : statement.varexprs)
+    {
+        string deconame = varexpr.GetVariableDecoratedName();
+        ValueType vtype = varexpr.GetValueType();
+        switch (vtype)
+        {
+        case ValueTypeInteger:
+            AddLine("\tMOV\t#" + deconame + ", R0");
+            AddRuntimeCall(RuntimeREAI, "READ Integer");  // result in R0
+            break;
+        case ValueTypeSingle:
+            AddLine("\tMOV\t#" + deconame + ", R0");
+            AddRuntimeCall(RuntimeREAF, "READ Single");  // result on 
+            break;
+        case ValueTypeString:
+            AddLine("\tMOV\t#" + deconame + ", R0");
+            AddRuntimeCall(RuntimeREAS, "READ String");
+            break;
+        }
+    }
 }
 
 void Generator::GenerateRem(StatementModel& statement)
@@ -1707,9 +1834,50 @@ void Generator::GenerateRem(StatementModel& statement)
 
 void Generator::GenerateRestore(StatementModel& statement)
 {
-    //TODO
-    AddComment("TODO RESTORE");
-    m_notimplemented.insert(KeywordRESTORE);
+    if (m_source->data.empty())
+    {
+        Error("RESTORE statement without any DATA to read.");
+        return;
+    }
+
+    int datanum = 0;
+    if (statement.paramline > 0)
+    {
+        // Find the source line and the DATA statement
+        bool linefound = false;
+        bool datafound = false;
+        int srclinenum = 0;
+        for (SourceLineModel& line : m_source->lines)
+        {
+            if (!linefound)
+            {
+                if (line.linenum == statement.paramline)
+                    linefound = true;
+            }
+            if (linefound)
+            {
+                if (line.statement.token.keyword == KeywordDATA)
+                {
+                    datafound = true;
+                    srclinenum = line.srclinenum;
+                    break;
+                }
+            }
+        }
+        assert(datafound);  // should be covered in validation
+        assert(srclinenum > 0);
+
+        // Find that DATA element and its number
+        for (DataElementModel& dataelem : m_source->data)
+        {
+            if (dataelem.srclinenum == srclinenum)
+                break;
+            datanum++;
+        }
+    }
+
+    AddLine("\tMOV\t#D" + std::to_string(datanum) + ", R0");
+    AddRuntimeCall(RuntimeREST, "RESTORE");
 }
 
 void Generator::GenerateReturn(StatementModel& statement)

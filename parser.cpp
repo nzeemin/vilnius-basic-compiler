@@ -914,9 +914,9 @@ void Parser::ParseData(StatementModel& statement)
         statement.params.push_back(token);
 
         token = PeekNextTokenSkipDivider();
-        if (!token.IsComma())
+        if (!token.IsComma() && token.symbol != ';')
             break;
-        GetNextToken();  // Comma
+        GetNextToken();  // Comma or semicolon
     }
 
     if (!token.IsEndOfStatement())

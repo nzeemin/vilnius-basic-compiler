@@ -161,6 +161,7 @@ bool Validator::ProcessLine()
 
 void Validator::ProcessEnd()
 {
+    // Check if we still have unclosed FOR
     if (!m_fornextstack.empty())
     {
         const ValidatorForSpec& forspec = m_fornextstack.back();
@@ -168,6 +169,33 @@ void Validator::ProcessEnd()
         std::cerr << "ERROR at " << forspec.srclinenum << " - FOR statement has no corresponding NEXT." << std::endl;
         m_line->error = true;
         RegisterError();
+    }
+
+    // Collect all DATA elements
+    for (SourceLineModel& line : m_source->lines)
+    {
+        StatementModel& statement = line.statement;
+        if (statement.token.keyword != KeywordDATA)
+            continue;
+
+        bool first = true;
+        for (Token& token : statement.params)
+        {
+            DataElementModel dataelem;
+            dataelem.vtype = token.vtype;
+            dataelem.fixed = statement.datafixed;  // if we have RESTORE pointed here
+            if (token.vtype == ValueTypeString)
+                dataelem.svalue = token.text;
+            else
+                dataelem.dvalue = token.dvalue;
+            if (first)  // mark first element with the line number
+            {
+                dataelem.linenum = line.linenum;
+                dataelem.srclinenum = line.srclinenum;
+                first = false;
+            }
+            m_source->data.push_back(dataelem);
+        }
     }
 }
 
@@ -417,19 +445,51 @@ void Validator::ValidateData(StatementModel& statement)
     if (statement.params.size() == 0)
         MODEL_ERROR("Parameter(s) expected.");
 
-    for (auto it = std::begin(statement.params); it != std::end(statement.params); ++it)
+    for (Token& token : statement.params)
     {
-        Token& token = *it;
         if (token.type != TokenTypeNumber && token.type != TokenTypeString)
             MODEL_ERROR("Parameter should be of type Number or String.");
-
-        //TODO: put the const value into DATA structures
     }
 }
 
 void Validator::ValidateRead(StatementModel& statement)
 {
-    //TODO
+    for (const VariableExpressionModel& varexpr : statement.varexprs)
+    {
+        m_source->RegisterVariable(varexpr);
+    }
+}
+
+void Validator::ValidateRestore(StatementModel& statement)
+{
+    if (statement.paramline == 0)  // optional param
+        return;
+
+    if (!m_source->IsLineNumberExists(statement.paramline))
+        MODEL_ERROR("Invalid line number " + std::to_string(statement.paramline));
+
+    // Find the source line and the DATA statement
+    bool linefound = false;
+    bool datafound = false;
+    for (SourceLineModel& line : m_source->lines)
+    {
+        if (!linefound)
+        {
+            if (line.linenum == statement.paramline)
+                linefound = true;
+        }
+        if (linefound)
+        {
+            if (line.statement.token.keyword == KeywordDATA)
+            {
+                datafound = true;
+                line.statement.datafixed = true;
+                break;
+            }
+        }
+    }
+    if (!datafound)
+        MODEL_ERROR("RESTORE " + std::to_string(statement.paramline) + ": there is no DATA line there.");
 }
 
 void Validator::ValidateColor(StatementModel& statement)
@@ -1102,15 +1162,6 @@ void Validator::ValidatePrint(StatementModel& statement)
         {
             ValidateExpression(expr);
         }
-    }
-}
-
-void Validator::ValidateRestore(StatementModel& statement)
-{
-    if (statement.paramline != 0)  // optional param
-    {
-        if (!m_source->IsLineNumberExists(statement.paramline))
-            MODEL_ERROR("Invalid line number " + std::to_string(statement.paramline));
     }
 }
 

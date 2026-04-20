@@ -1,5 +1,6 @@
 -q
 ----------------------------------------------------------------------
+5 DATA 0
 10 A = 0
 11 IF 0 THEN A = 0 ELSE 11
 20 GOTO 20
@@ -49,31 +50,31 @@
 240 BEEP
 241 IF 0 THEN BEEP ELSE 241
 ----------------------------------------------------------------------
-WARNING: at 2:4 line 11 - Constant condition under IF.
-WARNING: at 4:4 line 21 - Constant condition under IF.
-WARNING: at 6:4 line 31 - Constant condition under IF.
-WARNING: at 8:4 line 41 - Constant condition under IF.
-WARNING: at 10:4 line 51 - Constant condition under IF.
-WARNING: at 12:4 line 61 - Constant condition under IF.
-WARNING: at 14:4 line 71 - Constant condition under IF.
-WARNING: at 16:4 line 81 - Constant condition under IF.
-WARNING: at 18:4 line 91 - Constant condition under IF.
-WARNING: at 20:5 line 101 - Constant condition under IF.
-WARNING: at 22:5 line 111 - Constant condition under IF.
-WARNING: at 24:5 line 121 - Constant condition under IF.
-WARNING: at 25:5 line 130 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
-WARNING: at 26:5 line 131 - Constant condition under IF.
-WARNING: at 28:5 line 141 - Constant condition under IF.
-WARNING: at 30:5 line 151 - Constant condition under IF.
-WARNING: at 31:5 line 160 - SCREEN statement is ignored
-WARNING: at 32:5 line 161 - Constant condition under IF.
-WARNING: at 34:5 line 171 - Constant condition under IF.
-WARNING: at 36:5 line 181 - Constant condition under IF.
-WARNING: at 38:5 line 191 - Constant condition under IF.
-WARNING: at 40:5 line 201 - Constant condition under IF.
-WARNING: at 42:5 line 211 - Constant condition under IF.
-WARNING: at 44:5 line 221 - Constant condition under IF.
-WARNING: at 46:5 line 231 - Constant condition under IF.
-WARNING: at 48:5 line 241 - Constant condition under IF.
+WARNING: at 3:4 line 11 - Constant condition under IF.
+WARNING: at 5:4 line 21 - Constant condition under IF.
+WARNING: at 7:4 line 31 - Constant condition under IF.
+WARNING: at 9:4 line 41 - Constant condition under IF.
+WARNING: at 11:4 line 51 - Constant condition under IF.
+WARNING: at 13:4 line 61 - Constant condition under IF.
+WARNING: at 15:4 line 71 - Constant condition under IF.
+WARNING: at 17:4 line 81 - Constant condition under IF.
+WARNING: at 19:4 line 91 - Constant condition under IF.
+WARNING: at 21:5 line 101 - Constant condition under IF.
+WARNING: at 23:5 line 111 - Constant condition under IF.
+WARNING: at 25:5 line 121 - Constant condition under IF.
+WARNING: at 26:5 line 130 - OUT mask is 0, reduced to no operation; consider to remove the OUT statement
+WARNING: at 27:5 line 131 - Constant condition under IF.
+WARNING: at 29:5 line 141 - Constant condition under IF.
+WARNING: at 31:5 line 151 - Constant condition under IF.
+WARNING: at 32:5 line 160 - SCREEN statement is ignored
+WARNING: at 33:5 line 161 - Constant condition under IF.
+WARNING: at 35:5 line 171 - Constant condition under IF.
+WARNING: at 37:5 line 181 - Constant condition under IF.
+WARNING: at 39:5 line 191 - Constant condition under IF.
+WARNING: at 41:5 line 201 - Constant condition under IF.
+WARNING: at 43:5 line 211 - Constant condition under IF.
+WARNING: at 45:5 line 221 - Constant condition under IF.
+WARNING: at 47:5 line 231 - Constant condition under IF.
+WARNING: at 49:5 line 241 - Constant condition under IF.
 WARNING: The following statements/functions have not yet been implemented:
-CIRCLE, DRAW, LINE, PAINT, PRESET, PSET, RESTORE
+CIRCLE, DRAW, LINE, PAINT, PRESET, PSET

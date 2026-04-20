@@ -90,7 +90,7 @@ enum ValueType
     ValueTypeInteger    = 1,    // Integer value in range -32768..32767
     ValueTypeSingle     = 2,    // Float value single precision, 4 bytes
     //ValueTypeDouble     = 3,    // Float value double precision, 8 bytes (maybe in the future)
-    ValueTypeString     = 10,   // String of length 0..255
+    ValueTypeString     = 4,    // String of length 0..255
 };
 
 enum FileMode
@@ -155,11 +155,14 @@ enum RuntimeSymbol
     RuntimeFATN         = 42,
     RuntimeFEXP         = 43,
     RuntimeFLOG         = 44,
-    RuntimeReserved6    = 45,
-    RuntimeINKEY        = 46,  // INKEY$ function
-    RuntimeSTCP         = 47,  // String copy
-    RuntimeSTCM         = 48,  // Compare two Strings
-    RuntimeCOLR         = 49,  // COLOR
+    RuntimeREST         = 45,
+    RuntimeREAI         = 46,  // READ Integer
+    RuntimeREAF         = 47,  // READ Single
+    RuntimeREAS         = 48,  // READ String
+    RuntimeINKEY        = 49,  // INKEY$ function
+    RuntimeSTCP         = 50,  // String copy
+    RuntimeSTCM         = 51,  // Compare two Strings
+    RuntimeCOLR         = 52,  // COLOR
     __RuntimeSymbol_SIZE__
 };
 
@@ -178,6 +181,7 @@ RuntimeSymbol FindRuntimeSymbolByName(const string& name);
 
 string GetCanonicVariableName(const string& name);
 string DecorateVariableName(const string& name);
+string GetValueTypeStr(ValueType vtype);
 
 const char* GetPlatformName(TargetPlatform platform);
 TargetPlatform FindPlatformByName(const string& name);
@@ -305,6 +309,7 @@ struct StatementModel
     bool    gotogosub;  // true for ON GOTO, false for ON GOSUB
     bool    deffnorusr; // true for DEF FN, false for DEF USR
     bool    nocrlf;     // PRINT flag indicating we don't need CR/LF at the end
+    bool    datafixed;  // Indicates that DATA pointed by RESTORE statement
     int     forindex;   // Index used to tie FOR..NEXT parts together
     FileMode filemode;  // File mode for OPEN
     std::vector<ExpressionModel> args;  // Statement arguments
@@ -315,7 +320,8 @@ struct StatementModel
     StatementModel* stelse;
 public:
     StatementModel() :
-        paramline(0), inner(false), relative(false), fileoper(false), gotogosub(false), deffnorusr(false), nocrlf(false),
+        paramline(0), inner(false), relative(false), fileoper(false), gotogosub(false), deffnorusr(false),
+        nocrlf(false), datafixed(false), forindex(0),
         filemode(FileModeAny), stthen(nullptr), stelse(nullptr) { }
 };
 
@@ -333,11 +339,22 @@ public:
     string GetLineNumberLabel() const;
 };
 
+struct DataElementModel
+{
+    int		linenum;	// Line number, or 0
+    int     srclinenum; // Source file line number
+    bool    fixed;      // Fixed, if we have RESTORE pointed at the line
+    ValueType vtype;
+    double  dvalue;
+    string  svalue;
+};
+
 struct SourceModel
 {
     std::vector<SourceLineModel> lines;
     std::vector<VariableModel> vars;//TODO: change to set
     std::vector<string> conststrings;//TODO: change to set
+    std::vector<DataElementModel> data;
 public:
     bool RegisterVariable(const VariableModel& var);  // Add variable to the list
     bool RegisterVariable(const VariableExpressionModel& var);
@@ -658,6 +675,7 @@ public:
     void ProcessEnd();
     void GenerateStrings();
     void GenerateVariables();
+    void GenerateDataBlock();
     void GenerateRuntimeNeeds();
     const std::set<RuntimeSymbol> GetRuntimeNeeds() const { return m_runtimeneeds; }
 private:
@@ -672,6 +690,7 @@ private:
     void AddComment(const string& str) { m_final->AddComment(str); }
     void AddRuntimeCall(RuntimeSymbol need, string comment = "");
     string GetNextLocalLabel() { return std::to_string(++m_local) + "$"; }
+    void GenerateConstString(string label, string str);
     void GenerateStatement(StatementModel& statement);
     void GenerateExpression(const ExpressionModel& expr);
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);

@@ -61,6 +61,20 @@ string DecorateVariableName(const string& name)
     return deconame;
 }
 
+string GetValueTypeStr(ValueType vtype)
+{
+    switch (vtype)
+    {
+    case ValueTypeNone:     return "None";
+    case ValueTypeInteger:  return "Integer";
+    case ValueTypeSingle:   return "Single";
+        //case ValueTypeDouble:   return "Double";
+    case ValueTypeString:   return "String";
+    default:
+        return "UnknownType";
+    }
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Token
@@ -86,16 +100,7 @@ string Token::GetTokenTypeStr() const
 
 string Token::GetTokenVTypeStr() const
 {
-    switch (vtype)
-    {
-    case ValueTypeNone:     return "None";
-    case ValueTypeInteger:  return "Integer";
-    case ValueTypeSingle:   return "Single";
-        //case ValueTypeDouble:   return "Double";
-    case ValueTypeString:   return "String";
-    default:
-        return "UnknownType";
-    }
+    return GetValueTypeStr(vtype);
 }
 
 void Token::ParseDValue()
@@ -585,7 +590,7 @@ const char* RuntimeSymbolNames[] = {
     "",  // Reserved
     "FRND", "FSQR", "FPWF", "FPWI",
     "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
-    "",  // Reserved
+    "REST", "REAI", "REAF", "REAS",
     "INKEY",
     "STCP", "STCM",
     "COLR",
