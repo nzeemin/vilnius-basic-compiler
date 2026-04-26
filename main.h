@@ -89,8 +89,8 @@ enum ValueType
     ValueTypeNone       = 0,
     ValueTypeInteger    = 1,    // Integer value in range -32768..32767
     ValueTypeSingle     = 2,    // Float value single precision, 4 bytes
-    //ValueTypeDouble     = 3,    // Float value double precision, 8 bytes (maybe in the future)
     ValueTypeString     = 4,    // String of length 0..255
+    ValueTypeDouble     = 10,   // Float value double precision, 8 bytes (maybe in the future)
 };
 
 enum FileMode
@@ -132,17 +132,17 @@ enum RuntimeSymbol
     RuntimeIDIV         = 19,
     RuntimeITOF         = 20,  // Integer to Single conversion
     RuntimeFTOI         = 21,  // Single to Integer conversion
-    RuntimeFUNPK        = 22,  // Print Single to buffer
-    RuntimeFFIX         = 23,
-    RuntimeFINT         = 24,
-    RuntimeFCMP         = 25,  // Compare two Single values
-    RuntimeFSGN         = 26,
-    RuntimeReserved3    = 27,
+    RuntimeDAUG5        = 22,  // Utility procedures for FUNPK/FPACK
+    RuntimeFUNPK        = 23,  // Print Single to buffer
+    RuntimeFFIX         = 24,
+    RuntimeFINT         = 25,
+    RuntimeFCMP         = 26,  // Compare two Single values
+    RuntimeFSGN         = 27,
     RuntimeFADD         = 28,  // FIS
     RuntimeFSUB         = 29,  // FIS
     RuntimeFMUL         = 30,  // FIS
     RuntimeFDIV         = 31,  // FIS
-    RuntimeReserved4    = 32,
+    RuntimeFPACK        = 32,  // Parse Single from buffer
     RuntimeINPF         = 33,  // INPUT Single
     RuntimeReserved5    = 34,
     RuntimeFRND         = 35,  // Random number
@@ -779,6 +779,7 @@ private:
     void GenerateFuncSgn(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncAsc(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncChr(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncIif(const ExpressionModel& expr, const ExpressionNode& node);
 };
 

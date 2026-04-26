@@ -114,6 +114,7 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordSGN,       &Generator::GenerateFuncSgn },
     { KeywordCSNG,      &Generator::GenerateFuncCsng },
     { KeywordASC,       &Generator::GenerateFuncAsc },
+    { KeywordCHR,       &Generator::GenerateFuncChr },
     { KeywordIIF,       &Generator::GenerateFuncIif },
 };
 
@@ -788,7 +789,7 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
 
     if (expr.IsConstExpression())
     {
-        if (vtype == ValueTypeInteger)
+        if (vtype == ValueTypeInteger && expr.GetExpressionValueType() == ValueTypeInteger)
         {
             int ivalue = (int)std::floor(expr.GetConstExpressionDValue());
             if (ivalue == 0)
@@ -800,7 +801,7 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
                 AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
             }
         }
-        else if (vtype == ValueTypeSingle)  // const Single
+        else if (vtype == ValueTypeSingle && expr.GetExpressionValueType() == ValueTypeSingle)  // const Single
         {
             float fvalue = static_cast<float>(expr.GetConstExpressionDValue());
             string comment = "\t; var " + canoname + " = const " + to_string_float(static_cast<float>(expr.GetConstExpressionDValue()));
@@ -820,11 +821,18 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             AddRuntimeCall(RuntimeSTCP, "var " + canoname + " assignment");
         }
     }
-    else if (expr.IsVariableExpression())
+    else if (expr.IsVariableExpression() && expr.GetExpressionValueType() == ValueTypeInteger && vtype == ValueTypeInteger)
     {
         string svalue = expr.GetVariableExpressionDecoratedName();
         AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
     }
+    else if (expr.IsVariableExpression() && expr.GetExpressionValueType() == ValueTypeSingle && vtype == ValueTypeSingle)
+    {
+        string svalue = expr.GetVariableExpressionDecoratedName();
+        AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
+        AddLine("\tMOV\t" + svalue + "+2, " + deconame + "+2");
+    }
+    //TODO: String var = String var
     else  // non-const, non-variable
     {
         ExpressionNode& root = expr.nodes[expr.root];
@@ -3113,6 +3121,7 @@ void Generator::GenerateFuncLog(const ExpressionModel& expr, const ExpressionNod
 // result is String
 void Generator::GenerateFuncInkey(const ExpressionModel& expr, const ExpressionNode& node)
 {
+    //TODO: Rework to return dynamic String
     AddRuntimeCall(RuntimeINKEY);  // R0 = string address
 }
 
@@ -3131,6 +3140,22 @@ void Generator::GenerateFuncAsc(const ExpressionModel& expr, const ExpressionNod
     AddLine("\tTSTB\t(R1)+\t");  // check string length
     AddLine("\tBEQ\t.+4");
     AddLine("\tBISB\t(R1), R0\t; ASC");  // get first byte of the string
+}
+
+// X¤=CHR¤(<АРГУМЕНТ>)
+// result is String
+void Generator::GenerateFuncChr(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    //TODO: Special case for const expression and variable expression
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeSingle)
+        AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+
+    //TODO: Allocate dynamic 1-char string
+    //TODO: String length = 1, MOVB R0 to first char of the string
 }
 
 // X=IIF(<ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)

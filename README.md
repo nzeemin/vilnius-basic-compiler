@@ -30,14 +30,14 @@ Current state of the project: **prototype**
 
 Ближайшая цель это **версия 0.1**, в которой:
  - подмножество языка с типами Integer и Single, без массивов, строки только константные
- - полноценный парсинг всех конструкций языка, кроме оператора `DATA`
+ - полноценный разбор всех конструкций языка
  - вычисление Integer и Single выражений, вычисление константных String выражений
- - `PRINT` для Integer/Single и константных строк, `INPUT` только для целых чисел
- - функции: `PI`, `ABS`, `FIX`, `INT`, `SGN`, `CINT`, `CSNG`, `PEEK`, `INP`, `SQR`, `SIN`, `COS`, `TAN`, `ATN`, `RND`
- - операторы: `LET` (кроме `LET MID$`), `GOTO`, `GOSUB`, `RETURN`, `IF/THEN/ELSE`, `FOR`, `NEXT`, `ON/GOTO/GOSUB`, `STOP`, `END`, `REM`, `PRINT` (включая `AT`, `TAB`, `SPC`, запятая), `INPUT` (только для Integer), `POKE`, `OUT`, `CLS`, `COLOR`, `LOCATE`, `BEEP`
- - без работы со строками, без работы с файлами, без графики, без `DATA`/`READ`/`RESTORE`
- - НЕ реализованы функции:, `CSRLIN`, `POS`, `EXP`, `LOG`, `FRE`, `CDBL`, `ASC`, `CHR$`, `LRN`, `MID$`, `STRING$`, `VAL`, `INKEY$`, `STR$`, `BIN$`, `OCT$`, `HEX$`, `LPOS`, `EOF`, `FN`, `USR`
- - НЕ реализованы операторы: `LET MID$`, `DIM`, `KEY`, `CLEAR`, `DATA`, `READ`, `RESTORE`, `DEF USR`, `DEF FN`, `PRINT` для строковых выражений, `INPUT` для Single и строк, `OPEN`, `CLOSE`, `SCREEN`, `PSET`, `PRESET`, `LINE`, `CIRCLE`, `PAINT`, `DRAW`, `TRON`, `TROFF`, `WIDTH`, `SYSTEM`, `MONIT`
+ - `PRINT` для Integer/Single и константных строк, `INPUT` только для Integer
+ - функции: `PI`, `ABS`, `FIX`, `INT`, `SGN`, `CINT`, `CSNG`, `PEEK`, `INP`, `SQR`, `SIN`, `COS`, `TAN`, `ATN`, `RND`, `ASC`, `LEN`, `INKEY$`
+ - операторы: `LET` (кроме `LET MID$`), `GOTO`, `GOSUB`, `RETURN`, `IF/THEN/ELSE`, `FOR`, `NEXT`, `ON/GOTO/GOSUB`, `STOP`, `END`, `REM`, `PRINT` (включая `AT`, `TAB`, `SPC`, запятая), `INPUT` (только для Integer), `POKE`, `OUT`, `CLS`, `COLOR`, `LOCATE`, `BEEP`, `DATA`, `READ`, `RESTORE`
+ - без работы с динамическими строками, без работы с файлами, без графики
+ - НЕ реализованы функции:, `CSRLIN`, `POS`, `EXP`, `LOG`, `FRE`, `CDBL`, `CHR$`, `MID$`, `STRING$`, `VAL`, `STR$`, `BIN$`, `OCT$`, `HEX$`, `LPOS`, `EOF`, `FN`, `USR`
+ - НЕ реализованы операторы: `LET MID$`, `DIM`, `KEY`, `CLEAR`, `DEF USR`, `DEF FN`, `PRINT` для строковых выражений, `INPUT` для Single и строк, `OPEN`, `CLOSE`, `SCREEN`, `PSET`, `PRESET`, `LINE`, `CIRCLE`, `PAINT`, `DRAW`, `TRON`, `TROFF`, `WIDTH`, `SYSTEM`, `MONIT`
 
 Возможные сценарии использования компилятора:
 
@@ -96,8 +96,8 @@ VARIA:	.WORD	0	; A%
 ### Особенности этой реализации
 
 Так же, как и в оригинале Бейсик Вильнюс:
- - Один оператор на строку.
- - Имена переменных опознаются по двум первым буквам + тип.
+ - Только один оператор на строку.
+ - Имена переменных опознаются по двум первым буквам + тип. Переменная без указания знака типа (например: `A`) считается вещественного типа. `A%`, `A`, `A$` - это три разных переменных трёх разных типов. `A` и `A!` - одна и та же переменная вещественного типа.
  - Булевого типа нет, вместо него используется целый тип. Результат логических операторов (`=`, `<>`, `>`, `<` и т.п.) это либо `-1` ("истина") либо `0` ("ложь").
 
 Отличия от оригинала:

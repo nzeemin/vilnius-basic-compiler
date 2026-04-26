@@ -581,12 +581,11 @@ const char* RuntimeSymbolNames[] = {
     "INPI",
     "IMUL", "IDIV",
     "ITOF", "FTOI",
+    "DAUG5",
     "FUNPK", "FFIX", "FINT",
     "FCMP", "FSGN",
-    "",  // Reserved
     "FADD", "FSUB", "FMUL", "FDIV",  // FIS
-    "",  // Reserved
-    "INPF",
+    "FPACK", "INPF",
     "",  // Reserved
     "FRND", "FSQR", "FPWF", "FPWI",
     "FCOS", "FSIN", "FTAN", "FATN", "FEXP", "FLOG",
