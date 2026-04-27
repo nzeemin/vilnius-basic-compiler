@@ -162,7 +162,9 @@ enum RuntimeSymbol
     RuntimeINKEY        = 49,  // INKEY$ function
     RuntimeSTCP         = 50,  // String copy
     RuntimeSTCM         = 51,  // Compare two Strings
-    RuntimeCOLR         = 52,  // COLOR
+    RuntimeSSAL         = 52,  // String Stack allocate
+    RuntimeReserved6    = 53,
+    RuntimeCOLR         = 54,  // COLOR
     __RuntimeSymbol_SIZE__
 };
 
@@ -275,6 +277,7 @@ public:
     void Dump(std::ostream& out) const;
     string GetNodeVTypeStr() const;
     int GetConstIntegerValue() const;
+    string GetConstStringValue() const;
 };
 
 struct ExpressionModel

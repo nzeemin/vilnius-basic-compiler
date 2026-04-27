@@ -14,48 +14,53 @@ GOTO 65535
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 START:
-	MTPS	#340		; disable interrupts
+; йОЙГЙБМЙЪБГЙС РТПЗТБННЩ
+	MTPS	#340			; disable interrupts
 	CLR	@#177560
-	MTPS	#0		; enable interrupts
+	MTPS	#0			; enable interrupts
 	MOV	SP, SAVESP
 ; 1 CLS
 N1:
 	MOV	#14, R0
-	CALL	WRCH
+	CALL	WRCH		; PRINT char
 ; GOTO 65535
 L2:
-	JMP	N65535
+	JMP	N65535		; GOTO 65535
 ; 20 GOTO 1000
 N20:
-	JMP	N1000
+	JMP	N1000		; GOTO 1000
 ; 50    GOTO 10000
 N50:
-	JMP	N10000
+	JMP	N10000		; GOTO 10000
 ; 100 GOTO 20
 N100:
-	JMP	N20
+	JMP	N20		; GOTO 20
 ;     GOTO 20
 L6:
-	JMP	N20
+	JMP	N20		; GOTO 20
 ; 200 GOTO 200
 N200:
-	JMP	N200
+	JMP	N200		; GOTO 200
 ; 1000 GOTO   50
 N1000:
-	JMP	N50
+	JMP	N50		; GOTO 50
 ; 10000 GOTO 100
 N10000:
-	JMP	N100
+	JMP	N100		; GOTO 100
 ; 	GOTO 200
 L10:
-	JMP	N200
+	JMP	N200		; GOTO 200
 ; 65535 GOTO 1
 N65535:
-	JMP	N1
+	JMP	N1		; GOTO 1
 LEND:
+; ъБЧЕТЫЕОЙЕ РТПЗТБННЩ
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
-	EMT	350	; .EXIT
+	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
 ; RUNTIME CALLS
 	.GLOBL	WRCH
 	.END	START

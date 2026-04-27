@@ -13,9 +13,10 @@ WARNING: at 5:8 line 205 - POS argument calculated but value not used; consider 
 WARNING: at 6:8 line 210 - POS argument calculated but value not used; consider to remove the argument
 ----------------------------------------------------------------------
 START:
-	MTPS	#340		; disable interrupts
+; йОЙГЙБМЙЪБГЙС РТПЗТБННЩ
+	MTPS	#340			; disable interrupts
 	CLR	@#177560
-	MTPS	#0		; enable interrupts
+	MTPS	#0			; enable interrupts
 	MOV	SP, SAVESP
 ; 100 Y%=CSRLIN
 N100:
@@ -58,9 +59,13 @@ N210:
 	MOV	R1, R0		; column
 	MOV	R0, VARIX	; var X% assignment
 LEND:
+; ъБЧЕТЫЕОЙЕ РТПЗТБННЩ
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
 ; VARIABLES
 	.EVEN
 VARIX:	.WORD	0	; X%

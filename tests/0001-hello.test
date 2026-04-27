@@ -5,22 +5,27 @@
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 START:
-	MTPS	#340		; disable interrupts
+; йОЙГЙБМЙЪБГЙС РТПЗТБННЩ
+	MTPS	#340			; disable interrupts
 	CLR	@#177560
-	MTPS	#0		; enable interrupts
+	MTPS	#0			; enable interrupts
 	MOV	SP, SAVESP
 ; 10 A%=23.42
 N10:
-	MOV	#23., VARIA	; assignment
+	MOV	#23., VARIA	; var A% assignment
 ; 20 PRINT A%
 N20:
-	MOV	VARIA, R0
-	CALL	WRINT
+	MOV	VARIA, R0	; var A%
+	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 LEND:
+; ъБЧЕТЫЕОЙЕ РТПЗТБННЩ
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
-	EMT	350	; .EXIT
+	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
 ; VARIABLES
 	.EVEN
 VARIA:	.WORD	0	; A%

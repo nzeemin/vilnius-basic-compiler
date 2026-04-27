@@ -5,23 +5,27 @@
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 START:
-	MTPS	#340		; disable interrupts
+; йОЙГЙБМЙЪБГЙС РТПЗТБННЩ
+	MTPS	#340			; disable interrupts
 	CLR	@#177560
-	MTPS	#0		; enable interrupts
+	MTPS	#0			; enable interrupts
 	MOV	SP, SAVESP
 ; 10 CLS
 N10:
 	MOV	#14, R0
-	CALL	WRCH
+	CALL	WRCH		; PRINT char
 ; 20 CLS 'comment
 N20:
 	MOV	#14, R0
-	CALL	WRCH
+	CALL	WRCH		; PRINT char
 LEND:
+; ъБЧЕТЫЕОЙЕ РТПЗТБННЩ
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
-	EMT	350	; .EXIT
+	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
 ; RUNTIME CALLS
 	.GLOBL	WRCH
-;
 	.END	START

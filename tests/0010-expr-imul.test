@@ -20,9 +20,10 @@ WARNING: at 6:10 line 9 - Multiplication by 0 reduced to 0, consider to remove t
 WARNING: at 7:11 line 10 - Multiplication by 1 reduced to nothing, consider to remove the multiplication.
 ----------------------------------------------------------------------
 START:
-	MTPS	#340		; disable interrupts
+; йОЙГЙБМЙЪБГЙС РТПЗТБННЩ
+	MTPS	#340			; disable interrupts
 	CLR	@#177560
-	MTPS	#0		; enable interrupts
+	MTPS	#0			; enable interrupts
 	MOV	SP, SAVESP
 ; 1 B% = 10%
 N1:
@@ -121,9 +122,13 @@ N640:
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 LEND:
+; ъБЧЕТЫЕОЙЕ РТПЗТБННЩ
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
 ; VARIABLES
 	.EVEN
 VARIB:	.WORD	0	; B%

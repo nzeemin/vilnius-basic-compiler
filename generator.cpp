@@ -351,12 +351,12 @@ void Generator::GenerateConstString(string label, string str)
 
 void Generator::GenerateStrings()
 {
-    if (m_source->conststrings.empty())
-        return;
-
     AddComment("STRINGS");
     AddLine("\t.EVEN");
     AddLine("ST0:\t.WORD\t0\t; empty string");
+
+    if (m_source->conststrings.empty())
+        return;
 
     for (size_t stno = 0; stno < m_source->conststrings.size(); ++stno)
     {
@@ -652,7 +652,14 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
 
     if (node.vtype == ValueTypeString)
     {
-        AddComment("TODO calculate string expression");
+        // The only operation with strings is '+'
+        if (node.token.type == TokenTypeOperation && node.token.text == "+" && node.left >= 0 && node.right >= 0)
+        {
+            GenerateOperPlus(expr, node, expr.nodes[node.left], expr.nodes[node.right]);
+            return;
+        }
+
+        assert(false);  // should not fall in here
         return;
     }
 
@@ -784,24 +791,24 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
     ValueType vtype = var.GetValueType();
     string canoname = var.GetVariableCanonicName();
     string deconame = var.GetVariableDecoratedName();
+    ValueType exprvtype = expr.GetExpressionValueType();
 
     const string comment = "\t; var " + canoname + " assignment";
 
     if (expr.IsConstExpression())
     {
-        if (vtype == ValueTypeInteger && expr.GetExpressionValueType() == ValueTypeInteger)
+        if (vtype == ValueTypeInteger && (exprvtype == ValueTypeInteger || exprvtype == ValueTypeSingle))
         {
             int ivalue = (int)std::floor(expr.GetConstExpressionDValue());
             if (ivalue == 0)
-            {
                 AddLine("\tCLR\t" + deconame + comment);
-            }
             else {
                 string svalue = "#" + std::to_string(ivalue) + ".";
                 AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
             }
+            return;
         }
-        else if (vtype == ValueTypeSingle && expr.GetExpressionValueType() == ValueTypeSingle)  // const Single
+        if (vtype == ValueTypeSingle && (exprvtype == ValueTypeInteger || exprvtype == ValueTypeSingle))
         {
             float fvalue = static_cast<float>(expr.GetConstExpressionDValue());
             string comment = "\t; var " + canoname + " = const " + to_string_float(static_cast<float>(expr.GetConstExpressionDValue()));
@@ -810,73 +817,87 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
             uint16_t wordhi = bits >> 16;
             AddLine((wordlo == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordlo) + ", ") + deconame + comment);
             AddLine((wordhi == 0 ? "\tCLR\t" : "\tMOV\t#" + to_string_octal(wordhi) + ", ") + deconame + "+2");
+            return;
         }
-        else if (vtype == ValueTypeString)  // const String
+        if (vtype == ValueTypeString)  // const String
         {
             string svalue = expr.GetConstExpressionSValue();
+            if (svalue == "")  // Special case for empty string
+            {
+                AddLine("\tCLR\t" + deconame + "\t; var " + canoname + " assignment");
+                return;
+            }
+            if (svalue.size() == 1)  // Special case for one-char string
+            {
+                //NOTE: Character conversion depends on encoding
+                uint16_t value = (1 << 8) | svalue[0];
+                AddLine("\tMOV\t#" + to_string_octal(value) + ", " + deconame + "\t; var " + canoname + " assignment");
+                return;
+            }
             int sindex = m_source->GetConstStringIndex(svalue);
-            //TODO: Special case for one-char string
             AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0");
             AddLine("\tMOV\t#" + deconame + ", R1");
             AddRuntimeCall(RuntimeSTCP, "var " + canoname + " assignment");
+            return;
         }
     }
-    else if (expr.IsVariableExpression() && expr.GetExpressionValueType() == ValueTypeInteger && vtype == ValueTypeInteger)
+
+    if (expr.IsVariableExpression() && exprvtype == ValueTypeInteger && vtype == ValueTypeInteger)
     {
         string svalue = expr.GetVariableExpressionDecoratedName();
         AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
+        return;
     }
-    else if (expr.IsVariableExpression() && expr.GetExpressionValueType() == ValueTypeSingle && vtype == ValueTypeSingle)
+    if (expr.IsVariableExpression() && exprvtype == ValueTypeSingle && vtype == ValueTypeSingle)
     {
         string svalue = expr.GetVariableExpressionDecoratedName();
         AddLine("\tMOV\t" + svalue + ", " + deconame + comment);
         AddLine("\tMOV\t" + svalue + "+2, " + deconame + "+2");
+        return;
     }
-    //TODO: String var = String var
-    else  // non-const, non-variable
-    {
-        ExpressionNode& root = expr.nodes[expr.root];
+    
+    // non-const, non-variable
+    ExpressionNode& root = expr.nodes[expr.root];
 
-        // Convert "A% = A% + N" and "A% = A% - N" assignments into INC/DEC/ADD/SUB
-        if (vtype == ValueTypeInteger && root.token.IsBinaryOperation() &&
-            (root.token.text == "-" || root.token.text == "+") &&
-            expr.nodes[root.left].token.type == TokenTypeIdentifier &&
-            GetCanonicVariableName(expr.nodes[root.left].token.text) == var.name &&
-            expr.nodes[root.right].constval &&
-            (expr.nodes[root.right].vtype == ValueTypeInteger || expr.nodes[root.right].vtype == ValueTypeSingle))
-        {
-            bool plusminus = (root.token.text == "+");
-            int ivalue = (int)std::floor(expr.nodes[root.right].token.dvalue);
-            if (plusminus && ivalue == 1)
-                AddLine("\tINC\t" + deconame + comment);
-            else if (!plusminus && ivalue == 1)
-                AddLine("\tDEC\t" + deconame + comment);
-            else if (plusminus && ivalue != 1)
-                AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame + comment);
-            else //if (!plusminus && ivalue != 1)
-                AddLine("\tSUB\t#" + std::to_string(ivalue) + "., " + deconame + comment);
-        }
-        else if (vtype == ValueTypeSingle)  // non-const Single
-        {
-            GenerateExpression(expr);
-            if (expr.GetExpressionValueType() == ValueTypeInteger)
-                AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
-            AddLine("\tMOV\t(SP)+, " + deconame + "+2" + comment);
-            AddLine("\tMOV\t(SP)+, " + deconame);
-        }
-        else if (vtype == ValueTypeInteger)  // non-const non-variable Integer
-        {
-            GenerateExpression(expr);
-            if (expr.GetExpressionValueType() == ValueTypeSingle)
-                AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
-            AddLine("\tMOV\tR0, " + deconame + comment);
-        }
-        else  // non-const non-variable String
-        {
-            GenerateExpression(expr);
-            AddLine("\tMOV\t" + deconame + ", R1");
-            AddRuntimeCall(RuntimeSTCP, "var " + canoname + " assignment");
-        }
+    // Convert "A% = A% + N" and "A% = A% - N" assignments into INC/DEC/ADD/SUB
+    if (vtype == ValueTypeInteger && root.token.IsBinaryOperation() &&
+        (root.token.text == "-" || root.token.text == "+") &&
+        expr.nodes[root.left].token.type == TokenTypeIdentifier &&
+        GetCanonicVariableName(expr.nodes[root.left].token.text) == var.name &&
+        expr.nodes[root.right].constval &&
+        (expr.nodes[root.right].vtype == ValueTypeInteger || expr.nodes[root.right].vtype == ValueTypeSingle))
+    {
+        bool plusminus = (root.token.text == "+");
+        int ivalue = (int)std::floor(expr.nodes[root.right].token.dvalue);
+        if (plusminus && ivalue == 1)
+            AddLine("\tINC\t" + deconame + comment);
+        else if (!plusminus && ivalue == 1)
+            AddLine("\tDEC\t" + deconame + comment);
+        else if (plusminus && ivalue != 1)
+            AddLine("\tADD\t#" + std::to_string(ivalue) + "., " + deconame + comment);
+        else //if (!plusminus && ivalue != 1)
+            AddLine("\tSUB\t#" + std::to_string(ivalue) + "., " + deconame + comment);
+    }
+    else if (vtype == ValueTypeSingle)  // non-const Single
+    {
+        GenerateExpression(expr);
+        if (exprvtype == ValueTypeInteger)
+            AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+        AddLine("\tMOV\t(SP)+, " + deconame + "+2" + comment);
+        AddLine("\tMOV\t(SP)+, " + deconame);
+    }
+    else if (vtype == ValueTypeInteger)  // non-const non-variable Integer
+    {
+        GenerateExpression(expr);
+        if (exprvtype == ValueTypeSingle)
+            AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+        AddLine("\tMOV\tR0, " + deconame + comment);
+    }
+    else  // non-const non-variable String
+    {
+        GenerateExpression(expr);
+        AddLine("\tMOV\t" + deconame + ", R1");
+        AddRuntimeCall(RuntimeSTCP, "var " + canoname + " assignment");
     }
 }
 
@@ -1928,9 +1949,30 @@ void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNo
 {
     const string comment = "\t; Operation \'+\'";
 
-    // String operands
+    // String + String
     if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString)
     {
+        if (nodeleft.constval && nodeleft.GetConstStringValue() == "")
+        {
+            Warning(node.token, "Concatenation with empty string at left; consider to remove the useless concatenation.");
+            GenerateExpression(expr, noderight);
+            return;
+        }
+
+        if (noderight.constval)
+        {
+            if (noderight.GetConstStringValue() == "")
+            {
+                Warning(node.token, "Concatenation with empty string at right; consider to remove the useless concatenation.");
+                GenerateExpression(expr, nodeleft);
+                return;
+            }
+
+            //TODO
+        }
+
+        //TODO
+        AddRuntimeCall(RuntimeSSAL, "allocate string");
         //TODO
         AddComment("TODO String + String");
         return;
@@ -1939,7 +1981,7 @@ void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNo
     assert(nodeleft.vtype != ValueTypeString);
     assert(noderight.vtype != ValueTypeString);
 
-    // Single operands
+    // Single operands, result is Single
     if (nodeleft.vtype == ValueTypeSingle || noderight.vtype == ValueTypeSingle)
     {
         GenerateExpression(expr, nodeleft);
@@ -1953,6 +1995,9 @@ void Generator::GenerateOperPlus(const ExpressionModel& expr, const ExpressionNo
         AddRuntimeCall(RuntimeFADD, "Operation \'+\'");  // result on stack
         return;
     }
+
+    assert(nodeleft.vtype == ValueTypeInteger);
+    assert(noderight.vtype == ValueTypeInteger);
 
     GenerateExpression(expr, nodeleft);  // result in R0
 
@@ -2368,7 +2413,6 @@ void Generator::GenerateLogicOperArguments(const ExpressionModel& expr, const Ex
         }
         else
         {
-            //TODO: Special cases "String equals empty String" and "String not equals empty String"
             assert(noderight.vtype == ValueTypeString);
             AddRuntimeCall(RuntimeSTCM);
             AddComment("TODO compare String to String");
@@ -2379,11 +2423,36 @@ void Generator::GenerateLogicOperArguments(const ExpressionModel& expr, const Ex
 
 void Generator::GenerateOperEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    const string comment = "\t; Operation \'=\'";
+    // Special case: String equals empty String
+    if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString &&
+        noderight.constval && noderight.GetConstStringValue() == "")
+    {
+        GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tTSTB\t(R0)");
+    }
+    // Special case: empty String equals String
+    else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString &&
+        nodeleft.constval && nodeleft.GetConstStringValue() == "")
+    {
+        GenerateExpression(expr, noderight);  // result in R0
+        AddLine("\tTSTB\t(R0)");
+    }
+    // Special case: String equals one-char String
+    else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString &&
+        noderight.constval && noderight.GetConstStringValue().size() == 1)
+    {
+        GenerateExpression(expr, nodeleft);  // result in R0
+        string svalue = noderight.GetConstStringValue();
+        //NOTE: Character conversion depends on encoding
+        uint16_t value = (1 << 8) | svalue[0];
+        AddLine("\tCMP\t(R0), #" + to_string_octal(value));
+    }
+    else  // all other cases
+    {
+        GenerateLogicOperArguments(expr, nodeleft, noderight);
+    }
 
-    GenerateLogicOperArguments(expr, nodeleft, noderight);
-
-    AddLine("\tBEQ\t.+6");
+    AddLine("\tBEQ\t.+6\t; Operation \'=\'");
     AddLine("\tCLR\tR0\t; false");
     AddLine("\tBR\t.+6");
     AddLine("\tMOV\t#-1, R0\t; true");
@@ -2391,7 +2460,27 @@ void Generator::GenerateOperEqual(const ExpressionModel& expr, const ExpressionN
 
 void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
 {
-    GenerateLogicOperArguments(expr, nodeleft, noderight);
+    // Special case: String <> empty String
+    if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString &&
+        noderight.constval && noderight.GetConstStringValue() == "")
+    {
+        GenerateExpression(expr, nodeleft);  // result in R0
+        AddLine("\tTSTB\t(R0)");
+    }
+    // Special case: empty String <> String
+    else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString &&
+        nodeleft.constval && nodeleft.GetConstStringValue() == "")
+    {
+        GenerateExpression(expr, noderight);  // result in R0
+        AddLine("\tTSTB\t(R0)");
+    }
+    //TODO Special case: String <> 1-char String
+
+    // all other cases
+    else
+    {
+        GenerateLogicOperArguments(expr, nodeleft, noderight);
+    }
 
     AddLine("\tBNE\t.+6\t; Operation \'<>\'");
     AddLine("\tCLR\tR0\t; false");

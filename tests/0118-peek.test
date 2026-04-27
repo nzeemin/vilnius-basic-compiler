@@ -8,42 +8,47 @@
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 START:
-	MTPS	#340		; disable interrupts
+; йОЙГЙБМЙЪБГЙС РТПЗТБННЩ
+	MTPS	#340			; disable interrupts
 	CLR	@#177560
-	MTPS	#0		; enable interrupts
+	MTPS	#0			; enable interrupts
 	MOV	SP, SAVESP
 ; 10 ? PEEK(0%)
 N10:
 	MOV	@#0., R0	; PEEK
-	CALL	WRINT
+	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 15 ?PEEK(0)
 N15:
 	MOV	@#0., R0	; PEEK
-	CALL	WRINT
+	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 20 ? PEEK(10%+20%)
 N20:
 	MOV	@#30., R0	; PEEK
-	CALL	WRINT
+	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 30 ? PEEK(A%)
 N30:
 	MOV	@VARIA, R0	; PEEK
-	CALL	WRINT
+	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 40 ? PEEK(A%+10%+B%)
 N40:
-	MOV	VARIA, R0
+	MOV	VARIA, R0	; var A%
 	ADD	#10., R0	; Operation '+'
 	ADD	VARIB, R0	; Operation '+'
 	MOV	(R0), R0	; PEEK
-	CALL	WRINT
+	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 LEND:
+; ъБЧЕТЫЕОЙЕ РТПЗТБННЩ
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
-	EMT	350	; .EXIT
+	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
 ; VARIABLES
 	.EVEN
 VARIA:	.WORD	0	; A%

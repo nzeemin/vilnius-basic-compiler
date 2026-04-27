@@ -296,6 +296,12 @@ int ExpressionNode::GetConstIntegerValue() const
     return ivalue;
 }
 
+string ExpressionNode::GetConstStringValue() const
+{
+    assert(constval);
+    return token.svalue;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // ExpressionModel
@@ -592,6 +598,8 @@ const char* RuntimeSymbolNames[] = {
     "REST", "REAI", "REAF", "REAS",
     "INKEY",
     "STCP", "STCM",
+    "SSAL",
+    "",  // Reserved
     "COLR",
 };
 

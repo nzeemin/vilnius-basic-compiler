@@ -10,9 +10,10 @@
 WARNING: at 2:9 line 10 - MOD 1 reduced to 0; consider to remove this MOD.
 ----------------------------------------------------------------------
 START:
-	MTPS	#340		; disable interrupts
+; йОЙГЙБМЙЪБГЙС РТПЗТБННЩ
+	MTPS	#340			; disable interrupts
 	CLR	@#177560
-	MTPS	#0		; enable interrupts
+	MTPS	#0			; enable interrupts
 	MOV	SP, SAVESP
 ; 5 B% = 32767%
 N5:
@@ -50,9 +51,13 @@ N80:
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 LEND:
+; ъБЧЕТЫЕОЙЕ РТПЗТБННЩ
 SAVESP = . + 2
 	MOV	#776, SP	; restore SP
 	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
 ; VARIABLES
 	.EVEN
 VARIB:	.WORD	0	; B%
