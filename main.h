@@ -783,6 +783,7 @@ private:
     void GenerateFuncCsng(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncAsc(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncChr(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncString(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncIif(const ExpressionModel& expr, const ExpressionNode& node);
 };
 

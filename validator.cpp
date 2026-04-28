@@ -1869,7 +1869,11 @@ void Validator::ValidateFuncSqr(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.token.dvalue = sqrt(expr1.GetConstExpressionDValue());
+        double dvalue = expr1.GetConstExpressionDValue();
+        if (dvalue < 0.0)
+            EXPR_ERROR("Square root with negative argument.");
+
+        node.token.dvalue = sqrt(dvalue);
         //TODO: if (node.token.IsDValueInteger())
     }
 }
@@ -2138,6 +2142,8 @@ void Validator::ValidateFuncMid(ExpressionModel& expr, ExpressionNode& node)
     }
 }
 
+// X¤=STRING¤(<АРГУМЕНТ1>,<АРГУМЕНТ2>)
+// result is String
 void Validator::ValidateFuncString(ExpressionModel& expr, ExpressionNode& node)
 {
     if (node.args.size() != 2)

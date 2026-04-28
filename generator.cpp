@@ -115,6 +115,7 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordCSNG,      &Generator::GenerateFuncCsng },
     { KeywordASC,       &Generator::GenerateFuncAsc },
     { KeywordCHR,       &Generator::GenerateFuncChr },
+    { KeywordSTRING,    &Generator::GenerateFuncString },
     { KeywordIIF,       &Generator::GenerateFuncIif },
 };
 
@@ -2407,17 +2408,11 @@ void Generator::GenerateLogicOperArguments(const ExpressionModel& expr, const Ex
     }
     else if (nodeleft.vtype == ValueTypeString)
     {
-        if (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle)
-        {
-            assert(false);  // Compare String <=> Integer/Single should be covered in validation
-        }
-        else
-        {
-            assert(noderight.vtype == ValueTypeString);
-            AddRuntimeCall(RuntimeSTCM);
-            AddComment("TODO compare String to String");
-            //TODO
-        }
+        assert(noderight.vtype == ValueTypeString);  // Compare String <=> Integer/Single should be covered in validation
+
+        AddRuntimeCall(RuntimeSTCM);
+        AddComment("TODO compare String to String");
+        //TODO
     }
 }
 
@@ -2474,8 +2469,16 @@ void Generator::GenerateOperNotEqual(const ExpressionModel& expr, const Expressi
         GenerateExpression(expr, noderight);  // result in R0
         AddLine("\tTSTB\t(R0)");
     }
-    //TODO Special case: String <> 1-char String
-
+    // Special case: String <> 1-char String
+    else if (nodeleft.vtype == ValueTypeString && noderight.vtype == ValueTypeString &&
+        noderight.constval && noderight.GetConstStringValue().size() == 1)
+    {
+        GenerateExpression(expr, nodeleft);  // result in R0
+        string svalue = noderight.GetConstStringValue();
+        //NOTE: Character conversion depends on encoding
+        uint16_t value = (1 << 8) | svalue[0];
+        AddLine("\tCMP\t(R0), #" + to_string_octal(value));
+    }
     // all other cases
     else
     {
@@ -3245,6 +3248,74 @@ void Generator::GenerateFuncChr(const ExpressionModel& expr, const ExpressionNod
 
     //TODO: Allocate dynamic 1-char string
     //TODO: String length = 1, MOVB R0 to first char of the string
+    AddComment("TODO CHR$");
+}
+
+// X¤=STRING¤(<АРГУМЕНТ1>,<АРГУМЕНТ2>)
+// result is String
+void Generator::GenerateFuncString(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() == 2);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() != ValueTypeString);
+
+    const ExpressionModel& expr2 = node.args[1];
+
+    if (expr1.IsConstExpression())
+    {
+        int ivalue = (int)std::floor(expr1.GetConstExpressionDValue());
+        assert(ivalue >= 0 && ivalue <= 255);
+        if (ivalue == 0)
+        {
+            Warning(node.token, "STRING$(0, ...) reduced to empty string; consider to replace this expression with \"\".");
+            AddLine("\tMOV\tST0, R0");
+            return;
+        }
+
+        GenerateExpression(expr2);
+        if (expr2.GetExpressionValueType() == ValueTypeSingle)
+            AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+        //TODO: If the string is empty, result is empty string (already in R0)
+
+        //TODO: Allocate string with the given length
+        //TODO: Fill the string
+        AddComment("TODO STRING$");
+        return;
+    }
+
+    if (expr2.IsConstExpression())
+    {
+        ValueType expr2vtype = expr2.GetExpressionValueType();
+        if (expr2vtype == ValueTypeString && expr2.GetConstExpressionSValue() == "")
+        {
+            Warning(node.token, "STRING$(..., \"\") reduced to empty string; consider to replace this expression with \"\".");
+            AddLine("\tMOV\tST0, R0");
+            return;
+        }
+
+        GenerateExpression(expr1);
+        if (expr1.GetExpressionValueType() == ValueTypeSingle)
+            AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+
+        //TODO: Allocate string with the given length
+        //TODO: Fill the string
+        AddComment("TODO STRING$");
+        return;
+    }
+
+    GenerateExpression(expr1);
+    if (expr1.GetExpressionValueType() == ValueTypeSingle)
+        AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+
+    GenerateExpression(expr2);
+    if (expr2.GetExpressionValueType() == ValueTypeSingle)
+        AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+    //TODO: If the string is empty, result is empty string (already in R0)
+
+    //TODO: Allocate string with the given length
+    //TODO: Fill the string
+    AddComment("TODO STRING$");
 }
 
 // X=IIF(<ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
