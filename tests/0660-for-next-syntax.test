@@ -1,0 +1,46 @@
+-q
+----------------------------------------------------------------------
+41600 FOR A%=1 TO 10
+41602 FOR A = B% TO C%
+41610 FOR A% = 1 TO 10 STEP 2
+41650 FOR
+41652 FOR A
+41653 FOR A =
+41654 FOR A = 1
+41655 FOR A = 1 TO
+41660 FOR A = 1 TO 10 STEP
+41700 NEXT
+41702 NEXT A
+41704 NEXT A%, B
+41750 NEXT 1
+41752 NEXT (
+41754 NEXT A,
+----------------------------------------------------------------------
+ERROR at 4:10 line 41650 - Identifier expected.
+41650 FOR
+         ^
+ERROR at 5:12 line 41652 - Equal sign ('=') expected.
+41652 FOR A
+           ^
+ERROR at 6:14 line 41653 - Expression should not be empty.
+41653 FOR A =
+             ^
+ERROR at 7:16 line 41654 - TO keyword expected.
+41654 FOR A = 1
+               ^
+ERROR at 8:19 line 41655 - Expression should not be empty.
+41655 FOR A = 1 TO
+                  ^
+ERROR at 9:27 line 41660 - Expression should not be empty.
+41660 FOR A = 1 TO 10 STEP
+                          ^
+ERROR at 13:12 line 41750 - Identifier expected.
+41750 NEXT 1
+           ^
+ERROR at 14:12 line 41752 - Identifier expected.
+41752 NEXT (
+           ^
+ERROR at 15:14 line 41754 - Identifier expected.
+41754 NEXT A,
+             ^
+Parsing ERRORS: 9

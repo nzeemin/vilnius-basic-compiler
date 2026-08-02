@@ -1,0 +1,75 @@
+-q
+----------------------------------------------------------------------
+41100 LET X=1
+41102 LET X=1'comment
+41104 Y=2*3
+41106 A$ = B$ + " "
+41110 LET D$=A$
+41112 LET D$=A$ 'comment
+41120 LET MID$(A$,1%,2%) = D$
+41150 LET
+41152 LET .
+41154 LET A
+41156 LET A=
+41158 A=
+41160 A='comment
+41162 A=,
+41170 LET MID$
+41172 LET MID$(
+41173 LET MID$(A$
+41174 LET MID$(A$,
+41175 LET MID$(A$,1%
+41176 LET MID$(A$,1%,
+41177 LET MID$(A$,1%,2%
+41178 LET MID$(A$,1%,2%)
+41179 LET MID$(A$,1%,2%)=
+----------------------------------------------------------------------
+ERROR at 8:10 line 41150 - Identifier or MID$ expected.
+41150 LET
+         ^
+ERROR at 9:11 line 41152 - Identifier or MID$ expected.
+41152 LET .
+          ^
+ERROR at 10:12 line 41154 - Equal sign ('=') expected.
+41154 LET A
+           ^
+ERROR at 11:13 line 41156 - Expression should not be empty.
+41156 LET A=
+            ^
+ERROR at 12:9 line 41158 - Expression should not be empty.
+41158 A=
+        ^
+ERROR at 13:9 line 41160 - Expression should not be empty.
+41160 A='comment
+        ^
+ERROR at 14:9 line 41162 - Expression should not be empty.
+41162 A=,
+        ^
+ERROR at 15:15 line 41170 - Open bracket expected.
+41170 LET MID$
+              ^
+ERROR at 16:16 line 41172 - Identifier expected.
+41172 LET MID$(
+               ^
+ERROR at 17:18 line 41173 - Comma expected.
+41173 LET MID$(A$
+                 ^
+ERROR at 18:19 line 41174 - Comma expected.
+41174 LET MID$(A$,
+                  ^
+ERROR at 19:21 line 41175 - Comma expected.
+41175 LET MID$(A$,1%
+                    ^
+ERROR at 20:22 line 41176 - Integer argument expected.
+41176 LET MID$(A$,1%,
+                     ^
+ERROR at 21:24 line 41177 - Close bracket expected.
+41177 LET MID$(A$,1%,2%
+                       ^
+ERROR at 22:25 line 41178 - Equal sign ('=') expected.
+41178 LET MID$(A$,1%,2%)
+                        ^
+ERROR at 23:26 line 41179 - Expression should not be empty.
+41179 LET MID$(A$,1%,2%)=
+                         ^
+Parsing ERRORS: 16

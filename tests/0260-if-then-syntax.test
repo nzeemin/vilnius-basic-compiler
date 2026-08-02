@@ -1,49 +1,95 @@
 -q
 ----------------------------------------------------------------------
 10 IF
-12 IF 
-14 IF 'comment
-16 IF -
-18 IF POKE
-20 IF 1%
-22 IF A%
-30 IF 1% THEN
-32 IF 1% THEN-
-40 IF 1% THEN GOTO
-60 IF 1% THEN ? ELSE
+20 IF 
+30 IF 'comment
+40 IF -
+50 IF POKE
+60 IF 1%
+70 IF A%
+80 IF 1% THEN
+90 IF 1% THEN-
+100 IF 1% THEN GOTO
+110 IF 1% THEN ? ELSE
+120 IF -1% THEN 120
+130 IF -1% THEN 120'comment
+140 IF -1% GOTO 10
+150 IF -1% THEN 10 ELSE 10
+160 IF -1% GOTO 10 ELSE 10
+170 IF -1% THEN RETURN
+180 IF -1% THEN PRINT "YES"
+190 IF -1% THEN PRINT "YES" ELSE PRINT "NO"
+200 IF -1% THEN IF A% GOTO 200
+210 IF -1% THEN IF A% THEN RETURN
+220 IF -1% THEN IF A% THEN RETURN ELSE GOTO 220
+230 IF
+240 IF A
+250 IF A 1
+260 IF -1 THEN
+270 IF -1 GOTO
+280 IF -1 GOTO A
+290 IF -1% THEN A
+300 IF -1% THEN 10 ELSE
+310 IF -1% THEN 10 ELSE A
 ----------------------------------------------------------------------
-
 ERROR at 1:6 line 10 - Expression should not be empty.
 10 IF
      ^
-ERROR at 2:7 line 12 - Expression should not be empty.
-12 IF 
+ERROR at 2:7 line 20 - Expression should not be empty.
+20 IF 
       ^
-ERROR at 3:7 line 14 - Expression should not be empty.
-14 IF 'comment
+ERROR at 3:7 line 30 - Expression should not be empty.
+30 IF 'comment
       ^
-ERROR at 4:8 line 16 - Operand expected in expression.
-16 IF -
+ERROR at 4:8 line 40 - Operand expected in expression.
+40 IF -
        ^
-ERROR at 5:7 line 18 - Expression should not be empty.
-18 IF POKE
+ERROR at 5:7 line 50 - Expression should not be empty.
+50 IF POKE
       ^
-ERROR at 6:9 line 20 - Keyword THEN or GOTO expected.
-20 IF 1%
+ERROR at 6:9 line 60 - Keyword THEN or GOTO expected.
+60 IF 1%
         ^
-ERROR at 7:9 line 22 - Keyword THEN or GOTO expected.
-22 IF A%
+ERROR at 7:9 line 70 - Keyword THEN or GOTO expected.
+70 IF A%
         ^
-ERROR at 8:14 line 30 - Statement keyword expected.
-30 IF 1% THEN
+ERROR at 8:14 line 80 - Statement keyword expected.
+80 IF 1% THEN
              ^
-ERROR at 9:14 line 32 - Statement keyword expected.
-32 IF 1% THEN-
+ERROR at 9:14 line 90 - Statement keyword expected.
+90 IF 1% THEN-
              ^
-ERROR at 10:19 line 40 - Line number expected.
-40 IF 1% THEN GOTO
-                  ^
-ERROR at 11:21 line 60 - Statement keyword expected.
-60 IF 1% THEN ? ELSE
-                    ^
-Parsing ERRORS: 11
+ERROR at 10:20 line 100 - Line number expected.
+100 IF 1% THEN GOTO
+                   ^
+ERROR at 11:22 line 110 - Statement keyword expected.
+110 IF 1% THEN ? ELSE
+                     ^
+ERROR at 23:7 line 230 - Expression should not be empty.
+230 IF
+      ^
+ERROR at 24:9 line 240 - Keyword THEN or GOTO expected.
+240 IF A
+        ^
+ERROR at 25:10 line 250 - Keyword THEN or GOTO expected.
+250 IF A 1
+         ^
+ERROR at 26:15 line 260 - Statement keyword expected.
+260 IF -1 THEN
+              ^
+ERROR at 27:15 line 270 - Line number expected after GOTO.
+270 IF -1 GOTO
+              ^
+ERROR at 28:16 line 280 - Line number expected after GOTO.
+280 IF -1 GOTO A
+               ^
+ERROR at 29:18 line 290 - Equal sign ('=') expected.
+290 IF -1% THEN A
+                 ^
+ERROR at 30:24 line 300 - Statement keyword expected.
+300 IF -1% THEN 10 ELSE
+                       ^
+ERROR at 31:26 line 310 - Equal sign ('=') expected.
+310 IF -1% THEN 10 ELSE A
+                         ^
+Parsing ERRORS: 20

@@ -1,0 +1,39 @@
+-q
+----------------------------------------------------------------------
+10 RETURN
+12 RETURN 
+14 RETURN'comment
+20 RETURN 100
+22 RETURN A
+24 RETURN A%
+26 RETURN (
+28 RETURN ,
+30 RETURN .
+32 RETURN RETURN
+34 RETURN GOTO 100
+----------------------------------------------------------------------
+ERROR at 4:11 line 20 - Unexpected text at the end of the statement.
+20 RETURN 100
+          ^
+ERROR at 5:11 line 22 - Unexpected text at the end of the statement.
+22 RETURN A
+          ^
+ERROR at 6:11 line 24 - Unexpected text at the end of the statement.
+24 RETURN A%
+          ^
+ERROR at 7:11 line 26 - Unexpected text at the end of the statement.
+26 RETURN (
+          ^
+ERROR at 8:11 line 28 - Unexpected text at the end of the statement.
+28 RETURN ,
+          ^
+ERROR at 9:11 line 30 - Unexpected text at the end of the statement.
+30 RETURN .
+          ^
+ERROR at 10:11 line 32 - Unexpected text at the end of the statement.
+32 RETURN RETURN
+          ^
+ERROR at 11:11 line 34 - Unexpected text at the end of the statement.
+34 RETURN GOTO 100
+          ^
+Parsing ERRORS: 8

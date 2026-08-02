@@ -1,0 +1,47 @@
+-q
+----------------------------------------------------------------------
+46500 CIRCLE (200,100), 50
+46502 CIRCLE (200,100), 50, 1
+46504 CIRCLE (200,100), 50, 1, 0.0
+46506 CIRCLE (200,100), 50, 1, 0.0, 1.0
+46508 CIRCLE (200,100), 50, 1, 0.0, 1.0, 0.8
+46510 CIRCLE @(200,100), 50
+46512 CIRCLE STEP (200,100), 50
+46550 CIRCLE
+46552 CIRCLE @
+46554 CIRCLE STEP
+46556 CIRCLE (
+46558 CIRCLE (200
+46560 CIRCLE (200,
+46562 CIRCLE (200,100
+46564 CIRCLE (200,100)
+46566 CIRCLE (200,100),
+----------------------------------------------------------------------
+ERROR at 8:13 line 46550 - Open bracket expected.
+46550 CIRCLE
+            ^
+ERROR at 9:15 line 46552 - Open bracket expected.
+46552 CIRCLE @
+              ^
+ERROR at 10:18 line 46554 - Open bracket expected.
+46554 CIRCLE STEP
+                 ^
+ERROR at 11:15 line 46556 - Expression should not be empty.
+46556 CIRCLE (
+              ^
+ERROR at 12:18 line 46558 - Comma expected.
+46558 CIRCLE (200
+                 ^
+ERROR at 13:19 line 46560 - Expression should not be empty.
+46560 CIRCLE (200,
+                  ^
+ERROR at 14:22 line 46562 - Close bracket expected.
+46562 CIRCLE (200,100
+                     ^
+ERROR at 15:23 line 46564 - Comma expected.
+46564 CIRCLE (200,100)
+                      ^
+ERROR at 16:24 line 46566 - Expression should not be empty.
+46566 CIRCLE (200,100),
+                       ^
+Parsing ERRORS: 9

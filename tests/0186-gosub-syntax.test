@@ -1,0 +1,42 @@
+-q
+----------------------------------------------------------------------
+10 GOSUB
+12 GOSUB 
+14 GOSUB'comment
+16 GOSUB GOSUB
+18 GOSUB -
+20 GOSUB 10%
+22 GOSUB A%
+24 GOSUB PI
+30 GOSUB 10,
+32 GOSUB 10,20
+100 GOSUB 100
+----------------------------------------------------------------------
+ERROR at 1:9 line 10 - Line number expected.
+10 GOSUB
+        ^
+ERROR at 2:10 line 12 - Line number expected.
+12 GOSUB 
+         ^
+ERROR at 3:9 line 14 - Line number expected.
+14 GOSUB'comment
+        ^
+ERROR at 4:10 line 16 - Line number expected.
+16 GOSUB GOSUB
+         ^
+ERROR at 5:10 line 18 - Line number expected.
+18 GOSUB -
+         ^
+ERROR at 7:10 line 22 - Line number expected.
+22 GOSUB A%
+         ^
+ERROR at 8:10 line 24 - Line number expected.
+24 GOSUB PI
+         ^
+ERROR at 9:12 line 30 - Unexpected text at the end of the statement.
+30 GOSUB 10,
+           ^
+ERROR at 10:12 line 32 - Unexpected text at the end of the statement.
+32 GOSUB 10,20
+           ^
+Parsing ERRORS: 9

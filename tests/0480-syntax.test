@@ -1,80 +1,5 @@
 -q
 ----------------------------------------------------------------------
-41100 LET X=1
-41102 LET X=1'comment
-41104 Y=2*3
-41106 A$ = B$ + " "
-41110 LET D$=A$
-41112 LET D$=A$ 'comment
-41120 LET MID$(A$,1%,2%) = D$
-41150 LET
-41152 LET .
-41154 LET A
-41156 LET A=
-41158 A=
-41160 A='comment
-41162 A=,
-41170 LET MID$
-41172 LET MID$(
-41173 LET MID$(A$
-41174 LET MID$(A$,
-41175 LET MID$(A$,1%
-41176 LET MID$(A$,1%,
-41177 LET MID$(A$,1%,2%
-41178 LET MID$(A$,1%,2%)
-41179 LET MID$(A$,1%,2%)=
-41200 GOTO 41200
-41202 GOTO 41200'comment
-41250 GOTO
-41252 GOTO A
-41300 GOSUB 41300
-41302 GOSUB 41200'comment
-41350 GOSUB
-41352 GOSUB A
-41400 RETURN
-41450 RETURN A
-41452 RETURN (
-41500 IF -1% THEN 41500
-41501 IF -1% THEN 41500'comment
-41515 IF -1% GOTO 41415
-41520 IF -1% THEN 41420 ELSE 41420
-41525 IF -1% GOTO 41425 ELSE 41425
-41530 IF -1% THEN RETURN
-41532 IF -1% THEN PRINT "YES"
-41535 IF -1% THEN PRINT "YES" ELSE PRINT "NO"
-41540 IF -1% THEN IF A% GOTO 41540
-41542 IF -1% THEN IF A% THEN RETURN
-41544 IF -1% THEN IF A% THEN RETURN ELSE GOTO 41544
-41550 IF
-41552 IF A
-41554 IF A 1
-41556 IF -1 THEN
-41557 IF -1 GOTO
-41558 IF -1 GOTO A
-41559 IF -1% THEN A
-41560 IF -1% THEN 41420 ELSE
-41561 IF -1% THEN 41420 ELSE A
-41600 FOR A%=1 TO 10
-41602 FOR A = B% TO C%
-41610 FOR A% = 1 TO 10 STEP 2
-41650 FOR
-41652 FOR A
-41653 FOR A =
-41654 FOR A = 1
-41655 FOR A = 1 TO
-41660 FOR A = 1 TO 10 STEP
-41700 NEXT
-41702 NEXT A
-41704 NEXT A%, B
-41750 NEXT 1
-41752 NEXT (
-41754 NEXT A,
-41800 ON 1 GOTO 41800
-41802 ON A GOTO 41802
-41810 ON 1 GOSUB 41810
-41850 ON
-41852 ON 1
-41854 ON A GOTO
 41900 STOP
 41910 STOP 1
 41912 STOP A
@@ -127,8 +52,6 @@
 43210 INPUT "AAA"; A
 43300 OPEN "AAA"
 43400 CLOSE
-44100 POKE 0,1
-44200 OUT 0, 1, 2
 45100 CLS
 45102 CLS 'comment
 45150 CLS 0
@@ -172,35 +95,6 @@
 46258 PRESET A$
 46260 PRESET (150, 200), 1,
 46262 PRESET (150, 200), 1,2
-46500 CIRCLE (200,100), 50
-46502 CIRCLE (200,100), 50, 1
-46504 CIRCLE (200,100), 50, 1, 0.0
-46506 CIRCLE (200,100), 50, 1, 0.0, 1.0
-46508 CIRCLE (200,100), 50, 1, 0.0, 1.0, 0.8
-46510 CIRCLE @(200,100), 50
-46512 CIRCLE STEP (200,100), 50
-46550 CIRCLE
-46552 CIRCLE @
-46554 CIRCLE STEP
-46556 CIRCLE (
-46558 CIRCLE (200
-46560 CIRCLE (200,
-46562 CIRCLE (200,100
-46564 CIRCLE (200,100)
-46566 CIRCLE (200,100),
-46600 PAINT (200,100)
-46601 PAINT @(200,100)
-46602 PAINT STEP ( 200 , 100 )
-46603 PAINT (200,100), 1
-46604 PAINT (200,100), 1, 2
-46650 PAINT
-46652 PAINT @
-46654 PAINT A
-46656 PAINT STEP
-46658 PAINT (
-46660 PAINT (200
-46662 PAINT (200,
-46664 PAINT (200,100
 46700 DRAW "ABC"
 46701 DRAW A$
 46750 DRAW
@@ -215,364 +109,184 @@
 48250 TROFF .
 48252 TROFF A
 ----------------------------------------------------------------------
-ERROR at 8:10 line 41150 - Identifier or MID$ expected.
-41150 LET
-         ^
-ERROR at 9:11 line 41152 - Identifier or MID$ expected.
-41152 LET .
-          ^
-ERROR at 10:12 line 41154 - Equal sign ('=') expected.
-41154 LET A
-           ^
-ERROR at 11:13 line 41156 - Expression should not be empty.
-41156 LET A=
-            ^
-ERROR at 12:9 line 41158 - Expression should not be empty.
-41158 A=
-        ^
-ERROR at 13:9 line 41160 - Expression should not be empty.
-41160 A='comment
-        ^
-ERROR at 14:9 line 41162 - Expression should not be empty.
-41162 A=,
-        ^
-ERROR at 15:15 line 41170 - Open bracket expected.
-41170 LET MID$
-              ^
-ERROR at 16:16 line 41172 - Identifier expected.
-41172 LET MID$(
-               ^
-ERROR at 17:18 line 41173 - Comma expected.
-41173 LET MID$(A$
-                 ^
-ERROR at 18:19 line 41174 - Comma expected.
-41174 LET MID$(A$,
-                  ^
-ERROR at 19:21 line 41175 - Comma expected.
-41175 LET MID$(A$,1%
-                    ^
-ERROR at 20:22 line 41176 - Integer argument expected.
-41176 LET MID$(A$,1%,
-                     ^
-ERROR at 21:24 line 41177 - Close bracket expected.
-41177 LET MID$(A$,1%,2%
-                       ^
-ERROR at 22:25 line 41178 - Equal sign ('=') expected.
-41178 LET MID$(A$,1%,2%)
-                        ^
-ERROR at 23:26 line 41179 - Expression should not be empty.
-41179 LET MID$(A$,1%,2%)=
-                         ^
-ERROR at 26:11 line 41250 - Line number expected.
-41250 GOTO
-          ^
-ERROR at 27:12 line 41252 - Line number expected.
-41252 GOTO A
-           ^
-ERROR at 30:12 line 41350 - Line number expected.
-41350 GOSUB
-           ^
-ERROR at 31:13 line 41352 - Line number expected.
-41352 GOSUB A
-            ^
-ERROR at 33:14 line 41450 - Unexpected text at the end of the statement.
-41450 RETURN A
-             ^
-ERROR at 34:14 line 41452 - Unexpected text at the end of the statement.
-41452 RETURN (
-             ^
-ERROR at 46:9 line 41550 - Expression should not be empty.
-41550 IF
-        ^
-ERROR at 47:11 line 41552 - Keyword THEN or GOTO expected.
-41552 IF A
-          ^
-ERROR at 48:12 line 41554 - Keyword THEN or GOTO expected.
-41554 IF A 1
-           ^
-ERROR at 49:17 line 41556 - Statement keyword expected.
-41556 IF -1 THEN
-                ^
-ERROR at 50:17 line 41557 - Line number expected after GOTO.
-41557 IF -1 GOTO
-                ^
-ERROR at 51:18 line 41558 - Line number expected after GOTO.
-41558 IF -1 GOTO A
-                 ^
-ERROR at 52:20 line 41559 - Equal sign ('=') expected.
-41559 IF -1% THEN A
-                   ^
-ERROR at 53:29 line 41560 - Statement keyword expected.
-41560 IF -1% THEN 41420 ELSE
-                            ^
-ERROR at 54:31 line 41561 - Equal sign ('=') expected.
-41561 IF -1% THEN 41420 ELSE A
-                              ^
-ERROR at 58:10 line 41650 - Identifier expected.
-41650 FOR
-         ^
-ERROR at 59:12 line 41652 - Equal sign ('=') expected.
-41652 FOR A
-           ^
-ERROR at 60:14 line 41653 - Expression should not be empty.
-41653 FOR A =
-             ^
-ERROR at 61:16 line 41654 - TO keyword expected.
-41654 FOR A = 1
-               ^
-ERROR at 62:19 line 41655 - Expression should not be empty.
-41655 FOR A = 1 TO
-                  ^
-ERROR at 63:27 line 41660 - Expression should not be empty.
-41660 FOR A = 1 TO 10 STEP
-                          ^
-ERROR at 67:12 line 41750 - Identifier expected.
-41750 NEXT 1
-           ^
-ERROR at 68:12 line 41752 - Identifier expected.
-41752 NEXT (
-           ^
-ERROR at 69:14 line 41754 - Identifier expected.
-41754 NEXT A,
-             ^
-ERROR at 73:9 line 41850 - Expreession expected.
-41850 ON
-        ^
-ERROR at 74:11 line 41852 - GOTO or GOSUB expected.
-41852 ON 1
-          ^
-ERROR at 75:16 line 41854 - Line number expected.
-41854 ON A GOTO
-               ^
-ERROR at 77:12 line 41910 - Unexpected text at the end of the statement.
+ERROR at 2:12 line 41910 - Unexpected text at the end of the statement.
 41910 STOP 1
            ^
-ERROR at 78:12 line 41912 - Unexpected text at the end of the statement.
+ERROR at 3:12 line 41912 - Unexpected text at the end of the statement.
 41912 STOP A
            ^
-ERROR at 79:12 line 41914 - Unexpected text at the end of the statement.
+ERROR at 4:12 line 41914 - Unexpected text at the end of the statement.
 41914 STOP .
            ^
-ERROR at 81:11 line 41930 - Unexpected text at the end of the statement.
+ERROR at 6:11 line 41930 - Unexpected text at the end of the statement.
 41930 END 1
           ^
-ERROR at 90:10 line 42150 - Identifier expected.
+ERROR at 15:10 line 42150 - Identifier expected.
 42150 DIM
          ^
-ERROR at 91:13 line 42152 - Identifier expected.
+ERROR at 16:13 line 42152 - Identifier expected.
 42152 DIM A,
             ^
-ERROR at 92:11 line 42154 - Identifier expected.
+ERROR at 17:11 line 42154 - Identifier expected.
 42154 DIM 1
           ^
-ERROR at 93:13 line 42160 - Array index expected.
+ERROR at 18:13 line 42160 - Array index expected.
 42160 DIM A(
             ^
-ERROR at 94:13 line 42162 - Array index expected.
+ERROR at 19:13 line 42162 - Array index expected.
 42162 DIM A()
             ^
-ERROR at 95:13 line 42164 - Array index expected.
+ERROR at 20:13 line 42164 - Array index expected.
 42164 DIM A(B)
             ^
-ERROR at 96:14 line 42166 - Comma expected.
+ERROR at 21:14 line 42166 - Comma expected.
 42166 DIM A(3+2)
              ^
-ERROR at 98:10 line 42250 - Expression should not be empty.
+ERROR at 23:10 line 42250 - Expression should not be empty.
 42250 KEY
          ^
-ERROR at 99:12 line 42252 - Comma expected.
+ERROR at 24:12 line 42252 - Comma expected.
 42252 KEY 1
            ^
-ERROR at 100:13 line 42254 - Expression should not be empty.
+ERROR at 25:13 line 42254 - Expression should not be empty.
 42254 KEY 1,
             ^
-ERROR at 101:19 line 42256 - Unexpected text at the end of the statement.
+ERROR at 26:19 line 42256 - Unexpected text at the end of the statement.
 42256 KEY 1, "AAA",
                   ^
-ERROR at 105:11 line 42550 - Identifier expected.
+ERROR at 30:11 line 42550 - Identifier expected.
 42550 READ
           ^
-ERROR at 106:12 line 42552 - Identifier expected.
+ERROR at 31:12 line 42552 - Identifier expected.
 42552 READ 1
            ^
-ERROR at 107:12 line 42554 - Identifier expected.
+ERROR at 32:12 line 42554 - Identifier expected.
 42554 READ ,
            ^
-ERROR at 109:15 line 42650 - Numeric argument expected.
+ERROR at 34:15 line 42650 - Numeric argument expected.
 42650 RESTORE A
               ^
-ERROR at 110:15 line 42652 - Numeric argument expected.
+ERROR at 35:15 line 42652 - Numeric argument expected.
 42652 RESTORE ,
               ^
-ERROR at 113:14 line 42715 - Equal sign expected.
+ERROR at 38:14 line 42715 - Equal sign expected.
 42715 DEF USR
              ^
-ERROR at 114:15 line 42716 - Expression should not be empty.
+ERROR at 39:15 line 42716 - Expression should not be empty.
 42716 DEF USR=
               ^
-ERROR at 115:15 line 42717 - Equal sign expected.
+ERROR at 40:15 line 42717 - Equal sign expected.
 42717 DEF USR1
               ^
-ERROR at 116:16 line 42718 - Expression should not be empty.
+ERROR at 41:16 line 42718 - Expression should not be empty.
 42718 DEF USR1=
                ^
-ERROR at 119:13 line 42725 - Identifier expected.
+ERROR at 44:13 line 42725 - Identifier expected.
 42725 DEF FN
             ^
-ERROR at 121:16 line 42727 - Expression should not be empty.
+ERROR at 46:16 line 42727 - Expression should not be empty.
 42727 DEF FN A=
                ^
-ERROR at 132:11 line 45150 - Unexpected text at the end of the statement.
+ERROR at 55:11 line 45150 - Unexpected text at the end of the statement.
 45150 CLS 0
           ^
-ERROR at 133:11 line 45152 - Unexpected text at the end of the statement.
+ERROR at 56:11 line 45152 - Unexpected text at the end of the statement.
 45152 CLS A%
           ^
-ERROR at 134:11 line 45154 - Unexpected text at the end of the statement.
+ERROR at 57:11 line 45154 - Unexpected text at the end of the statement.
 45154 CLS .
           ^
-ERROR at 135:10 line 45156 - Unexpected text at the end of the statement.
+ERROR at 58:10 line 45156 - Unexpected text at the end of the statement.
 45156 CLS;
          ^
-ERROR at 136:12 line 45250 - Arguments expected.
+ERROR at 59:12 line 45250 - Arguments expected.
 45250 COLOR
            ^
-ERROR at 137:15 line 45252 - Expression should not be empty.
+ERROR at 60:15 line 45252 - Expression should not be empty.
 45252 COLOR ,,
               ^
-ERROR at 139:13 line 45350 - Numeric argument expected.
+ERROR at 62:13 line 45350 - Numeric argument expected.
 45350 SCREEN
             ^
-ERROR at 140:14 line 45352 - Numeric argument expected.
+ERROR at 63:14 line 45352 - Numeric argument expected.
 45352 SCREEN 'comment
              ^
-ERROR at 141:14 line 45354 - Numeric argument expected.
+ERROR at 64:14 line 45354 - Numeric argument expected.
 45354 SCREEN "A"
              ^
-ERROR at 142:14 line 45356 - Numeric argument expected.
+ERROR at 65:14 line 45356 - Numeric argument expected.
 45356 SCREEN A$
              ^
-ERROR at 145:13 line 45450 - Arguments expected.
+ERROR at 68:13 line 45450 - Arguments expected.
 45450 LOCATE
             ^
-ERROR at 148:16 line 45456 - Expression should not be empty.
+ERROR at 71:16 line 45456 - Expression should not be empty.
 45456 LOCATE ,,
                ^
-ERROR at 154:11 line 46150 - Open bracket expected.
+ERROR at 77:11 line 46150 - Open bracket expected.
 46150 PSET
           ^
-ERROR at 155:13 line 46152 - Open bracket expected.
+ERROR at 78:13 line 46152 - Open bracket expected.
 46152 PSET @
             ^
-ERROR at 156:16 line 46154 - Open bracket expected.
+ERROR at 79:16 line 46154 - Open bracket expected.
 46154 PSET STEP
                ^
-ERROR at 157:12 line 46156 - Open bracket expected.
+ERROR at 80:12 line 46156 - Open bracket expected.
 46156 PSET 150, 200
            ^
-ERROR at 158:12 line 46158 - Open bracket expected.
+ERROR at 81:12 line 46158 - Open bracket expected.
 46158 PSET A$
            ^
-ERROR at 159:25 line 46160 - Unexpected text at the end of the statement.
+ERROR at 82:25 line 46160 - Unexpected text at the end of the statement.
 46160 PSET (150, 200), 1,
                         ^
-ERROR at 160:25 line 46162 - Unexpected text at the end of the statement.
+ERROR at 83:25 line 46162 - Unexpected text at the end of the statement.
 46162 PSET (150, 200), 1,2
                         ^
-ERROR at 166:13 line 46250 - Open bracket expected.
+ERROR at 89:13 line 46250 - Open bracket expected.
 46250 PRESET
             ^
-ERROR at 167:15 line 46252 - Open bracket expected.
+ERROR at 90:15 line 46252 - Open bracket expected.
 46252 PRESET @
               ^
-ERROR at 168:18 line 46254 - Open bracket expected.
+ERROR at 91:18 line 46254 - Open bracket expected.
 46254 PRESET STEP
                  ^
-ERROR at 169:14 line 46256 - Open bracket expected.
+ERROR at 92:14 line 46256 - Open bracket expected.
 46256 PRESET 150, 200
              ^
-ERROR at 170:14 line 46258 - Open bracket expected.
+ERROR at 93:14 line 46258 - Open bracket expected.
 46258 PRESET A$
              ^
-ERROR at 171:27 line 46260 - Unexpected text at the end of the statement.
+ERROR at 94:27 line 46260 - Unexpected text at the end of the statement.
 46260 PRESET (150, 200), 1,
                           ^
-ERROR at 172:27 line 46262 - Unexpected text at the end of the statement.
+ERROR at 95:27 line 46262 - Unexpected text at the end of the statement.
 46262 PRESET (150, 200), 1,2
                           ^
-ERROR at 180:13 line 46550 - Open bracket expected.
-46550 CIRCLE
-            ^
-ERROR at 181:15 line 46552 - Open bracket expected.
-46552 CIRCLE @
-              ^
-ERROR at 182:18 line 46554 - Open bracket expected.
-46554 CIRCLE STEP
-                 ^
-ERROR at 183:15 line 46556 - Expression should not be empty.
-46556 CIRCLE (
-              ^
-ERROR at 184:18 line 46558 - Comma expected.
-46558 CIRCLE (200
-                 ^
-ERROR at 185:19 line 46560 - Expression should not be empty.
-46560 CIRCLE (200,
-                  ^
-ERROR at 186:22 line 46562 - Close bracket expected.
-46562 CIRCLE (200,100
-                     ^
-ERROR at 187:23 line 46564 - Comma expected.
-46564 CIRCLE (200,100)
-                      ^
-ERROR at 188:24 line 46566 - Expression should not be empty.
-46566 CIRCLE (200,100),
-                       ^
-ERROR at 194:12 line 46650 - Open bracket expected.
-46650 PAINT
-           ^
-ERROR at 195:14 line 46652 - Open bracket expected.
-46652 PAINT @
-             ^
-ERROR at 196:13 line 46654 - Open bracket expected.
-46654 PAINT A
-            ^
-ERROR at 197:17 line 46656 - Open bracket expected.
-46656 PAINT STEP
-                ^
-ERROR at 198:14 line 46658 - Expression should not be empty.
-46658 PAINT (
-             ^
-ERROR at 199:17 line 46660 - Comma expected.
-46660 PAINT (200
-                ^
-ERROR at 200:18 line 46662 - Expression should not be empty.
-46662 PAINT (200,
-                 ^
-ERROR at 201:21 line 46664 - Close bracket expected.
-46664 PAINT (200,100
-                    ^
-ERROR at 204:11 line 46750 - Expression should not be empty.
+ERROR at 98:11 line 46750 - Expression should not be empty.
 46750 DRAW
           ^
-ERROR at 205:14 line 46752 - Unexpected text at the end of the statement.
+ERROR at 99:14 line 46752 - Unexpected text at the end of the statement.
 46752 DRAW A$, B$
              ^
-ERROR at 207:12 line 47150 - Unexpected text at the end of the statement.
+ERROR at 101:12 line 47150 - Unexpected text at the end of the statement.
 47150 BEEP 1
            ^
-ERROR at 208:12 line 47152 - Unexpected text at the end of the statement.
+ERROR at 102:12 line 47152 - Unexpected text at the end of the statement.
 47152 BEEP A
            ^
-ERROR at 210:12 line 48150 - Unexpected text at the end of the statement.
+ERROR at 104:12 line 48150 - Unexpected text at the end of the statement.
 48150 TRON ,
            ^
-ERROR at 211:12 line 48152 - Unexpected text at the end of the statement.
+ERROR at 105:12 line 48152 - Unexpected text at the end of the statement.
 48152 TRON A
            ^
-ERROR at 213:13 line 48250 - Unexpected text at the end of the statement.
+ERROR at 107:13 line 48250 - Unexpected text at the end of the statement.
 48250 TROFF .
             ^
-ERROR at 214:13 line 48252 - Unexpected text at the end of the statement.
+ERROR at 108:13 line 48252 - Unexpected text at the end of the statement.
 48252 TROFF A
             ^
-Parsing ERRORS: 120
+Parsing ERRORS: 60

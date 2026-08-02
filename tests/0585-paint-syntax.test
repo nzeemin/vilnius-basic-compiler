@@ -1,0 +1,41 @@
+-q
+----------------------------------------------------------------------
+46600 PAINT (200,100)
+46601 PAINT @(200,100)
+46602 PAINT STEP ( 200 , 100 )
+46603 PAINT (200,100), 1
+46604 PAINT (200,100), 1, 2
+46650 PAINT
+46652 PAINT @
+46654 PAINT A
+46656 PAINT STEP
+46658 PAINT (
+46660 PAINT (200
+46662 PAINT (200,
+46664 PAINT (200,100
+----------------------------------------------------------------------
+ERROR at 6:12 line 46650 - Open bracket expected.
+46650 PAINT
+           ^
+ERROR at 7:14 line 46652 - Open bracket expected.
+46652 PAINT @
+             ^
+ERROR at 8:13 line 46654 - Open bracket expected.
+46654 PAINT A
+            ^
+ERROR at 9:17 line 46656 - Open bracket expected.
+46656 PAINT STEP
+                ^
+ERROR at 10:14 line 46658 - Expression should not be empty.
+46658 PAINT (
+             ^
+ERROR at 11:17 line 46660 - Comma expected.
+46660 PAINT (200
+                ^
+ERROR at 12:18 line 46662 - Expression should not be empty.
+46662 PAINT (200,
+                 ^
+ERROR at 13:21 line 46664 - Close bracket expected.
+46664 PAINT (200,100
+                    ^
+Parsing ERRORS: 8
