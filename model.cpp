@@ -309,7 +309,7 @@ string ExpressionNode::GetNodeVTypeStr() const
 int ExpressionNode::GetConstIntegerValue() const
 {
     assert(constval);
-    int ivalue = (int)std::floor(token.dvalue);
+    int ivalue = ConstToInteger(token.dvalue);
     return ivalue;
 }
 

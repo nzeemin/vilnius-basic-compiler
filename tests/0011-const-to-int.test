@@ -1,0 +1,37 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' Assignment to an Integer variable drops the fractional part, see 2.3.6 and CINT.
+' The value is calculated at run time here, and folded by the compiler below,
+' both ways have to give the same result.
+20 F = -23.42
+30 A% = F
+35 PRINT "-23", A%
+40 A% = -23.42
+45 PRINT "-23", A%
+50 F = 23.42
+60 A% = F
+65 PRINT "23", A%
+70 A% = 23.42
+75 PRINT "23", A%
+' Values between -1 and 1 become zero, not -1
+80 A% = -0.5
+85 PRINT "0", A%
+90 A% = 0.5
+95 PRINT "0", A%
+100 A% = -1.99
+105 PRINT "-1", A%
+' CINT drops the fractional part, same as FIX does
+110 A% = CINT(-6.352)
+115 PRINT "-6", A%
+120 A% = CINT(5.93)
+125 PRINT "5", A%
+' FIX drops the fractional part, INT gives the nearest lower integer
+130 A% = FIX(-5.3)
+135 PRINT "-5", A%
+140 A% = INT(-5.3)
+145 PRINT "-6", A%
+150 A% = FIX(6.25)
+155 PRINT "6", A%
+160 A% = INT(6.25)
+165 PRINT "6", A%

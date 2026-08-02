@@ -181,6 +181,12 @@ string GetKeywordString(KeywordIndex keyword);
 string GetRuntimeSymbolName(RuntimeSymbol rtsymbol);
 RuntimeSymbol FindRuntimeSymbolByName(const string& name);
 
+// Convert a constant numeric value to Integer the way the language does it: the fractional
+// part is dropped, see 2.3.6 and the CINT function in the language description.
+// NOTE: This is NOT the same as the INT() function, which gives the nearest lower integer:
+//       for -5.3 this gives -5, and INT(-5.3) gives -6.
+inline int ConstToInteger(double dvalue) { return (int)std::trunc(dvalue); }
+
 string GetCanonicVariableName(const string& name);
 string DecorateVariableName(const string& name);
 string GetValueTypeStr(ValueType vtype);

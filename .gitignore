@@ -3,6 +3,7 @@
 /x64
 /testrunner/Debug
 /testrunner/Release
+/BasicCom.*
 *.ncb
 *.suo
 *.user
