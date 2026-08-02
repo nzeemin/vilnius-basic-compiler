@@ -261,23 +261,22 @@ void process_test(const string& testfilename)
     remove_file_if_exists(testdirpath, outfilename);
 
     // parse and split the test file
-    char buffer[256];
+    string line;
     string testfilepath = string(TESTS_SUB_DIR) + PATH_SEPARATOR + testfilename;
     std::ifstream fs(testfilepath);
     //TODO: check for error
-    fs.getline(buffer, sizeof(buffer));  // read compiler command line parameters line
-    string compilerparams(buffer);
-    fs.getline(buffer, sizeof(buffer));  // skip one line after the parameters
+    std::getline(fs, line);  // read compiler command line parameters line
+    string compilerparams(line);
+    std::getline(fs, line);  // skip one line after the parameters
     // Copy the BASIC program lines
     string basicfilepath = testdirpath + PATH_SEPARATOR + testname + ".ASC";
     std::ofstream ofs(basicfilepath);
     //TODO: check for error
-    while (!fs.eof())
+    while (std::getline(fs, line))
     {
-        fs.getline(buffer, sizeof(buffer));
-        if (buffer[0] == '-')
+        if (!line.empty() && line[0] == '-')
             break;
-        ofs.write(buffer, strlen(buffer));
+        ofs.write(line.data(), line.size());
         ofs.put('\n');
     }
     ofs.flush();
@@ -285,29 +284,25 @@ void process_test(const string& testfilename)
     // next section of the test file is expected errors/warnings
     bool outhasanyerrors = false;
     std::vector<string> errorlines;
-    while (!fs.eof())
+    while (std::getline(fs, line))
     {
-        fs.getline(buffer, sizeof(buffer));
-        if (buffer[0] == '-')
+        if (!line.empty() && line[0] == '-')
             break;
-        if (*buffer != 0)
+        if (!line.empty())
         {
-            errorlines.push_back(buffer);
-            string line(buffer);
+            errorlines.push_back(line);
             if (line.find("ERROR") == 0)
                 outhasanyerrors = true;
         }
     }
     // next section is optional, it is etalon program text for MACRO
     std::vector<string> macetalontext;
-    if (buffer[0] == '-')
+    if (!line.empty() && line[0] == '-')
     {
-        while (!fs.eof())
+        while (std::getline(fs, line))
         {
-            fs.getline(buffer, sizeof(buffer));
-            if (*buffer == 0 || *buffer == ';')  // skipp all empty lines and comment lines
+            if (line.empty() || line[0] == ';')  // skipp all empty lines and comment lines
                 continue;
-            string line(buffer);
             size_t commentpos = line.find(";");
             if (commentpos != string::npos)  // remove end-of-line comment
                 line.erase(commentpos);
@@ -338,11 +333,10 @@ void process_test(const string& testfilename)
     std::vector<string> outlines;
     std::ifstream fsout(testdirpath + PATH_SEPARATOR + outfilename);
     //TODO: check for error
-    while (!fsout.eof())
+    while (std::getline(fsout, line))
     {
-        fsout.getline(buffer, sizeof(buffer));
-        if (*buffer != 0)
-            outlines.push_back(buffer);
+        if (!line.empty())
+            outlines.push_back(line);
     }
     fsout.close();
 
@@ -402,10 +396,9 @@ void process_test(const string& testfilename)
     // Read .outas file to check if we have any errors/warnings
     {
         std::ifstream fsoutas(testdirpath + PATH_SEPARATOR + assembleroutfilename);
-        while (!fsoutas.eof())
+        while (std::getline(fsoutas, line))
         {
-            fsoutas.getline(buffer, sizeof(buffer));
-            if (*buffer == 0)  // skip empty lines
+            if (line.empty())  // skip empty lines
                 continue;
 
             std::cout << "  FAILED: assembler output file contains ERRORs or WARNINGs" << std::endl;
@@ -426,10 +419,9 @@ void process_test(const string& testfilename)
     // Read .outasrt file to check if we have any errors/warnings
     {
         std::ifstream fsoutas2(testdirpath + PATH_SEPARATOR + assembleroutfile2name);
-        while (!fsoutas2.eof())
+        while (std::getline(fsoutas2, line))
         {
-            fsoutas2.getline(buffer, sizeof(buffer));
-            if (*buffer == 0)  // skip empty lines
+            if (line.empty())  // skip empty lines
                 continue;
 
             std::cout << "  FAILED: assembler output file for runtime contains ERRORs or WARNINGs" << std::endl;
@@ -450,13 +442,11 @@ void process_test(const string& testfilename)
     // Read .outln file to check if we have any errors/warnings
     {
         std::ifstream fsoutln(testdirpath + PATH_SEPARATOR + linkeroutfilename);
-        while (!fsoutln.eof())
+        while (std::getline(fsoutln, line))
         {
-            fsoutln.getline(buffer, sizeof(buffer));
-            if (*buffer == 0)  // skip empty lines
+            if (line.empty())  // skip empty lines
                 continue;
 
-            string line(buffer);
             if (line.find("Undefined globals:") != string::npos)
             {
                 std::cout << "  FAILED: linker found Undefined globals" << std::endl;
@@ -472,15 +462,13 @@ void process_test(const string& testfilename)
     std::ifstream fsmac(testdirpath + PATH_SEPARATOR + macfilename);
     //TODO: check for error
     std::vector<string> mactext;
-    while (!fsmac.eof())
+    while (std::getline(fsmac, line))
     {
-        fsmac.getline(buffer, sizeof(buffer));
-        if (*buffer == 0)  // skip empty lines
+        if (line.empty())  // skip empty lines
             continue;
-        string line(buffer);
         if (line.find("TODO") != string::npos)
             machastodos = true;
-        if (*buffer == ';')
+        if (line[0] == ';')
             continue;  // skip comment lines
         size_t commentpos = line.find(";");
         if (commentpos != string::npos)  // remove end-of-line comment
@@ -529,12 +517,10 @@ void process_test(const string& testfilename)
     // Read VIBAS.MAC and check for TODOs
     std::ifstream fsrt(testdirpath + PATH_SEPARATOR + "VIBAS.MAC");
     bool rthastodos = false;
-    while (!fsrt.eof())
+    while (std::getline(fsrt, line))
     {
-        fsrt.getline(buffer, sizeof(buffer));
-        if (*buffer == 0)  // skip empty lines
+        if (line.empty())  // skip empty lines
             continue;
-        string line(buffer);
         if (line.find("TODO") != string::npos)
             rthastodos = true;
     }

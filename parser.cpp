@@ -407,6 +407,22 @@ void Parser::SkipComma()
     GetNextToken();  // comma
 }
 
+// Put a freshly parsed operand (or unary operation) node into the tree:
+// it becomes the root of an empty expression, or the right operand of the pending operation.
+void Parser::LinkOperandNode(ExpressionModel& expression, int index, int prev)
+{
+    if (expression.root < 0)
+    {
+        expression.root = index;
+        return;
+    }
+
+    int pred = prev < 0 ? expression.root : prev;
+    ExpressionNode& nodepred = expression.nodes[pred];
+    if (nodepred.right < 0)
+        nodepred.right = index;
+}
+
 ExpressionModel Parser::ParseExpression()
 {
     ExpressionModel expression;
@@ -419,50 +435,8 @@ ExpressionModel Parser::ParseExpression()
     if (token.IsEndOfExpression())
         return expression;  // Empty expression
 
-    // Check if we have unary plus/minus sign or NOT operation
-    if (token.type == TokenTypeOperation && (token.text == "+" || token.text == "-" || token.text == "NOT"))
-    {
-        token = GetNextToken();  // get the token we peeked
-
-        if (token.type == TokenTypeOperation && (token.text == "+" || token.text == "-"))
-        {
-            Token tokenNext = PeekNextToken();
-            if (tokenNext.type == TokenTypeNumber)  // Sign '+'/'-' before the number
-            {
-                tokenNext = GetNextToken();  // get the token we peeked
-                if (token.text == "-")  // apply the negative sign
-                {
-                    tokenNext.dvalue = -tokenNext.dvalue;
-                    tokenNext.text.insert(tokenNext.text.begin(), '-');
-                }
-                // Put number node into the tree
-                ExpressionNode nodeNumber;
-                nodeNumber.token = tokenNext;
-                nodeNumber.vtype = tokenNext.vtype;
-                nodeNumber.constval = true;
-                expression.nodes.push_back(nodeNumber);
-                expression.root = 0;
-                prev = 0;
-                isop = true;  // next thing should be a binary operation
-            }
-            else  // Unary '+'/'-'
-            {
-                ExpressionNode nodeUnary;
-                nodeUnary.token = token;
-                expression.nodes.push_back(nodeUnary);
-                expression.root = 0;
-                prev = 0;
-            }
-        }
-        else
-        {
-            ExpressionNode nodeun;
-            nodeun.token = token;
-            expression.nodes.push_back(nodeun);
-            expression.root = 0;
-            prev = 0;
-        }
-    }
+    //NOTE: A leading unary '+'/'-'/NOT needs no special case here: the operand branch
+    //      of the loop below handles prefix operations in any position.
 
     // Loop parse expression tokens into list
     while (true)
@@ -495,30 +469,45 @@ ExpressionModel Parser::ParseExpression()
 
             token = GetNextToken();  // get the token we peeked
 
-            // Process unary plus/minus/NOT here
-            if (token.type == TokenTypeOperation && token.text == "-")
+            // Process unary plus/minus/NOT here; prefix operations can repeat, like in "- -A"
+            while (token.type == TokenTypeOperation &&
+                (token.text == "+" || token.text == "-" || token.text == "NOT"))
             {
-                Token tokenNext = PeekNextToken();
-                if (tokenNext.type == TokenTypeNumber)  // Sign '-' before the number
+                // Sign '+'/'-' right before a number: fold the sign into the constant,
+                // and let the operand code below put the number into the tree
+                if (token.text != "NOT" && PeekNextToken().type == TokenTypeNumber)
                 {
-                    token = GetNextToken();  // get the token we peeked
-                    token.dvalue = -token.dvalue;  // apply the negative sign
-                    // Put number into the tree
-                    ExpressionNode nodeNumber;
-                    nodeNumber.token = token;
-                    nodeNumber.vtype = token.vtype;
-                    nodeNumber.constval = true;
-                    expression.nodes.push_back(nodeNumber);
+                    bool negate = (token.text == "-");
+                    token = GetNextToken();  // the number
+                    if (negate)  // apply the negative sign
+                    {
+                        token.dvalue = -token.dvalue;
+                        token.text.insert(token.text.begin(), '-');
+                    }
+                    break;
                 }
-                else  // Unary '-'
+
+                // Put unary operation into the tree; the operand becomes its right sub-tree
+                ExpressionNode nodeUnary;
+                nodeUnary.token = token;
+                nodeUnary.unary = true;
+                int indexunary = (int)expression.nodes.size();
+                expression.nodes.push_back(nodeUnary);
+                LinkOperandNode(expression, indexunary, prev);
+                prev = indexunary;
+
+                //NOTE: Peek first and do not consume the token on error: the end-of-line
+                //      token has to stay in the stream for the caller to see it.
+                token = PeekNextTokenSkipDivider();
+                if (token.IsEndOfExpression())
                 {
-                    // Put unary '-' into the tree
-                    ExpressionNode nodeUnary;
-                    nodeUnary.token = token;
-                    expression.nodes.push_back(nodeUnary);
+                    Error(token, "Operand expected in expression.");
+                    return expression;
                 }
+                token = GetNextToken();  // get the token we peeked
             }
-            else if (token.IsBinaryOperation())
+
+            if (token.IsBinaryOperation())  // still an operation here, so it's an error
             {
                 Error(token, "Binary operation is not expected here.");
                 return expression;
@@ -682,15 +671,7 @@ ExpressionModel Parser::ParseExpression()
             }
 
             // Put node in the tree
-            if (expression.root < 0)
-                expression.root = index;
-            else
-            {
-                int pred = prev < 0 ? expression.root : prev;
-                ExpressionNode& nodepred = expression.nodes[pred];
-                if (nodepred.right < 0)
-                    nodepred.right = index;
-            }
+            LinkOperandNode(expression, index, prev);
         }
 
         isop = !isop;

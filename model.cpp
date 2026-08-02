@@ -212,6 +212,9 @@ ValueType VariableBaseModel::GetValueType() const
 //////////////////////////////////////////////////////////////////////
 // ExpressionNode
 
+//NOTE: Bigger number means looser binding: an operation is put above the predecessor
+//      in the tree when the predecessor priority number is bigger.
+//      The numbers are spaced out to leave room for the unary levels in between.
 int ExpressionNode::GetOperationPriority() const
 {
     if (brackets)
@@ -219,25 +222,32 @@ int ExpressionNode::GetOperationPriority() const
 
     if (token.type == TokenTypeOperation)
     {
+        if (unary)  // Unary (prefix) operation
+        {
+            if (token.text == "NOT")
+                return 65;  // looser than the comparisons, tighter than AND/OR
+            return 15;      // unary '+'/'-': looser than '^', tighter than '*'
+        }
+
         if (token.text == "^")
-            return 2;
+            return 10;
         if (token.text == "*" || token.text == "/")
-            return 3;
+            return 20;
         if (token.text == "\\")
-            return 4;
+            return 30;
         if (token.text == "+" || token.text == "-")
-            return 6;
+            return 50;
         if (token.text == "=" || token.text == "<>" || token.text == "><" ||
             token.text == ">=" || token.text == "<=" || token.text == "=>" || token.text == "=<")
-            return 7;
+            return 60;
         if ((token.text == "AND" || token.text == "OR" || token.text == "XOR" ||
             token.text == "EQV" || token.text == "IMP"))
-            return 8;
+            return 70;
         return 0;
     }
 
     if (token.type == TokenTypeKeyword && token.keyword == KeywordMOD)
-        return 5;
+        return 40;
 
     return 0;
 }

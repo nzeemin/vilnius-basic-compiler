@@ -677,7 +677,8 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
             GenerateExprUnaryNot(expr, node);
         else if (node.token.text == "-")  // unary '-'
             GenerateExprUnaryMinus(expr, node);
-        //TODO: unary +
+        else if (node.token.text == "+")  // unary '+' does nothing with the operand
+            GenerateExpression(expr, expr.nodes[node.right]);
         else
             AddComment("TODO generate unary operation " + node.token.text);
         return;
@@ -861,7 +862,9 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
     ExpressionNode& root = expr.nodes[expr.root];
 
     // Convert "A% = A% + N" and "A% = A% - N" assignments into INC/DEC/ADD/SUB
+    //NOTE: IsBinaryOperation() is true for unary '+'/'-' too, so check for both operands here
     if (vtype == ValueTypeInteger && root.token.IsBinaryOperation() &&
+        root.left >= 0 && root.right >= 0 &&
         (root.token.text == "-" || root.token.text == "+") &&
         expr.nodes[root.left].token.type == TokenTypeIdentifier &&
         GetCanonicVariableName(expr.nodes[root.left].token.text) == var.name &&

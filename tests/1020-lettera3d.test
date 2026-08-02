@@ -22,3 +22,7 @@
 150 IF XT<-FA*(YT-10)+10 OR XT<FA*(YT-10)-16.66666 THEN RETURN
 160 IF XT<-FA*(YT-10)+16.66666 OR XT<FA*(YT-10)-10 OR (XT>6 AND XT<8) THEN Z=-20
 170 RETURN
+----------------------------------------------------------------------
+WARNING: at 1:4 line 10 - SCREEN statement is ignored
+WARNING: The following statements/functions have not yet been implemented:
+LINE, PSET

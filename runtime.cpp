@@ -19,14 +19,12 @@ void RuntimeGenerator::ParseRuntimeTemplate(std::istream* pInput)
     std::vector<string> lines;  // lines for the current block
     RuntimeSymbol blockrtsymbol = RuntimeNone;  // name for the current block
     std::vector<RuntimeSymbol> blockneeds;  // dependencies for the current block
-    char buffer[256];
+    string line;
     bool preambule = true;
-    while (!pInput->eof())
+    while (std::getline(*pInput, line))
     {
-        pInput->getline(buffer, sizeof(buffer));
-        if (*buffer == 0)  // skip empty lines
+        if (line.empty())  // skip empty lines
             continue;
-        string line(buffer);
         if (preambule)
         {
             if (line.find(";####") == std::string::npos)  // not start of block

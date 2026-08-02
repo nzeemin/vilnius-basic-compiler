@@ -268,10 +268,11 @@ struct ExpressionNode
     int         right;
     std::vector<ExpressionModel> args;  // Function argument list
     bool        brackets;       // Flag indicating that this node and all the sub-tree was in brackets
+    bool        unary;          // Flag for unary (prefix) operation node: '+', '-', 'NOT'
     ValueType   vtype;
     bool        constval;       // Flag for constant value
 public:
-    ExpressionNode() : left(-1), right(-1), brackets(false), vtype(ValueTypeNone), constval(false) {}
+    ExpressionNode() : left(-1), right(-1), brackets(false), unary(false), vtype(ValueTypeNone), constval(false) {}
 public:
     int GetOperationPriority() const;
     void Dump(std::ostream& out) const;
@@ -459,6 +460,7 @@ private:
     void SkipComma();
     void Error(const Token& token, const string& message);
     ExpressionModel ParseExpression();
+    void LinkOperandNode(ExpressionModel& expression, int index, int prev);
     VariableModel ParseVariable();
     VariableExpressionModel ParseVariableExpression();
     void ParseLetShort(Token& tokenIdentOrMid, StatementModel& statement);
