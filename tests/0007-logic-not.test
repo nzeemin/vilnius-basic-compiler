@@ -1,0 +1,53 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 B% = 3
+30 C% = 5
+40 E% = 0
+50 F% = -1
+' NOT truth table, on variables so that nothing is folded
+60 A% = NOT E%
+65 PRINT "-1", A%
+70 A% = NOT F%
+75 PRINT "0", A%
+' NOT works bit by bit, it is not a boolean operation
+80 A% = NOT 3
+85 PRINT "-4", A%
+90 A% = NOT B%
+95 PRINT "-4", A%
+100 A% = NOT NOT B%
+105 PRINT "3", A%
+' NOT is less priority than the comparisons, brackets change the result
+110 A% = NOT B% = C%
+115 PRINT "-1", A%
+120 A% = (NOT B%) = C%
+125 PRINT "0", A%
+' NOT is more priority than AND, OR and the other logic operations
+130 A% = NOT B% AND C%
+135 PRINT "4", A%
+140 A% = NOT B% OR C%
+145 PRINT "-3", A%
+150 A% = NOT B% IMP C%
+155 PRINT "7", A%
+' NOT converts a Single operand to Integer, see 2.3.6
+160 X = 12.0
+170 A% = NOT X
+175 PRINT "-13", A%
+' The fractional part is dropped, the value is not rounded
+180 X = 12.7
+190 A% = NOT X
+195 PRINT "-13", A%
+200 A% = NOT 12.7
+205 PRINT "-13", A%
+' A negative value is truncated towards zero
+210 X = -3.5
+220 A% = NOT X
+225 PRINT "2", A%
+230 A% = NOT -3.5
+235 PRINT "2", A%
+' The conversion happens before the inversion, not after
+240 X = 12.7
+250 A% = NOT NOT X
+255 PRINT "12", A%
+260 A% = NOT X AND C%
+265 PRINT "1", A%

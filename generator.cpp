@@ -710,7 +710,8 @@ void Generator::GenerateExprUnaryNot(const ExpressionModel& expr, const Expressi
     const ExpressionNode& noderight = expr.nodes[node.right];
     assert(noderight.vtype != ValueTypeString);
 
-    GenerateExpression(expr, noderight);
+    //NOTE: NOT is a logic operation, so a Single operand is converted to Integer first
+    GenerateOperandAsInteger(expr, noderight);
 
     AddLine("\tCOM\tR0\t; NOT");
 }
@@ -2582,7 +2583,7 @@ void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(nodeleft.token.dvalue) == -1)
     {
         Warning(node.token, "AND operation with -1 reduced to no operation; consider to remove the useless AND");
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         return;
     }
     // Special case: xxx AND -1, result is xxx
@@ -2591,7 +2592,7 @@ void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(noderight.token.dvalue) == -1)
     {
         Warning(node.token, "AND operation with -1 reduced to no operation; consider to remove the useless AND");
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         return;
     }
 
@@ -2599,7 +2600,7 @@ void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNod
     if (nodeleft.constval &&
         (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         int ivalue = ~ConstToInteger(nodeleft.token.dvalue);  // inverted to use with BIC
         AddLine("\tBIC\t#" + std::to_string(ivalue) + "., R0" + comment);
         return;
@@ -2608,17 +2609,17 @@ void Generator::GenerateOperAnd(const ExpressionModel& expr, const ExpressionNod
     if (noderight.constval &&
         (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         int ivalue = ~ConstToInteger(noderight.token.dvalue);  // inverted to use with BIC
         AddLine("\tBIC\t#" + std::to_string(ivalue) + "., R0" + comment);
         return;
     }
 
     // Both right and left parts are not constant
-    GenerateExpression(expr, nodeleft);  // result in R0
+    GenerateOperandAsInteger(expr, nodeleft);  // result in R0
     AddLine("\tCOM\tR0");  // invert for BIC
     AddLine("\tMOV\tR0, -(SP)\t; PUSH");
-    GenerateExpression(expr, noderight);  // result in R0
+    GenerateOperandAsInteger(expr, noderight);  // result in R0
     AddLine("\tBIC\t(SP)+, R0" + comment);
 }
 
@@ -2654,7 +2655,7 @@ void Generator::GenerateOperOr(const ExpressionModel& expr, const ExpressionNode
         ConstToInteger(nodeleft.token.dvalue) == 0)
     {
         Warning(node.token, "OR operation with 0 reduced to no operation; consider to remove the useless OR");
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         return;
     }
     // Special case: xxx OR 0, result is xxx
@@ -2663,7 +2664,7 @@ void Generator::GenerateOperOr(const ExpressionModel& expr, const ExpressionNode
         ConstToInteger(noderight.token.dvalue) == 0)
     {
         Warning(node.token, "OR operation with 0 reduced to no operation; consider to remove the useless OR");
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         return;
     }
 
@@ -2671,7 +2672,7 @@ void Generator::GenerateOperOr(const ExpressionModel& expr, const ExpressionNode
     if (nodeleft.constval &&
         (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         int ivalue = ConstToInteger(nodeleft.token.dvalue);
         AddLine("\tBIS\t#" + std::to_string(ivalue) + "., R0" + comment);
         return;
@@ -2680,16 +2681,16 @@ void Generator::GenerateOperOr(const ExpressionModel& expr, const ExpressionNode
     if (noderight.constval &&
         (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         int ivalue = ConstToInteger(noderight.token.dvalue);
         AddLine("\tBIS\t#" + std::to_string(ivalue) + "., R0" + comment);
         return;
     }
 
     // Both right and left parts are not constant
-    GenerateExpression(expr, nodeleft);  // result in R0
+    GenerateOperandAsInteger(expr, nodeleft);  // result in R0
     AddLine("\tMOV\tR0, -(SP)\t; PUSH");
-    GenerateExpression(expr, noderight);  // result in R0
+    GenerateOperandAsInteger(expr, noderight);  // result in R0
     AddLine("\tBIS\t(SP)+, R0" + comment);
 }
 
@@ -2706,7 +2707,7 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(nodeleft.token.dvalue) == 0)
     {
         Warning(node.token, "XOR operation with 0 reduced to no operation; consider to remove the useless XOR");
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         return;
     }
     // Special case: xxx XOR 0, result is xxx
@@ -2715,7 +2716,7 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(noderight.token.dvalue) == 0)
     {
         Warning(node.token, "XOR operation with 0 reduced to no operation; consider to remove the useless XOR");
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         return;
     }
 
@@ -2725,7 +2726,7 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(nodeleft.token.dvalue) == -1)
     {
         Warning(node.token, "XOR operation with -1 reduced to inversion; consider to replace XOR with NOT");
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         AddLine("\tCOM\tR0\t; xxx XOR -1");
         return;
     }
@@ -2735,7 +2736,7 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(noderight.token.dvalue) == -1)
     {
         Warning(node.token, "XOR operation with -1 reduced to inversion; consider to replace XOR with NOT");
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         AddLine("\tCOM\tR0\t; xxx XOR -1");
         return;
     }
@@ -2744,7 +2745,7 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
     if (nodeleft.constval &&
         (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         int ivalue = ConstToInteger(nodeleft.token.dvalue);
         AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
         AddLine("\tXOR\tR1, R0" + comment);  // XOR works only from register
@@ -2754,7 +2755,7 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
     if (noderight.constval &&
         (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         int ivalue = ConstToInteger(noderight.token.dvalue);
         AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
         AddLine("\tXOR\tR1, R0" + comment);  // XOR works only from register
@@ -2762,9 +2763,9 @@ void Generator::GenerateOperXor(const ExpressionModel& expr, const ExpressionNod
     }
 
     // Both right and left parts are not constant
-    GenerateExpression(expr, nodeleft);  // result in R0
+    GenerateOperandAsInteger(expr, nodeleft);  // result in R0
     AddLine("\tMOV\tR0, -(SP)\t; PUSH");
-    GenerateExpression(expr, noderight);  // result in R0
+    GenerateOperandAsInteger(expr, noderight);  // result in R0
     AddLine("\tMOV\t(SP)+, R1\t; POP");
     AddLine("\tXOR\tR1, R0" + comment);  // XOR works only from register
 }
@@ -2783,7 +2784,7 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(nodeleft.token.dvalue) == 0)
     {
         Warning(node.token, "EQV operation with 0 reduced to inversion; consider to replace EQV with NOT");
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         AddLine("\tCOM\tR0\t; 0 EQV xxx");
         return;
     }
@@ -2793,7 +2794,7 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(noderight.token.dvalue) == 0)
     {
         Warning(node.token, "EQV operation with 0 reduced to inversion; consider to replace EQV with NOT");
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         AddLine("\tCOM\tR0\t; xxx EQV 0");
         return;
     }
@@ -2804,7 +2805,7 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(nodeleft.token.dvalue) == -1)
     {
         Warning(node.token, "EQV operation with -1 reduced to no operation; consider to remove the useless EQV");
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         return;
     }
     // Special case: xxx EQV -1, result is xxx
@@ -2813,7 +2814,7 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(noderight.token.dvalue) == -1)
     {
         Warning(node.token, "EQV operation with -1 reduced to no operation; consider to remove the useless EQV");
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         return;
     }
 
@@ -2821,7 +2822,7 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
     if (nodeleft.constval &&
         (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         int ivalue = ConstToInteger(nodeleft.token.dvalue);
         AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
         AddLine("\tXOR\tR1, R0");  // XOR works only from register
@@ -2832,7 +2833,7 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
     if (noderight.constval &&
         (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         int ivalue = ConstToInteger(noderight.token.dvalue);
         AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R1");
         AddLine("\tXOR\tR1, R0");  // XOR works only from register
@@ -2841,9 +2842,9 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
     }
 
     // Both right and left parts are not constant
-    GenerateExpression(expr, nodeleft);  // result in R0
+    GenerateOperandAsInteger(expr, nodeleft);  // result in R0
     AddLine("\tMOV\tR0, -(SP)\t; PUSH");
-    GenerateExpression(expr, noderight);  // result in R0
+    GenerateOperandAsInteger(expr, noderight);  // result in R0
     AddLine("\tMOV\t(SP)+, R1\t; POP");
     AddLine("\tXOR\tR1, R0");  // XOR works only from register
     AddLine("\tCOM\tR0" + comment);
@@ -2882,7 +2883,7 @@ void Generator::GenerateOperImp(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(nodeleft.token.dvalue) == -1)
     {
         Warning(node.token, "IMP operation with -1 at left reduced to no operation; consider to remove the useless IMP");
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         return;
     }
     // Special case: xxx IMP 0, result same as NOT xxx
@@ -2891,7 +2892,7 @@ void Generator::GenerateOperImp(const ExpressionModel& expr, const ExpressionNod
         ConstToInteger(noderight.token.dvalue) == 0)
     {
         Warning(node.token, "IMP operation with 0 at right reduced to inversion; consider to replace IMP with NOT");
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         AddLine("\tCOM\tR0\t; xxx IMP 0");
         return;
     }
@@ -2900,7 +2901,7 @@ void Generator::GenerateOperImp(const ExpressionModel& expr, const ExpressionNod
     if (nodeleft.constval &&
         (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, noderight);
+        GenerateOperandAsInteger(expr, noderight);
         int ivalue = ~(ConstToInteger(nodeleft.token.dvalue));
         AddLine("\tBIS\t#" + std::to_string(ivalue) + "., R0" + comment);
         return;
@@ -2909,7 +2910,7 @@ void Generator::GenerateOperImp(const ExpressionModel& expr, const ExpressionNod
     if (noderight.constval &&
         (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
     {
-        GenerateExpression(expr, nodeleft);
+        GenerateOperandAsInteger(expr, nodeleft);
         int ivalue = ConstToInteger(noderight.token.dvalue);
         AddLine("\tCOM\tR0");
         AddLine("\tBIS\t#" + std::to_string(ivalue) + "., R0" + comment);
@@ -2917,9 +2918,9 @@ void Generator::GenerateOperImp(const ExpressionModel& expr, const ExpressionNod
     }
 
     // Both right and left parts are not constant
-    GenerateExpression(expr, nodeleft);  // result in R0
+    GenerateOperandAsInteger(expr, nodeleft);  // result in R0
     AddLine("\tMOV\tR0, -(SP)\t; PUSH");
-    GenerateExpression(expr, noderight);  // result in R0
+    GenerateOperandAsInteger(expr, noderight);  // result in R0
     AddLine("\tMOV\t(SP)+, R1\t; POP");
     AddLine("\tCOM\tR1");
     AddLine("\tBIS\tR1, R0" + comment);

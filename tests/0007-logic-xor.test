@@ -29,17 +29,25 @@
 155 PRINT "7", A%
 160 A% = B% XOR C% OR D%
 165 PRINT "4", A%
-' Special cases with a constant operand: reduced by the compiler with a warning
-170 A% = 0 XOR B%
-175 PRINT "3", A%
-180 A% = B% XOR 0
-185 PRINT "3", A%
-190 A% = -1 XOR B%
-195 PRINT "-4", A%
-200 A% = B% XOR -1
-205 PRINT "-4", A%
-----------------------------------------------------------------------
-WARNING: at 31:12 line 170 - XOR operation with 0 reduced to no operation; consider to remove the useless XOR
-WARNING: at 33:13 line 180 - XOR operation with 0 reduced to no operation; consider to remove the useless XOR
-WARNING: at 35:13 line 190 - XOR operation with -1 reduced to inversion; consider to replace XOR with NOT
-WARNING: at 37:13 line 200 - XOR operation with -1 reduced to inversion; consider to replace XOR with NOT
+' Logic operations convert Single operands to Integer, see 2.3.6
+210 G = 12.0
+220 A% = G XOR C%
+225 PRINT "9", A%
+230 A% = C% XOR G
+235 PRINT "9", A%
+240 H = 5.0
+250 A% = G XOR H
+255 PRINT "9", A%
+' The fractional part is dropped, the value is not rounded
+260 G = 12.7
+270 A% = G XOR C%
+275 PRINT "9", A%
+280 A% = 12.7 XOR C%
+285 PRINT "9", A%
+' A negative value is truncated towards zero
+290 G = -3.5
+300 A% = G XOR C%
+305 PRINT "-8", A%
+310 A% = -3.5 XOR C%
+315 PRINT "-8", A%
+'NOTE: the cases the compiler reduces, and their warnings, are in 0007-logic-reduced

@@ -29,17 +29,25 @@
 155 PRINT "7", A%
 160 A% = B% OR C% XOR D%
 165 PRINT "1", A%
-' Special cases with a constant operand: reduced by the compiler with a warning
-170 A% = -1 OR B%
-175 PRINT "-1", A%
-180 A% = B% OR -1
-185 PRINT "-1", A%
-190 A% = 0 OR B%
-195 PRINT "3", A%
-200 A% = B% OR 0
-205 PRINT "3", A%
-----------------------------------------------------------------------
-WARNING: at 31:13 line 170 - OR operation with -1 reduced to -1; consider to remove the useless OR
-WARNING: at 33:13 line 180 - OR operation with -1 reduced to -1; consider to remove the useless OR
-WARNING: at 35:12 line 190 - OR operation with 0 reduced to no operation; consider to remove the useless OR
-WARNING: at 37:13 line 200 - OR operation with 0 reduced to no operation; consider to remove the useless OR
+' Logic operations convert Single operands to Integer, see 2.3.6
+210 G = 12.0
+220 A% = G OR C%
+225 PRINT "13", A%
+230 A% = C% OR G
+235 PRINT "13", A%
+240 H = 5.0
+250 A% = G OR H
+255 PRINT "13", A%
+' The fractional part is dropped, the value is not rounded
+260 G = 12.7
+270 A% = G OR C%
+275 PRINT "13", A%
+280 A% = 12.7 OR C%
+285 PRINT "13", A%
+' A negative value is truncated towards zero
+290 G = -3.5
+300 A% = G OR C%
+305 PRINT "-3", A%
+310 A% = -3.5 OR C%
+315 PRINT "-3", A%
+'NOTE: the cases the compiler reduces, and their warnings, are in 0007-logic-reduced

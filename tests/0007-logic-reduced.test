@@ -1,0 +1,115 @@
+-q
+----------------------------------------------------------------------
+' Every case the compiler reduces to something simpler, with its warning.
+' B% is Integer, G is Single: the reduced cases still convert Single to Integer.
+10 CLS
+20 B% = 3
+30 G = 12.7
+' AND: 0 gives 0, -1 gives the other operand
+100 A% = 0 AND B%
+105 PRINT "0", A%
+110 A% = B% AND 0
+115 PRINT "0", A%
+120 A% = -1 AND B%
+125 PRINT "3", A%
+130 A% = B% AND -1
+135 PRINT "3", A%
+140 A% = -1 AND G
+145 PRINT "12", A%
+150 A% = G AND -1
+155 PRINT "12", A%
+' OR: -1 gives -1, 0 gives the other operand
+160 A% = -1 OR B%
+165 PRINT "-1", A%
+170 A% = B% OR -1
+175 PRINT "-1", A%
+180 A% = 0 OR B%
+185 PRINT "3", A%
+190 A% = B% OR 0
+195 PRINT "3", A%
+200 A% = 0 OR G
+205 PRINT "12", A%
+210 A% = G OR 0
+215 PRINT "12", A%
+' XOR: 0 gives the other operand, -1 inverts it
+220 A% = 0 XOR B%
+225 PRINT "3", A%
+230 A% = B% XOR 0
+235 PRINT "3", A%
+240 A% = -1 XOR B%
+245 PRINT "-4", A%
+250 A% = B% XOR -1
+255 PRINT "-4", A%
+260 A% = 0 XOR G
+265 PRINT "12", A%
+270 A% = G XOR 0
+275 PRINT "12", A%
+280 A% = -1 XOR G
+285 PRINT "-13", A%
+290 A% = G XOR -1
+295 PRINT "-13", A%
+' EQV: -1 gives the other operand, 0 inverts it
+300 A% = -1 EQV B%
+305 PRINT "3", A%
+310 A% = B% EQV -1
+315 PRINT "3", A%
+320 A% = 0 EQV B%
+325 PRINT "-4", A%
+330 A% = B% EQV 0
+335 PRINT "-4", A%
+340 A% = -1 EQV G
+345 PRINT "12", A%
+350 A% = G EQV -1
+355 PRINT "12", A%
+360 A% = 0 EQV G
+365 PRINT "-13", A%
+370 A% = G EQV 0
+375 PRINT "-13", A%
+' IMP: the four cases differ by the side the constant is at
+380 A% = 0 IMP B%
+385 PRINT "-1", A%
+390 A% = B% IMP -1
+395 PRINT "-1", A%
+400 A% = -1 IMP B%
+405 PRINT "3", A%
+410 A% = B% IMP 0
+415 PRINT "-4", A%
+420 A% = -1 IMP G
+425 PRINT "12", A%
+430 A% = G IMP 0
+435 PRINT "-13", A%
+----------------------------------------------------------------------
+WARNING: at 7:12 line 100 - AND operation with 0 reduced to 0; consider to remove the useless AND
+WARNING: at 9:13 line 110 - AND operation with 0 reduced to 0; consider to remove the useless AND
+WARNING: at 11:13 line 120 - AND operation with -1 reduced to no operation; consider to remove the useless AND
+WARNING: at 13:13 line 130 - AND operation with -1 reduced to no operation; consider to remove the useless AND
+WARNING: at 15:13 line 140 - AND operation with -1 reduced to no operation; consider to remove the useless AND
+WARNING: at 17:12 line 150 - AND operation with -1 reduced to no operation; consider to remove the useless AND
+WARNING: at 20:13 line 160 - OR operation with -1 reduced to -1; consider to remove the useless OR
+WARNING: at 22:13 line 170 - OR operation with -1 reduced to -1; consider to remove the useless OR
+WARNING: at 24:12 line 180 - OR operation with 0 reduced to no operation; consider to remove the useless OR
+WARNING: at 26:13 line 190 - OR operation with 0 reduced to no operation; consider to remove the useless OR
+WARNING: at 28:12 line 200 - OR operation with 0 reduced to no operation; consider to remove the useless OR
+WARNING: at 30:12 line 210 - OR operation with 0 reduced to no operation; consider to remove the useless OR
+WARNING: at 33:12 line 220 - XOR operation with 0 reduced to no operation; consider to remove the useless XOR
+WARNING: at 35:13 line 230 - XOR operation with 0 reduced to no operation; consider to remove the useless XOR
+WARNING: at 37:13 line 240 - XOR operation with -1 reduced to inversion; consider to replace XOR with NOT
+WARNING: at 39:13 line 250 - XOR operation with -1 reduced to inversion; consider to replace XOR with NOT
+WARNING: at 41:12 line 260 - XOR operation with 0 reduced to no operation; consider to remove the useless XOR
+WARNING: at 43:12 line 270 - XOR operation with 0 reduced to no operation; consider to remove the useless XOR
+WARNING: at 45:13 line 280 - XOR operation with -1 reduced to inversion; consider to replace XOR with NOT
+WARNING: at 47:12 line 290 - XOR operation with -1 reduced to inversion; consider to replace XOR with NOT
+WARNING: at 50:13 line 300 - EQV operation with -1 reduced to no operation; consider to remove the useless EQV
+WARNING: at 52:13 line 310 - EQV operation with -1 reduced to no operation; consider to remove the useless EQV
+WARNING: at 54:12 line 320 - EQV operation with 0 reduced to inversion; consider to replace EQV with NOT
+WARNING: at 56:13 line 330 - EQV operation with 0 reduced to inversion; consider to replace EQV with NOT
+WARNING: at 58:13 line 340 - EQV operation with -1 reduced to no operation; consider to remove the useless EQV
+WARNING: at 60:12 line 350 - EQV operation with -1 reduced to no operation; consider to remove the useless EQV
+WARNING: at 62:12 line 360 - EQV operation with 0 reduced to inversion; consider to replace EQV with NOT
+WARNING: at 64:12 line 370 - EQV operation with 0 reduced to inversion; consider to replace EQV with NOT
+WARNING: at 67:12 line 380 - IMP operation with 0 at left reduced to -1; consider to remove the useless IMP
+WARNING: at 69:13 line 390 - IMP operation with -1 at right reduced to -1; consider to remove the useless IMP
+WARNING: at 71:13 line 400 - IMP operation with -1 at left reduced to no operation; consider to remove the useless IMP
+WARNING: at 73:13 line 410 - IMP operation with 0 at right reduced to inversion; consider to replace IMP with NOT
+WARNING: at 75:13 line 420 - IMP operation with -1 at left reduced to no operation; consider to remove the useless IMP
+WARNING: at 77:12 line 430 - IMP operation with 0 at right reduced to inversion; consider to replace IMP with NOT

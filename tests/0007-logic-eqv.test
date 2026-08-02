@@ -29,17 +29,25 @@
 155 PRINT "-8", A%
 160 A% = B% EQV C% OR D%
 165 PRINT "-5", A%
-' Special cases with a constant operand: reduced by the compiler with a warning
-170 A% = 0 EQV B%
-175 PRINT "-4", A%
-180 A% = B% EQV 0
-185 PRINT "-4", A%
-190 A% = -1 EQV B%
-195 PRINT "3", A%
-200 A% = B% EQV -1
-205 PRINT "3", A%
-----------------------------------------------------------------------
-WARNING: at 31:12 line 170 - EQV operation with 0 reduced to inversion; consider to replace EQV with NOT
-WARNING: at 33:13 line 180 - EQV operation with 0 reduced to inversion; consider to replace EQV with NOT
-WARNING: at 35:13 line 190 - EQV operation with -1 reduced to no operation; consider to remove the useless EQV
-WARNING: at 37:13 line 200 - EQV operation with -1 reduced to no operation; consider to remove the useless EQV
+' Logic operations convert Single operands to Integer, see 2.3.6
+210 G = 12.0
+220 A% = G EQV C%
+225 PRINT "-10", A%
+230 A% = C% EQV G
+235 PRINT "-10", A%
+240 H = 5.0
+250 A% = G EQV H
+255 PRINT "-10", A%
+' The fractional part is dropped, the value is not rounded
+260 G = 12.7
+270 A% = G EQV C%
+275 PRINT "-10", A%
+280 A% = 12.7 EQV C%
+285 PRINT "-10", A%
+' A negative value is truncated towards zero
+290 G = -3.5
+300 A% = G EQV C%
+305 PRINT "7", A%
+310 A% = -3.5 EQV C%
+315 PRINT "7", A%
+'NOTE: the cases the compiler reduces, and their warnings, are in 0007-logic-reduced
