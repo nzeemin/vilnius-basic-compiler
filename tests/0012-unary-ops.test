@@ -1,0 +1,35 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' Unary operation right after a binary operation
+20 B% = 5
+30 A% = 1 + -B%
+35 PRINT "-4", A%
+40 A% = 10 - -B%
+45 PRINT "15", A%
+50 A% = 3 * -B%
+55 PRINT "-15", A%
+60 A% = 1 + +B%
+65 PRINT "6", A%
+' Unary NOT in operand position
+70 C% = 0
+80 A% = B% AND NOT C%
+85 PRINT "5", A%
+90 A% = NOT B%
+95 PRINT "-6", A%
+' Repeated prefix operations
+100 A% = - -B%
+105 PRINT "5", A%
+110 A% = NOT NOT B%
+115 PRINT "5", A%
+' Unary before brackets and functions
+120 A% = -(B% + 1)
+125 PRINT "-6", A%
+130 A% = 2 * -(B% - 3)
+135 PRINT "-4", A%
+140 A% = 1 + -ABS(B%)
+145 PRINT "-4", A%
+' Negated operand under IF, as in "IF X < -Y"
+150 IF B% < -C% THEN 160
+155 PRINT "NOT LESS"
+160 REM DONE
