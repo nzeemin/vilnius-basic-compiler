@@ -118,13 +118,16 @@ void Token::ParseDValue()
                 break;
             case 'O':
                 dvalue = (double)strtol(str + 2, &pend, 8);
-                if (dvalue > 32767)
-                    dvalue = dvalue - 65536;
                 break;
             case 'B':
                 dvalue = (double)strtol(str + 2, &pend, 2);
                 break;
             }
+            //NOTE: The constant is a 16-bit Integer in every notation, so the values
+            //      above 32767 are negative. Without this, &HFFFF and &B1111111111111111
+            //      give 65535, while &O177777 gives -1.
+            if (dvalue > 32767)
+                dvalue = dvalue - 65536;
         }
         else
             dvalue = (double)atoi(str);

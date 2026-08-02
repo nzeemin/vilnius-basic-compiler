@@ -24,6 +24,8 @@ typedef std::string string;
 
 bool g_verbose = false;  // Verbose mode
 int  g_failedtests = 0;
+int  g_failedmactodo = 0;   // Failed because the .MAC file has TODOs in it
+int  g_failedrttodo = 0;    // Failed because the runtime .MAC file has TODOs in it
 
 #ifdef _MSC_VER
 HANDLE g_hConsole;
@@ -482,6 +484,7 @@ void process_test(const string& testfilename)
     {
         std::cout << "  FAILED: .MAC file contains TODOs" << std::endl;
         g_failedtests++;
+        g_failedmactodo++;
         return;
     }
 
@@ -530,6 +533,7 @@ void process_test(const string& testfilename)
         SetTextAttribute(TEXTATTRIBUTES_NORMAL);
         std::cout << "  FAILED: Runtime .MAC file contains TODOs" << std::endl;
         g_failedtests++;
+        g_failedrttodo++;
         return;
     }
 
@@ -588,7 +592,26 @@ int main(int argc, char* argv[])
     std::cout << "TOTAL tests executed: " << testfilenames.size();
     std::cout << ", passed: " << passedtests;
     if (g_failedtests > 0)
+    {
         std::cout << ", failed: " << g_failedtests;
+
+        // Tell apart the tests failed on a not implemented feature from the real failures.
+        // At least one of the three counters is non-zero here, so the brackets are not empty.
+        int failedreal = g_failedtests - g_failedmactodo - g_failedrttodo;
+        const char* sep = "";
+        std::cout << " (";
+        if (failedreal > 0)
+        {
+            std::cout << "FAILED: " << failedreal;  sep = ", ";
+        }
+        if (g_failedmactodo > 0)
+        {
+            std::cout << sep << ".MAC TODO: " << g_failedmactodo;  sep = ", ";
+        }
+        if (g_failedrttodo > 0)
+            std::cout << sep << "Runtime TODO: " << g_failedrttodo;
+        std::cout << ")";
+    }
     std::cout << std::endl;
     SetTextAttribute(TEXTATTRIBUTES_NORMAL);
 

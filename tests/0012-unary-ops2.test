@@ -1,0 +1,44 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 B% = 5
+' Unary and binary minus telling each other apart, without spaces around them
+30 A% = -1%
+35 PRINT "-1", A%
+40 A% = 10-1
+45 PRINT "9", A%
+50 A% = -10-1
+55 PRINT "-11", A%
+' A sign right before a number is taken into the constant, with a space it is
+' a separate unary operation; both ways have to give the same result
+60 A% = -1
+65 PRINT "-1", A%
+70 A% = - 1
+75 PRINT "-1", A%
+80 A% = +1
+85 PRINT "1", A%
+90 A% = + 1
+95 PRINT "1", A%
+' Binary minus, with spaces on both sides, on one side and on neither
+100 A% = 10 - 1
+105 PRINT "9", A%
+110 A% = 10 -1
+115 PRINT "9", A%
+120 A% = 10- 1
+125 PRINT "9", A%
+' Unary operation after a binary one, with and without a space before the operand
+130 A% = 1 + - B%
+135 PRINT "-4", A%
+140 A% = 1 - - B%
+145 PRINT "6", A%
+150 A% = 1 - -2
+155 PRINT "3", A%
+160 A% = 1 - - 2
+165 PRINT "3", A%
+' Unary minus before a variable, single and repeated
+170 A% = - B%
+175 PRINT "-5", A%
+180 A% = --B%
+185 PRINT "5", A%
+190 A% = - - B%
+195 PRINT "5", A%

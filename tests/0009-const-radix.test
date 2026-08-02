@@ -1,0 +1,42 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' A constant is a 16-bit Integer in every notation, so the values
+' above 32767 are negative. Assignment hides it: the word gets truncated
+' anyway. The comparisons below use the value of the constant itself.
+20 A% = &HFFFF
+25 PRINT "-1", A%
+30 A% = &O177777
+35 PRINT "-1", A%
+40 A% = &B1111111111111111
+45 PRINT "-1", A%
+' All ones is -1 in every notation
+50 A% = &HFFFF = -1
+55 PRINT "-1", A%
+60 A% = &O177777 = -1
+65 PRINT "-1", A%
+70 A% = &B1111111111111111 = -1
+75 PRINT "-1", A%
+' The highest bit is the sign bit
+80 A% = &HFFFF < 0
+85 PRINT "-1", A%
+90 A% = &H8000 = -32768
+95 PRINT "-1", A%
+100 A% = &O100000 = -32768
+105 PRINT "-1", A%
+110 A% = &B1000000000000000 = -32768
+115 PRINT "-1", A%
+' The values below 32768 are the same in every notation
+120 A% = &H7FFF
+125 PRINT "32767", A%
+130 A% = &HFF = 255
+135 PRINT "-1", A%
+140 A% = &O377 = 255
+145 PRINT "-1", A%
+150 A% = &B11111111 = 255
+155 PRINT "-1", A%
+' Integer division uses the value of the constant, so the sign matters here
+160 A% = &HFFFF \ 2
+165 PRINT "0", A%
+170 A% = &O177777 \ 2
+175 PRINT "0", A%
