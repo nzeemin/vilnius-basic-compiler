@@ -40,3 +40,54 @@
 220 A% = 6%
 230 A% = A% OR B%
 235 PRINT "7", A%
+' Operands for the expressions below; G% takes the result
+240 A% = 3
+250 B% = 5
+260 C% = 6
+270 D% = 12
+' Arithmetic is more priority than the comparisons, comparisons than the logic
+280 G% = A% + B% = C% + 2
+285 PRINT "-1", G%
+290 G% = A% < B% AND C% < D%
+295 PRINT "-1", G%
+300 G% = A% > B% OR C% < D% AND B% > 0
+305 PRINT "-1", G%
+310 G% = A% * 2 > B% AND C% - 6 = 0
+315 PRINT "-1", G%
+' NOT is less priority than the comparisons, so brackets change the result
+320 G% = NOT A% < B%
+325 PRINT "0", G%
+330 G% = (NOT A%) < B%
+335 PRINT "-1", G%
+' Brackets change the order of the logic operations too
+340 G% = A% OR B% AND C%
+345 PRINT "7", G%
+350 G% = (A% OR B%) AND C%
+355 PRINT "6", G%
+360 G% = NOT (A% AND (B% OR C%))
+365 PRINT "-4", G%
+' Integer division and MOD are more priority than the logic operations
+370 G% = D% \ C% AND B%
+375 PRINT "0", G%
+380 G% = D% MOD B% OR A%
+385 PRINT "3", G%
+' Unary minus is more priority than the logic operations
+390 G% = -A% AND C%
+395 PRINT "4", G%
+' Several logic operations of different priority in one expression
+400 G% = NOT A% IMP B%
+405 PRINT "7", G%
+410 G% = A% IMP B% EQV C%
+415 PRINT "-4", G%
+420 G% = A% IMP B% IMP C%
+425 PRINT "6", G%
+' The same expression folded by the compiler and calculated at run time
+430 G% = 3 OR 5 AND 6 XOR 12
+435 PRINT "11", G%
+440 G% = A% OR B% AND C% XOR D%
+445 PRINT "11", G%
+' The comparisons are less priority than the arithmetic, MOD less than '*'
+450 G% = A% + B% < C% * 2
+455 PRINT "-1", G%
+460 G% = A% * B% MOD C%
+465 PRINT "3", G%

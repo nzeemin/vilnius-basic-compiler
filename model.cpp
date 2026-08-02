@@ -235,9 +235,14 @@ int ExpressionNode::GetOperationPriority() const
             return 20;
         if (token.text == "\\")
             return 30;
+        //NOTE: MOD is checked here and not below: the tokenizer gives it the type
+        //      TokenTypeOperation, so it never reaches the KeywordMOD check.
+        if (token.text == "MOD")
+            return 40;
         if (token.text == "+" || token.text == "-")
             return 50;
-        if (token.text == "=" || token.text == "<>" || token.text == "><" ||
+        if (token.text == "=" || token.text == "<" || token.text == ">" ||
+            token.text == "<>" || token.text == "><" ||
             token.text == ">=" || token.text == "<=" || token.text == "=>" || token.text == "=<")
             return 60;
         //NOTE: Logical operations have their own priorities, see 2.3.4 in the language

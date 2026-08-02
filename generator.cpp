@@ -691,6 +691,17 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
     }
 }
 
+// Generate an operand for an operation working with Integers only.
+// Integer operations take the value in R0, while a Single value is left on the stack,
+// so a Single operand has to be converted first, see 2.3.6 in the language description.
+void Generator::GenerateOperandAsInteger(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    GenerateExpression(expr, node);
+
+    if (node.vtype == ValueTypeSingle)
+        AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+}
+
 void Generator::GenerateExprUnaryNot(const ExpressionModel& expr, const ExpressionNode& node)
 {
     assert(node.left == -1);
@@ -2184,18 +2195,18 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
         switch (ivalue)
         {
         case -4:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tNEG\tR0\t; * -1");
             AddLine("\tASR\tR0");
             AddLine("\tASR\tR0\t; / 4");
             return;
         case -2:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tNEG\tR0\t; * -1");
             AddLine("\tASR\tR0\t; / 2");
             return;
         case -1:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tNEG\tR0\t; / -1");
             return;
         case 0:
@@ -2204,20 +2215,20 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
             RegisterError();
             return;
         case 1:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             Warning(noderight.token, "Division by 1 reduced to nothing, consider to remove the Division.");
             return;
         case 2:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tASR\tR0\t; / 2");
             return;
         case 4:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tASR\tR0");
             AddLine("\tASR\tR0\t; / 4");
             return;
         case 8:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             if (g_platform == PlatformUKNC)  // no EIS
                 AddLine("\tASH\t#-3, R0\t; / 8.");
             else  // no EIS
@@ -2231,23 +2242,26 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
         }
 
         // Const expression at right
-        GenerateExpression(expr, nodeleft);  // result in R0
+        GenerateOperandAsInteger(expr, nodeleft);  // result in R0
         AddLine("\tMOV\tR0, R1");
         AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R0");
     }
-    else if (noderight.token.type == TokenTypeIdentifier && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    //NOTE: Single variable takes two words, it cannot be moved to a register by one MOV,
+    //      so only Integer goes here, Single is handled by the common code below.
+    else if (noderight.token.type == TokenTypeIdentifier && noderight.vtype == ValueTypeInteger)
     {
         // Special case for variable at right
+        //NOTE: IDIV needs the divider in R0 and the divided value in R1
         string deconame = DecorateVariableName(GetCanonicVariableName(noderight.token.text));
-        GenerateExpression(expr, nodeleft);  // result in R0
+        GenerateOperandAsInteger(expr, nodeleft);  // result in R0
         AddLine("\tMOV\tR0, R1");
-        AddLine("\tMOV\t" + deconame + ", R1");
+        AddLine("\tMOV\t" + deconame + ", R0");
     }
     else
     {
-        GenerateExpression(expr, nodeleft);  // result in R0
+        GenerateOperandAsInteger(expr, nodeleft);  // result in R0
         AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
-        GenerateExpression(expr, noderight);  // result in R0
+        GenerateOperandAsInteger(expr, noderight);  // result in R0
         AddLine("\tMOV\t(SP)+, R1\t; POP R1");
     }
 
@@ -2276,43 +2290,45 @@ void Generator::GenerateOperMod(const ExpressionModel& expr, const ExpressionNod
             AddLine("\tCLR\tR0\t; MOD 1");
             return;
         case 2:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tBIC\t#177776, R0\t; MOD 2");
             return;
         case 4:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tBIC\t#177774, R0\t; MOD 4");
             return;
         case 8:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tBIC\t#177770, R0\t; MOD 8");
             return;
         case 16:
-            GenerateExpression(expr, nodeleft);  // result in R0
+            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tBIC\t#177760, R0\t; MOD 16");
             return;
         //TODO: MOD by 32/64/128/256
         }
 
         // Const expression at right
-        GenerateExpression(expr, nodeleft);  // result in R0
+        GenerateOperandAsInteger(expr, nodeleft);  // result in R0
         AddLine("\tMOV\tR0, R1");
         AddLine("\tMOV\t#" + std::to_string(ivalue) + "., R0");
     }
-    else if (noderight.token.type == TokenTypeIdentifier && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    //NOTE: Single variable takes two words, it cannot be moved to a register by one MOV,
+    //      so only Integer goes here, Single is handled by the common code below.
+    else if (noderight.token.type == TokenTypeIdentifier && noderight.vtype == ValueTypeInteger)
     {
         // Variable at right
+        //NOTE: IDIV needs the divider in R0 and the divided value in R1
         string deconame = DecorateVariableName(GetCanonicVariableName(noderight.token.text));
-        GenerateExpression(expr, nodeleft);  // result in R0
-        AddLine("\tMOV\t" + deconame + ", R1");
+        GenerateOperandAsInteger(expr, nodeleft);  // result in R0
+        AddLine("\tMOV\tR0, R1");
+        AddLine("\tMOV\t" + deconame + ", R0");
     }
     else
     {
-        GenerateExpression(expr, nodeleft);  // result in R0
+        GenerateOperandAsInteger(expr, nodeleft);  // result in R0
         AddLine("\tMOV\tR0, -(SP)\t; PUSH R0");
-        GenerateExpression(expr, noderight);  // result in R0
-        if (noderight.vtype == ValueTypeSingle)
-            AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
+        GenerateOperandAsInteger(expr, noderight);  // result in R0
         AddLine("\tMOV\t(SP)+, R1\t; POP R1");
     }
 

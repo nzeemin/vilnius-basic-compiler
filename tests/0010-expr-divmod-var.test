@@ -1,0 +1,62 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 A% = 12
+30 B% = 5
+40 C% = 6
+' Integer division and MOD with a variable at the right side.
+' IDIV needs the divider in R0 and the divided value in R1, so the order matters.
+50 G% = A% \ B%
+55 PRINT "2", G%
+60 G% = A% MOD B%
+65 PRINT "2", G%
+70 G% = A% \ C%
+75 PRINT "2", G%
+80 G% = A% MOD C%
+85 PRINT "0", G%
+' The same with a constant at the right, this way was working before
+90 G% = A% \ 5
+95 PRINT "2", G%
+100 G% = A% MOD 5
+105 PRINT "2", G%
+' The same with an expression at the right
+110 G% = A% \ (B% + 1)
+115 PRINT "2", G%
+120 G% = A% MOD (B% + 1)
+125 PRINT "0", G%
+' Negative divided value; the division truncates towards zero
+130 D% = -12
+140 G% = D% \ B%
+145 PRINT "-2", G%
+150 G% = D% MOD B%
+155 PRINT "-2", G%
+' MOD and \ are more priority than the comparisons and the logic operations
+160 G% = A% MOD B% = 2
+165 PRINT "-1", G%
+170 G% = A% \ B% OR C%
+175 PRINT "6", G%
+' Negative divider; the remainder takes the sign of the divided value
+180 E% = -5
+190 G% = D% \ E%
+195 PRINT "2", G%
+200 G% = D% MOD E%
+205 PRINT "-2", G%
+210 G% = A% \ E%
+215 PRINT "-2", G%
+220 G% = A% MOD E%
+225 PRINT "2", G%
+' A Single value at either side is converted to Integer first
+230 F = 12.0
+240 G% = F \ B%
+245 PRINT "2", G%
+250 G% = F MOD B%
+255 PRINT "2", G%
+260 H = 5.0
+270 G% = A% \ H
+275 PRINT "2", G%
+280 G% = A% MOD H
+285 PRINT "2", G%
+290 G% = F \ H
+295 PRINT "2", G%
+300 G% = F MOD H
+305 PRINT "2", G%
