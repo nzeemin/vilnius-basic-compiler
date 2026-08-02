@@ -1632,10 +1632,10 @@ void Validator::ValidateOperEqv(ExpressionModel& expr, ExpressionNode& node, con
     node.constval = (nodeleft.constval && noderight.constval);
     if (node.constval)
     {
+        //NOTE: EQV is a bit-by-bit operation, same as the code we generate: XOR then COM
         int ivalueleft = (int)nodeleft.token.dvalue;
         int ivalueright = (int)noderight.token.dvalue;
-        node.token.dvalue =
-            (((ivalueleft != 0) && (ivalueright != 0)) || ((ivalueleft == 0) && (ivalueright == 0))) ? -1 : 0;
+        node.token.dvalue = ~(ivalueleft ^ ivalueright);
     }
 }
 
@@ -1651,9 +1651,10 @@ void Validator::ValidateOperImp(ExpressionModel& expr, ExpressionNode& node, con
 
     if (node.constval)
     {
+        //NOTE: IMP is a bit-by-bit operation: X IMP Y == NOT(X) OR Y
         int ivalueleft = (int)nodeleft.token.dvalue;
         int ivalueright = (int)noderight.token.dvalue;
-        node.token.dvalue = ((ivalueleft != 0) && (ivalueright == 0)) ? 0 : -1;
+        node.token.dvalue = (~ivalueleft) | ivalueright;
     }
 }
 

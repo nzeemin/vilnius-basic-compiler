@@ -88,7 +88,7 @@ const GeneratorOperSpec Generator::m_operspecs[] =
     { "OR",             &Generator::GenerateOperOr },
     { "XOR",            &Generator::GenerateOperXor },
     { "EQV",            &Generator::GenerateOperEqv },
-    //TODO: IMP
+    { "IMP",            &Generator::GenerateOperImp },
 };
 
 const GeneratorFuncSpec Generator::m_funcspecs[] =
@@ -2831,6 +2831,82 @@ void Generator::GenerateOperEqv(const ExpressionModel& expr, const ExpressionNod
     AddLine("\tMOV\t(SP)+, R1\t; POP");
     AddLine("\tXOR\tR1, R0");  // XOR works only from register
     AddLine("\tCOM\tR0" + comment);
+}
+
+// X IMP Y == NOT(X) OR Y
+void Generator::GenerateOperImp(const ExpressionModel& expr, const ExpressionNode& node, const ExpressionNode& nodeleft, const ExpressionNode& noderight)
+{
+    assert(nodeleft.vtype != ValueTypeString);
+    assert(noderight.vtype != ValueTypeString);
+
+    const string comment = "\t; Operation \'IMP\'";
+
+    // Special case: 0 IMP xxx, result is -1
+    if (noderight.vtype != ValueTypeString &&
+        nodeleft.constval && (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+        (int)std::floor(nodeleft.token.dvalue) == 0)
+    {
+        Warning(node.token, "IMP operation with 0 at left reduced to -1; consider to remove the useless IMP");
+        AddLine("\tMOV\t#-1., R0\t; 0 IMP xxx");
+        return;
+    }
+    // Special case: xxx IMP -1, result is -1
+    if (nodeleft.vtype != ValueTypeString &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle) &&
+        (int)std::floor(noderight.token.dvalue) == -1)
+    {
+        Warning(node.token, "IMP operation with -1 at right reduced to -1; consider to remove the useless IMP");
+        AddLine("\tMOV\t#-1., R0\t; xxx IMP -1");
+        return;
+    }
+
+    // Special case: -1 IMP xxx, result is xxx
+    if (noderight.vtype != ValueTypeString &&
+        nodeleft.constval && (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle) &&
+        (int)std::floor(nodeleft.token.dvalue) == -1)
+    {
+        Warning(node.token, "IMP operation with -1 at left reduced to no operation; consider to remove the useless IMP");
+        GenerateExpression(expr, noderight);
+        return;
+    }
+    // Special case: xxx IMP 0, result same as NOT xxx
+    if (nodeleft.vtype != ValueTypeString &&
+        noderight.constval && (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle) &&
+        (int)std::floor(noderight.token.dvalue) == 0)
+    {
+        Warning(node.token, "IMP operation with 0 at right reduced to inversion; consider to replace IMP with NOT");
+        GenerateExpression(expr, nodeleft);
+        AddLine("\tCOM\tR0\t; xxx IMP 0");
+        return;
+    }
+
+    // Left part is constant: NOT(const) is a constant too, so it's a single BIS
+    if (nodeleft.constval &&
+        (nodeleft.vtype == ValueTypeInteger || nodeleft.vtype == ValueTypeSingle))
+    {
+        GenerateExpression(expr, noderight);
+        int ivalue = ~((int)std::floor(nodeleft.token.dvalue));
+        AddLine("\tBIS\t#" + std::to_string(ivalue) + "., R0" + comment);
+        return;
+    }
+    // Right part is constant
+    if (noderight.constval &&
+        (noderight.vtype == ValueTypeInteger || noderight.vtype == ValueTypeSingle))
+    {
+        GenerateExpression(expr, nodeleft);
+        int ivalue = (int)std::floor(noderight.token.dvalue);
+        AddLine("\tCOM\tR0");
+        AddLine("\tBIS\t#" + std::to_string(ivalue) + "., R0" + comment);
+        return;
+    }
+
+    // Both right and left parts are not constant
+    GenerateExpression(expr, nodeleft);  // result in R0
+    AddLine("\tMOV\tR0, -(SP)\t; PUSH");
+    GenerateExpression(expr, noderight);  // result in R0
+    AddLine("\tMOV\t(SP)+, R1\t; POP");
+    AddLine("\tCOM\tR1");
+    AddLine("\tBIS\tR1, R0" + comment);
 }
 
 

@@ -240,9 +240,16 @@ int ExpressionNode::GetOperationPriority() const
         if (token.text == "=" || token.text == "<>" || token.text == "><" ||
             token.text == ">=" || token.text == "<=" || token.text == "=>" || token.text == "=<")
             return 60;
-        if ((token.text == "AND" || token.text == "OR" || token.text == "XOR" ||
-            token.text == "EQV" || token.text == "IMP"))
+        //NOTE: Logical operations have their own priorities, see 2.3.4 in the language
+        //      description: NOT, then AND, then OR, then XOR and EQV, then IMP.
+        if (token.text == "AND")
             return 70;
+        if (token.text == "OR")
+            return 80;
+        if (token.text == "XOR" || token.text == "EQV")
+            return 90;
+        if (token.text == "IMP")
+            return 100;
         return 0;
     }
 
