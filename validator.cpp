@@ -1563,7 +1563,8 @@ void Validator::ValidateUnaryNot(ExpressionModel& expr, ExpressionNode& node, co
 
     if (node.constval)
     {
-        node.token.dvalue = noderight.token.dvalue == 0 ? -1 : 0;
+        //NOTE: NOT is a bit-by-bit operation, same as the COM instruction we generate
+        node.token.dvalue = ~((int)noderight.token.dvalue);
     }
 }
 

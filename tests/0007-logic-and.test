@@ -1,0 +1,45 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 B% = 3
+30 C% = 5
+40 D% = 6
+50 E% = 0
+60 F% = -1
+' AND truth table, on variables so that nothing is folded
+70 A% = E% AND E%
+75 PRINT "0", A%
+80 A% = E% AND F%
+85 PRINT "0", A%
+90 A% = F% AND E%
+95 PRINT "0", A%
+100 A% = F% AND F%
+105 PRINT "-1", A%
+' AND works bit by bit, it is not a boolean operation
+110 A% = 3 AND 5
+115 PRINT "1", A%
+120 A% = B% AND C%
+125 PRINT "1", A%
+130 A% = 3 AND C%
+135 PRINT "1", A%
+140 A% = B% AND 5
+145 PRINT "1", A%
+' Priorities: AND is more priority than OR, but less than the comparisons
+150 A% = B% AND C% OR D%
+155 PRINT "7", A%
+160 A% = B% = 3 AND C% = 5
+165 PRINT "-1", A%
+' Special cases with a constant operand: reduced by the compiler with a warning
+170 A% = 0 AND B%
+175 PRINT "0", A%
+180 A% = B% AND 0
+185 PRINT "0", A%
+190 A% = -1 AND B%
+195 PRINT "3", A%
+200 A% = B% AND -1
+205 PRINT "3", A%
+----------------------------------------------------------------------
+WARNING: at 31:12 line 170 - AND operation with 0 reduced to 0; consider to remove the useless AND
+WARNING: at 33:13 line 180 - AND operation with 0 reduced to 0; consider to remove the useless AND
+WARNING: at 35:13 line 190 - AND operation with -1 reduced to no operation; consider to remove the useless AND
+WARNING: at 37:13 line 200 - AND operation with -1 reduced to no operation; consider to remove the useless AND
