@@ -1,0 +1,21 @@
+# Settings for the .test files. See https://editorconfig.org/
+#
+# ВНИМАНИЕ: текст программ на Бейсике и строковые константы в .test файлах
+# записаны в KOI8-R, по одному байту на символ. EditorConfig не умеет задавать
+# KOI8-R (charset допускает только latin1/utf-8/utf-8-bom/utf-16be/utf-16le),
+# поэтому кодировка тут НЕ указана — её задаёт .vscode/settings.json.
+# Если редактор прочитает такой файл как UTF-8, все не-ASCII байты
+# превратятся в U+FFFD, и исходный текст будет потерян безвозвратно
+# (так уже случилось в коммите fc49cab от 01.04.2026).
+
+[*.test]
+# Пробелы в конце строки значимы: это входные данные для тестов на синтаксис,
+# например "12 GOTO ", "12 IF ", "34 POKE 6%, " — обрезать их нельзя.
+trim_trailing_whitespace = false
+insert_final_newline = false
+indent_style = space
+tab_width = 8
+
+#NOTE: end_of_line здесь намеренно не задан. В репозитории файлы хранятся с LF,
+#      а в рабочем каталоге на Windows получаются CRLF через core.autocrlf.
+#      Жёсткое значение сломало бы рабочий каталог на Linux/macOS.
