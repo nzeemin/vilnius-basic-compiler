@@ -1,0 +1,122 @@
+-q
+----------------------------------------------------------------------
+46400 LINE (20,10)-(40,30)
+46402 LINE @(20,10)-@(40,30)
+46404 LINE STEP (20, 10) - STEP (40, 30)
+46406 LINE (20,10)-(40,30), B
+46408 LINE -(40,30)
+46410 LINE -(40,30), BF
+46412 LINE -@(40,30)
+46414 LINE -STEP(40,30)
+46416 LINE -STEP ( 40, 30 ), B
+46418 LINE -STEP ( A%, B% ), BF
+46450 LINE
+46451 LINE .
+46452 LINE -
+46453 LINE -()
+46454 LINE (,)-(,)
+46455 LINE @
+46456 LINE STEP
+46457 LINE (20
+46458 LINE (20,
+46459 LINE (20,)
+46460 LINE (20,10
+46461 LINE (20,10)
+46462 LINE (20,10)-
+46463 LINE (20,10)-(
+46464 LINE (20,10)-(40
+46465 LINE (20,10)-(40,
+46466 LINE (20,10)-(40,30
+46467 LINE (20,10)-(40,30),
+46468 LINE (20,10)-(40,30), 1,
+46469 LINE (20,10)-(40,30), 1, BG
+46470 LINE -(
+46471 LINE -(40
+46472 LINE -(40,
+46473 LINE -(40,30
+46474 LINE -(40,30),
+46475 LINE -(40,30), 1,
+46476 LINE -(40,30), 1, BG
+----------------------------------------------------------------------
+ERROR at 11:11 line 46450 - Minus '-' sign expected.
+46450 LINE
+          ^
+ERROR at 12:12 line 46451 - Minus '-' sign expected.
+46451 LINE .
+           ^
+ERROR at 13:13 line 46452 - Open bracket expected.
+46452 LINE -
+            ^
+ERROR at 14:14 line 46453 - Expression should not be empty.
+46453 LINE -()
+             ^
+ERROR at 15:13 line 46454 - Expression should not be empty.
+46454 LINE (,)-(,)
+            ^
+ERROR at 16:13 line 46455 - Minus '-' sign expected.
+46455 LINE @
+            ^
+ERROR at 17:16 line 46456 - Minus '-' sign expected.
+46456 LINE STEP
+               ^
+ERROR at 18:15 line 46457 - Comma expected.
+46457 LINE (20
+              ^
+ERROR at 19:16 line 46458 - Expression should not be empty.
+46458 LINE (20,
+               ^
+ERROR at 20:16 line 46459 - Expression should not be empty.
+46459 LINE (20,)
+               ^
+ERROR at 21:18 line 46460 - Close bracket expected.
+46460 LINE (20,10
+                 ^
+ERROR at 22:19 line 46461 - Minus '-' sign expected.
+46461 LINE (20,10)
+                  ^
+ERROR at 23:20 line 46462 - Open bracket expected.
+46462 LINE (20,10)-
+                   ^
+ERROR at 24:21 line 46463 - Expression should not be empty.
+46463 LINE (20,10)-(
+                    ^
+ERROR at 25:23 line 46464 - Comma expected.
+46464 LINE (20,10)-(40
+                      ^
+ERROR at 26:24 line 46465 - Expression should not be empty.
+46465 LINE (20,10)-(40,
+                       ^
+ERROR at 27:26 line 46466 - Close bracket expected.
+46466 LINE (20,10)-(40,30
+                         ^
+ERROR at 28:28 line 46467 - Expression should not be empty.
+46467 LINE (20,10)-(40,30),
+                           ^
+ERROR at 29:31 line 46468 - 'B' or 'BF' expected.
+46468 LINE (20,10)-(40,30), 1,
+                              ^
+ERROR at 30:32 line 46469 - 'B' or 'BF' expected.
+46469 LINE (20,10)-(40,30), 1, BG
+                               ^
+ERROR at 31:14 line 46470 - Expression should not be empty.
+46470 LINE -(
+             ^
+ERROR at 32:16 line 46471 - Comma expected.
+46471 LINE -(40
+               ^
+ERROR at 33:17 line 46472 - Expression should not be empty.
+46472 LINE -(40,
+                ^
+ERROR at 34:19 line 46473 - Close bracket expected.
+46473 LINE -(40,30
+                  ^
+ERROR at 35:21 line 46474 - Expression should not be empty.
+46474 LINE -(40,30),
+                    ^
+ERROR at 36:24 line 46475 - 'B' or 'BF' expected.
+46475 LINE -(40,30), 1,
+                       ^
+ERROR at 37:25 line 46476 - 'B' or 'BF' expected.
+46476 LINE -(40,30), 1, BG
+                        ^
+Parsing ERRORS: 27

@@ -2,8 +2,8 @@
 ----------------------------------------------------------------------
 ' Expressions mixing several operations
 'NOTE: Every logic operation has its own test:
-'      0007-logic-not, 0007-logic-and, 0007-logic-or,
-'      0007-logic-xor, 0007-logic-eqv, 0007-logic-imp
+'      0072-logic-not, 0073-logic-and, 0074-logic-or,
+'      0075-logic-xor, 0076-logic-eqv, 0077-logic-imp
 5 CLS
 130 A% = &HFF00
 140 B% = 1

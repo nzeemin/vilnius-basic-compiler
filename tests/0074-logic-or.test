@@ -50,4 +50,4 @@
 305 PRINT "-3", A%
 310 A% = -3.5 OR C%
 315 PRINT "-3", A%
-'NOTE: the cases the compiler reduces, and their warnings, are in 0007-logic-reduced
+'NOTE: the cases the compiler reduces, and their warnings, are in 0078-logic-reduced

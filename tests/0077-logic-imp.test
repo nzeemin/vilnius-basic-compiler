@@ -63,4 +63,4 @@
 365 PRINT "7", A%
 370 A% = -3.5 IMP C%
 375 PRINT "7", A%
-'NOTE: the cases the compiler reduces, and their warnings, are in 0007-logic-reduced
+'NOTE: the cases the compiler reduces, and their warnings, are in 0078-logic-reduced

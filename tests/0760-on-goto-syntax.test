@@ -1,0 +1,61 @@
+-q
+----------------------------------------------------------------------
+10 ON
+12 ON 
+14 ON'comment
+16 ON POKE
+18 ON -
+20 ON A%
+22 ON A% THEN 100
+24 ON A% GOTO
+26 ON A% GOSUB
+28 ON A% GOTO A%
+30 ON A% GOTO 100,
+32 ON A% GOTO 100,,50
+34 ON A% GOTO 100 50
+36 ON A% GOSUB 100 50
+100 ON A% GOTO 100,100
+----------------------------------------------------------------------
+ERROR at 1:6 line 10 - Expreession expected.
+10 ON
+     ^
+ERROR at 2:7 line 12 - Expreession expected.
+12 ON 
+      ^
+ERROR at 3:6 line 14 - Expreession expected.
+14 ON'comment
+     ^
+ERROR at 4:7 line 16 - Expression should not be empty.
+16 ON POKE
+      ^
+ERROR at 5:8 line 18 - Operand expected in expression.
+18 ON -
+       ^
+ERROR at 6:9 line 20 - GOTO or GOSUB expected.
+20 ON A%
+        ^
+ERROR at 7:10 line 22 - GOTO or GOSUB expected.
+22 ON A% THEN 100
+         ^
+ERROR at 8:14 line 24 - Line number expected.
+24 ON A% GOTO
+             ^
+ERROR at 9:15 line 26 - Line number expected.
+26 ON A% GOSUB
+              ^
+ERROR at 10:15 line 28 - Line number expected.
+28 ON A% GOTO A%
+              ^
+ERROR at 11:19 line 30 - Line number expected.
+30 ON A% GOTO 100,
+                  ^
+ERROR at 12:19 line 32 - Line number expected.
+32 ON A% GOTO 100,,50
+                  ^
+ERROR at 13:19 line 34 - Unexpected text.
+34 ON A% GOTO 100 50
+                  ^
+ERROR at 14:20 line 36 - Unexpected text.
+36 ON A% GOSUB 100 50
+                   ^
+Parsing ERRORS: 14
