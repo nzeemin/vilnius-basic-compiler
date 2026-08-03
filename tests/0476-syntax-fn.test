@@ -1,0 +1,177 @@
+-q
+----------------------------------------------------------------------
+51000 REM 5.1. Числовые функции
+51010 A = SQR(0)
+51012 A = SQR(-1) ' Синтаксически правильно, будет ошибка на валидации
+51015 A = SQR
+51016 A = SQR(
+51017 A = SQR(1,2)
+51020 A = SIN(0)
+51021 REM A = SIN(PI/2)
+51025 A = SIN
+51026 A = SIN(
+51027 A = SIN(1,2)
+51030 A = COS(0)
+51031 REM A = COS(PI/2)
+51035 A = COS
+51036 A = COS(
+51037 A = COS(1,2)
+51040 A = TAN(0)
+51045 A = TAN
+51046 A = TAN(
+51047 A = TAN(1,2)
+51050 A = ATN(0)
+51055 A = ATN
+51056 A = ATN(
+51057 A = ATN(1,2)
+51060 A = PI
+51065 A = PI(
+51066 A = PI()
+51067 A = PI(1,2)
+51070 A = EXP(1)
+51075 A = EXP
+51076 A = EXP(
+51077 A = EXP(1,2)
+51080 A = LOG(1)
+51085 A = LOG
+51086 A = LOG(
+51087 A = LOG(1,2)
+51090 A = ABS(1)
+51095 A = ABS
+51096 A = ABS(
+51097 A = ABS(1,2)
+51100 A = FIX(1.1)
+51105 A = FIX
+51106 A = FIX(
+51107 A = FIX(1,2)
+51110 A = INT(1.1)
+51115 A = INT
+51116 A = INT(
+51117 A = INT(1,2)
+51120 A = SGN(1.1)
+51125 A = SGN
+51126 A = SGN(
+51127 A = SGN(1,2)
+51130 A = RND(10)
+51135 A = RND
+51136 A = RND(
+51137 A = RND(1,2)
+----------------------------------------------------------------------
+ERROR at 4:14 line 51015 - Expected parameter for this function.
+51015 A = SQR
+             ^
+ERROR at 5:15 line 51016 - Comma expected in function parameter list.
+51016 A = SQR(
+              ^
+ERROR at 6:18 line 51017 - Specified too many parameters for this function.
+51017 A = SQR(1,2)
+                 ^
+ERROR at 9:14 line 51025 - Expected parameter for this function.
+51025 A = SIN
+             ^
+ERROR at 10:15 line 51026 - Comma expected in function parameter list.
+51026 A = SIN(
+              ^
+ERROR at 11:18 line 51027 - Specified too many parameters for this function.
+51027 A = SIN(1,2)
+                 ^
+ERROR at 14:14 line 51035 - Expected parameter for this function.
+51035 A = COS
+             ^
+ERROR at 15:15 line 51036 - Comma expected in function parameter list.
+51036 A = COS(
+              ^
+ERROR at 16:18 line 51037 - Specified too many parameters for this function.
+51037 A = COS(1,2)
+                 ^
+ERROR at 18:14 line 51045 - Expected parameter for this function.
+51045 A = TAN
+             ^
+ERROR at 19:15 line 51046 - Comma expected in function parameter list.
+51046 A = TAN(
+              ^
+ERROR at 20:18 line 51047 - Specified too many parameters for this function.
+51047 A = TAN(1,2)
+                 ^
+ERROR at 22:14 line 51055 - Expected parameter for this function.
+51055 A = ATN
+             ^
+ERROR at 23:15 line 51056 - Comma expected in function parameter list.
+51056 A = ATN(
+              ^
+ERROR at 24:18 line 51057 - Specified too many parameters for this function.
+51057 A = ATN(1,2)
+                 ^
+ERROR at 26:13 line 51065 - This function should not have any parameters.
+51065 A = PI(
+            ^
+ERROR at 27:13 line 51066 - This function should not have any parameters.
+51066 A = PI()
+            ^
+ERROR at 28:13 line 51067 - This function should not have any parameters.
+51067 A = PI(1,2)
+            ^
+ERROR at 30:14 line 51075 - Expected parameter for this function.
+51075 A = EXP
+             ^
+ERROR at 31:15 line 51076 - Comma expected in function parameter list.
+51076 A = EXP(
+              ^
+ERROR at 32:18 line 51077 - Specified too many parameters for this function.
+51077 A = EXP(1,2)
+                 ^
+ERROR at 34:14 line 51085 - Expected parameter for this function.
+51085 A = LOG
+             ^
+ERROR at 35:15 line 51086 - Comma expected in function parameter list.
+51086 A = LOG(
+              ^
+ERROR at 36:18 line 51087 - Specified too many parameters for this function.
+51087 A = LOG(1,2)
+                 ^
+ERROR at 38:14 line 51095 - Expected parameter for this function.
+51095 A = ABS
+             ^
+ERROR at 39:15 line 51096 - Comma expected in function parameter list.
+51096 A = ABS(
+              ^
+ERROR at 40:18 line 51097 - Specified too many parameters for this function.
+51097 A = ABS(1,2)
+                 ^
+ERROR at 42:14 line 51105 - Expected parameter for this function.
+51105 A = FIX
+             ^
+ERROR at 43:15 line 51106 - Comma expected in function parameter list.
+51106 A = FIX(
+              ^
+ERROR at 44:18 line 51107 - Specified too many parameters for this function.
+51107 A = FIX(1,2)
+                 ^
+ERROR at 46:14 line 51115 - Expected parameter for this function.
+51115 A = INT
+             ^
+ERROR at 47:15 line 51116 - Comma expected in function parameter list.
+51116 A = INT(
+              ^
+ERROR at 48:18 line 51117 - Specified too many parameters for this function.
+51117 A = INT(1,2)
+                 ^
+ERROR at 50:14 line 51125 - Expected parameter for this function.
+51125 A = SGN
+             ^
+ERROR at 51:15 line 51126 - Comma expected in function parameter list.
+51126 A = SGN(
+              ^
+ERROR at 52:18 line 51127 - Specified too many parameters for this function.
+51127 A = SGN(1,2)
+                 ^
+ERROR at 54:14 line 51135 - Expected parameter for this function.
+51135 A = RND
+             ^
+ERROR at 55:15 line 51136 - Comma expected in function parameter list.
+51136 A = RND(
+              ^
+ERROR at 56:18 line 51137 - Specified too many parameters for this function.
+51137 A = RND(1,2)
+                 ^
+Parsing ERRORS: 39

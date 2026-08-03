@@ -1,0 +1,64 @@
+-q
+----------------------------------------------------------------------
+10 A% = POINT
+20 A% = POINT 10,20
+30 A% = POINT(
+40 A% = POINT(10
+50 A% = POINT(10,
+60 A% = POINT(10,20
+70 A% = POINT()
+80 A% = POINT(10)
+90 A% = POINT(10,20,30)
+100 A% = POINT(10,20)
+110 A% = POINT(B%,C%)
+120 LET C% = POINT(200,100)
+130 C% = POINT(200,100)'comment
+140 C% = POINT
+150 C% = POINT(
+160 C% = POINT(200
+170 C% = POINT(200,100
+180 C% = POINT(200,100,3)
+----------------------------------------------------------------------
+ERROR at 1:14 line 10 - Expected parameters for this function.
+10 A% = POINT
+             ^
+ERROR at 2:15 line 20 - Expected parameters for this function.
+20 A% = POINT 10,20
+              ^
+ERROR at 3:15 line 30 - Comma expected in function parameter list.
+30 A% = POINT(
+              ^
+ERROR at 4:17 line 40 - Comma expected in function parameter list.
+40 A% = POINT(10
+                ^
+ERROR at 5:18 line 50 - Comma expected in function parameter list.
+50 A% = POINT(10,
+                 ^
+ERROR at 6:20 line 60 - Comma expected in function parameter list.
+60 A% = POINT(10,20
+                   ^
+ERROR at 7:15 line 70 - Specified too few parameters for this function.
+70 A% = POINT()
+              ^
+ERROR at 8:17 line 80 - Specified too few parameters for this function.
+80 A% = POINT(10)
+                ^
+ERROR at 9:23 line 90 - Specified too many parameters for this function.
+90 A% = POINT(10,20,30)
+                      ^
+ERROR at 14:15 line 140 - Expected parameters for this function.
+140 C% = POINT
+              ^
+ERROR at 15:16 line 150 - Comma expected in function parameter list.
+150 C% = POINT(
+               ^
+ERROR at 16:19 line 160 - Comma expected in function parameter list.
+160 C% = POINT(200
+                  ^
+ERROR at 17:23 line 170 - Comma expected in function parameter list.
+170 C% = POINT(200,100
+                      ^
+ERROR at 18:25 line 180 - Specified too many parameters for this function.
+180 C% = POINT(200,100,3)
+                        ^
+Parsing ERRORS: 14

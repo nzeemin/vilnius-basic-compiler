@@ -1,0 +1,37 @@
+-q
+----------------------------------------------------------------------
+46100 PSET (150, 200), 1
+46101 PSET @ (150, 200), 1
+46102 PSET STEP (150, 200), 1
+46103 PSET (150, 200)
+46104 PSET (150, 200) 'comment
+46150 PSET
+46152 PSET @
+46154 PSET STEP
+46156 PSET 150, 200
+46158 PSET A$
+46160 PSET (150, 200), 1,
+46162 PSET (150, 200), 1,2
+----------------------------------------------------------------------
+ERROR at 6:11 line 46150 - Open bracket expected.
+46150 PSET
+          ^
+ERROR at 7:13 line 46152 - Open bracket expected.
+46152 PSET @
+            ^
+ERROR at 8:16 line 46154 - Open bracket expected.
+46154 PSET STEP
+               ^
+ERROR at 9:12 line 46156 - Open bracket expected.
+46156 PSET 150, 200
+           ^
+ERROR at 10:12 line 46158 - Open bracket expected.
+46158 PSET A$
+           ^
+ERROR at 11:25 line 46160 - Unexpected text at the end of the statement.
+46160 PSET (150, 200), 1,
+                        ^
+ERROR at 12:25 line 46162 - Unexpected text at the end of the statement.
+46162 PSET (150, 200), 1,2
+                        ^
+Parsing ERRORS: 7

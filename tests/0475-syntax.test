@@ -71,30 +71,6 @@
 45452 LOCATE .
 45454 LOCATE ,
 45456 LOCATE ,,
-46100 PSET (150, 200), 1
-46101 PSET @ (150, 200), 1
-46102 PSET STEP (150, 200), 1
-46103 PSET (150, 200)
-46104 PSET (150, 200) 'comment
-46150 PSET
-46152 PSET @
-46154 PSET STEP
-46156 PSET 150, 200
-46158 PSET A$
-46160 PSET (150, 200), 1,
-46162 PSET (150, 200), 1,2
-46220 PRESET (150, 200), 1
-46221 PRESET @ (150, 200), 1
-46222 PRESET STEP (150, 200), 1
-46223 PRESET (150, 200)
-46224 PRESET (150, 200) 'comment
-46250 PRESET
-46252 PRESET @
-46254 PRESET STEP
-46256 PRESET 150, 200
-46258 PRESET A$
-46260 PRESET (150, 200), 1,
-46262 PRESET (150, 200), 1,2
 46700 DRAW "ABC"
 46701 DRAW A$
 46750 DRAW
@@ -223,70 +199,28 @@ ERROR at 68:13 line 45450 - Arguments expected.
 ERROR at 71:16 line 45456 - Expression should not be empty.
 45456 LOCATE ,,
                ^
-ERROR at 77:11 line 46150 - Open bracket expected.
-46150 PSET
-          ^
-ERROR at 78:13 line 46152 - Open bracket expected.
-46152 PSET @
-            ^
-ERROR at 79:16 line 46154 - Open bracket expected.
-46154 PSET STEP
-               ^
-ERROR at 80:12 line 46156 - Open bracket expected.
-46156 PSET 150, 200
-           ^
-ERROR at 81:12 line 46158 - Open bracket expected.
-46158 PSET A$
-           ^
-ERROR at 82:25 line 46160 - Unexpected text at the end of the statement.
-46160 PSET (150, 200), 1,
-                        ^
-ERROR at 83:25 line 46162 - Unexpected text at the end of the statement.
-46162 PSET (150, 200), 1,2
-                        ^
-ERROR at 89:13 line 46250 - Open bracket expected.
-46250 PRESET
-            ^
-ERROR at 90:15 line 46252 - Open bracket expected.
-46252 PRESET @
-              ^
-ERROR at 91:18 line 46254 - Open bracket expected.
-46254 PRESET STEP
-                 ^
-ERROR at 92:14 line 46256 - Open bracket expected.
-46256 PRESET 150, 200
-             ^
-ERROR at 93:14 line 46258 - Open bracket expected.
-46258 PRESET A$
-             ^
-ERROR at 94:27 line 46260 - Unexpected text at the end of the statement.
-46260 PRESET (150, 200), 1,
-                          ^
-ERROR at 95:27 line 46262 - Unexpected text at the end of the statement.
-46262 PRESET (150, 200), 1,2
-                          ^
-ERROR at 98:11 line 46750 - Expression should not be empty.
+ERROR at 74:11 line 46750 - Expression should not be empty.
 46750 DRAW
           ^
-ERROR at 99:14 line 46752 - Unexpected text at the end of the statement.
+ERROR at 75:14 line 46752 - Unexpected text at the end of the statement.
 46752 DRAW A$, B$
              ^
-ERROR at 101:12 line 47150 - Unexpected text at the end of the statement.
+ERROR at 77:12 line 47150 - Unexpected text at the end of the statement.
 47150 BEEP 1
            ^
-ERROR at 102:12 line 47152 - Unexpected text at the end of the statement.
+ERROR at 78:12 line 47152 - Unexpected text at the end of the statement.
 47152 BEEP A
            ^
-ERROR at 104:12 line 48150 - Unexpected text at the end of the statement.
+ERROR at 80:12 line 48150 - Unexpected text at the end of the statement.
 48150 TRON ,
            ^
-ERROR at 105:12 line 48152 - Unexpected text at the end of the statement.
+ERROR at 81:12 line 48152 - Unexpected text at the end of the statement.
 48152 TRON A
            ^
-ERROR at 107:13 line 48250 - Unexpected text at the end of the statement.
+ERROR at 83:13 line 48250 - Unexpected text at the end of the statement.
 48250 TROFF .
             ^
-ERROR at 108:13 line 48252 - Unexpected text at the end of the statement.
+ERROR at 84:13 line 48252 - Unexpected text at the end of the statement.
 48252 TROFF A
             ^
-Parsing ERRORS: 60
+Parsing ERRORS: 46

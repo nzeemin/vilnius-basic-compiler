@@ -1,0 +1,37 @@
+-q
+----------------------------------------------------------------------
+46220 PRESET (150, 200), 1
+46221 PRESET @ (150, 200), 1
+46222 PRESET STEP (150, 200), 1
+46223 PRESET (150, 200)
+46224 PRESET (150, 200) 'comment
+46250 PRESET
+46252 PRESET @
+46254 PRESET STEP
+46256 PRESET 150, 200
+46258 PRESET A$
+46260 PRESET (150, 200), 1,
+46262 PRESET (150, 200), 1,2
+----------------------------------------------------------------------
+ERROR at 6:13 line 46250 - Open bracket expected.
+46250 PRESET
+            ^
+ERROR at 7:15 line 46252 - Open bracket expected.
+46252 PRESET @
+              ^
+ERROR at 8:18 line 46254 - Open bracket expected.
+46254 PRESET STEP
+                 ^
+ERROR at 9:14 line 46256 - Open bracket expected.
+46256 PRESET 150, 200
+             ^
+ERROR at 10:14 line 46258 - Open bracket expected.
+46258 PRESET A$
+             ^
+ERROR at 11:27 line 46260 - Unexpected text at the end of the statement.
+46260 PRESET (150, 200), 1,
+                          ^
+ERROR at 12:27 line 46262 - Unexpected text at the end of the statement.
+46262 PRESET (150, 200), 1,2
+                          ^
+Parsing ERRORS: 7
