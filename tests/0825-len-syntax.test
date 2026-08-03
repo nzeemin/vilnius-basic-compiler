@@ -1,0 +1,42 @@
+-q
+----------------------------------------------------------------------
+10 A% = LEN("A")
+20 A% = LEN("ABC")
+30 A% = LEN("")
+40 A% = LEN(B$)
+50 A% = LEN("A"+"B")
+60 A% = LEN("A")'comment
+70 A% = LEN
+80 A% = LEN'comment
+90 A% = LEN "AAA"
+100 A% = LEN(
+110 A% = LEN("AAA"
+120 A% = LEN("AAA",
+130 A% = LEN("A","B")
+140 A% = LEN("A","B","C")
+----------------------------------------------------------------------
+ERROR at 7:12 line 70 - Expected parameter for this function.
+70 A% = LEN
+           ^
+ERROR at 8:12 line 80 - Expected parameter for this function.
+80 A% = LEN'comment
+           ^
+ERROR at 9:13 line 90 - Expected parameter for this function.
+90 A% = LEN "AAA"
+            ^
+ERROR at 10:14 line 100 - Comma expected in function parameter list.
+100 A% = LEN(
+             ^
+ERROR at 11:19 line 110 - Comma expected in function parameter list.
+110 A% = LEN("AAA"
+                  ^
+ERROR at 12:20 line 120 - Comma expected in function parameter list.
+120 A% = LEN("AAA",
+                   ^
+ERROR at 13:21 line 130 - Specified too many parameters for this function.
+130 A% = LEN("A","B")
+                    ^
+ERROR at 14:25 line 140 - Specified too many parameters for this function.
+140 A% = LEN("A","B","C")
+                        ^
+Parsing ERRORS: 8

@@ -1,0 +1,49 @@
+-q
+----------------------------------------------------------------------
+10 A% = INP(1,2)
+20 A% = INP(B%,C%)
+30 A% = INP(&O177716,&B11001)
+40 A% = INP(1+2,3*4)
+50 A% = INP(1,2)'comment
+60 A% = INP
+70 A% = INP'comment
+80 A% = INP 1,2
+90 A% = INP(
+100 A% = INP(1
+110 A% = INP(1,
+120 A% = INP(1,2
+130 A% = INP()
+140 A% = INP(1)
+150 A% = INP(1,2,3)
+----------------------------------------------------------------------
+ERROR at 6:12 line 60 - Expected parameters for this function.
+60 A% = INP
+           ^
+ERROR at 7:12 line 70 - Expected parameters for this function.
+70 A% = INP'comment
+           ^
+ERROR at 8:13 line 80 - Expected parameters for this function.
+80 A% = INP 1,2
+            ^
+ERROR at 9:13 line 90 - Comma expected in function parameter list.
+90 A% = INP(
+            ^
+ERROR at 10:15 line 100 - Comma expected in function parameter list.
+100 A% = INP(1
+              ^
+ERROR at 11:16 line 110 - Comma expected in function parameter list.
+110 A% = INP(1,
+               ^
+ERROR at 12:17 line 120 - Comma expected in function parameter list.
+120 A% = INP(1,2
+                ^
+ERROR at 13:14 line 130 - Specified too few parameters for this function.
+130 A% = INP()
+             ^
+ERROR at 14:15 line 140 - Specified too few parameters for this function.
+140 A% = INP(1)
+              ^
+ERROR at 15:19 line 150 - Specified too many parameters for this function.
+150 A% = INP(1,2,3)
+                  ^
+Parsing ERRORS: 10

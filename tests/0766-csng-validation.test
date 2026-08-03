@@ -1,0 +1,13 @@
+-q
+----------------------------------------------------------------------
+10 A = CSNG(1)
+100 A = CSNG()
+110 A = CSNG("AAA")
+120 A = CSNG(B$)
+130 A = CSNG("A"+"B")
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:14 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:14 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:17 - Expression should be of type Integer or Single.
+Validation ERRORS: 4

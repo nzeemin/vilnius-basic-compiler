@@ -1,0 +1,13 @@
+-q
+----------------------------------------------------------------------
+10 A = SGN(1)
+100 A = SGN()
+110 A = SGN("AAA")
+120 A = SGN(B$)
+130 A = SGN("A"+"B")
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:13 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:13 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:16 - Expression should be of type Integer or Single.
+Validation ERRORS: 4

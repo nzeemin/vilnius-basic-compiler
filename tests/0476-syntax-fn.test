@@ -28,30 +28,6 @@
 51065 A = PI(
 51066 A = PI()
 51067 A = PI(1,2)
-51070 A = EXP(1)
-51075 A = EXP
-51076 A = EXP(
-51077 A = EXP(1,2)
-51080 A = LOG(1)
-51085 A = LOG
-51086 A = LOG(
-51087 A = LOG(1,2)
-51090 A = ABS(1)
-51095 A = ABS
-51096 A = ABS(
-51097 A = ABS(1,2)
-51100 A = FIX(1.1)
-51105 A = FIX
-51106 A = FIX(
-51107 A = FIX(1,2)
-51110 A = INT(1.1)
-51115 A = INT
-51116 A = INT(
-51117 A = INT(1,2)
-51120 A = SGN(1.1)
-51125 A = SGN
-51126 A = SGN(
-51127 A = SGN(1,2)
 ----------------------------------------------------------------------
 ERROR at 4:14 line 51015 - Expected parameter for this function.
 51015 A = SQR
@@ -107,58 +83,4 @@ ERROR at 27:13 line 51066 - This function should not have any parameters.
 ERROR at 28:13 line 51067 - This function should not have any parameters.
 51067 A = PI(1,2)
             ^
-ERROR at 30:14 line 51075 - Expected parameter for this function.
-51075 A = EXP
-             ^
-ERROR at 31:15 line 51076 - Comma expected in function parameter list.
-51076 A = EXP(
-              ^
-ERROR at 32:18 line 51077 - Specified too many parameters for this function.
-51077 A = EXP(1,2)
-                 ^
-ERROR at 34:14 line 51085 - Expected parameter for this function.
-51085 A = LOG
-             ^
-ERROR at 35:15 line 51086 - Comma expected in function parameter list.
-51086 A = LOG(
-              ^
-ERROR at 36:18 line 51087 - Specified too many parameters for this function.
-51087 A = LOG(1,2)
-                 ^
-ERROR at 38:14 line 51095 - Expected parameter for this function.
-51095 A = ABS
-             ^
-ERROR at 39:15 line 51096 - Comma expected in function parameter list.
-51096 A = ABS(
-              ^
-ERROR at 40:18 line 51097 - Specified too many parameters for this function.
-51097 A = ABS(1,2)
-                 ^
-ERROR at 42:14 line 51105 - Expected parameter for this function.
-51105 A = FIX
-             ^
-ERROR at 43:15 line 51106 - Comma expected in function parameter list.
-51106 A = FIX(
-              ^
-ERROR at 44:18 line 51107 - Specified too many parameters for this function.
-51107 A = FIX(1,2)
-                 ^
-ERROR at 46:14 line 51115 - Expected parameter for this function.
-51115 A = INT
-             ^
-ERROR at 47:15 line 51116 - Comma expected in function parameter list.
-51116 A = INT(
-              ^
-ERROR at 48:18 line 51117 - Specified too many parameters for this function.
-51117 A = INT(1,2)
-                 ^
-ERROR at 50:14 line 51125 - Expected parameter for this function.
-51125 A = SGN
-             ^
-ERROR at 51:15 line 51126 - Comma expected in function parameter list.
-51126 A = SGN(
-              ^
-ERROR at 52:18 line 51127 - Specified too many parameters for this function.
-51127 A = SGN(1,2)
-                 ^
-Parsing ERRORS: 36
+Parsing ERRORS: 18

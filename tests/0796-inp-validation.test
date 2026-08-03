@@ -1,0 +1,19 @@
+-q
+----------------------------------------------------------------------
+10 A% = INP(1,2)
+100 A% = INP("AAA",2)
+110 A% = INP(1,"AAA")
+120 A% = INP(B$,2)
+130 A% = INP(1,B$)
+140 A% = INP("A"+"B",2)
+150 A% = INP(,2)
+160 A% = INP(1,)
+----------------------------------------------------------------------
+ERROR in line 100 at 2:14 - Expression should be of type Integer or Single.
+ERROR in line 110 at 3:16 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:14 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:16 - Expression should be of type Integer or Single.
+ERROR in line 140 at 6:17 - Expression should be of type Integer or Single.
+ERROR in line 150 in expression - Expression should not be empty.
+ERROR in line 160 in expression - Expression should not be empty.
+Validation ERRORS: 7

@@ -1,0 +1,41 @@
+-q
+----------------------------------------------------------------------
+10 A% = ASC("A")
+20 A% = ASC("ABC")
+30 A% = ASC(B$)
+40 A% = ASC("A"+"B")
+50 A% = ASC("A")'comment
+60 A% = ASC
+70 A% = ASC'comment
+80 A% = ASC "AAA"
+90 A% = ASC(
+100 A% = ASC("AAA"
+110 A% = ASC("AAA",
+120 A% = ASC("A","B")
+130 A% = ASC("A","B","C")
+----------------------------------------------------------------------
+ERROR at 6:12 line 60 - Expected parameter for this function.
+60 A% = ASC
+           ^
+ERROR at 7:12 line 70 - Expected parameter for this function.
+70 A% = ASC'comment
+           ^
+ERROR at 8:13 line 80 - Expected parameter for this function.
+80 A% = ASC "AAA"
+            ^
+ERROR at 9:13 line 90 - Comma expected in function parameter list.
+90 A% = ASC(
+            ^
+ERROR at 10:19 line 100 - Comma expected in function parameter list.
+100 A% = ASC("AAA"
+                  ^
+ERROR at 11:20 line 110 - Comma expected in function parameter list.
+110 A% = ASC("AAA",
+                   ^
+ERROR at 12:21 line 120 - Specified too many parameters for this function.
+120 A% = ASC("A","B")
+                    ^
+ERROR at 13:25 line 130 - Specified too many parameters for this function.
+130 A% = ASC("A","B","C")
+                        ^
+Parsing ERRORS: 8

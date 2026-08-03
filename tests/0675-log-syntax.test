@@ -1,0 +1,42 @@
+-q
+----------------------------------------------------------------------
+10 A = LOG(1)
+20 A = LOG(0)
+30 A = LOG(-1)
+40 A = LOG(B%)
+50 A = LOG(1+2)
+60 A = LOG(1)'comment
+70 A = LOG
+80 A = LOG'comment
+90 A = LOG 1
+100 A = LOG(
+110 A = LOG(1
+120 A = LOG(1,
+130 A = LOG(1,2)
+140 A = LOG(1,2,3)
+----------------------------------------------------------------------
+ERROR at 7:11 line 70 - Expected parameter for this function.
+70 A = LOG
+          ^
+ERROR at 8:11 line 80 - Expected parameter for this function.
+80 A = LOG'comment
+          ^
+ERROR at 9:12 line 90 - Expected parameter for this function.
+90 A = LOG 1
+           ^
+ERROR at 10:13 line 100 - Comma expected in function parameter list.
+100 A = LOG(
+            ^
+ERROR at 11:14 line 110 - Comma expected in function parameter list.
+110 A = LOG(1
+             ^
+ERROR at 12:15 line 120 - Comma expected in function parameter list.
+120 A = LOG(1,
+              ^
+ERROR at 13:16 line 130 - Specified too many parameters for this function.
+130 A = LOG(1,2)
+               ^
+ERROR at 14:18 line 140 - Specified too many parameters for this function.
+140 A = LOG(1,2,3)
+                 ^
+Parsing ERRORS: 8

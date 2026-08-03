@@ -1,0 +1,43 @@
+-q
+----------------------------------------------------------------------
+10 A = CINT(1.1)
+20 A = CINT(0)
+30 A = CINT(-5.3)
+40 A = CINT(B%)
+50 A = CINT(F)
+60 A = CINT(1+2)
+70 A = CINT(1.1)'comment
+80 A = CINT
+90 A = CINT'comment
+100 A = CINT 1
+110 A = CINT(
+120 A = CINT(1
+130 A = CINT(1,
+140 A = CINT(1,2)
+150 A = CINT(1,2,3)
+----------------------------------------------------------------------
+ERROR at 8:12 line 80 - Expected parameter for this function.
+80 A = CINT
+           ^
+ERROR at 9:12 line 90 - Expected parameter for this function.
+90 A = CINT'comment
+           ^
+ERROR at 10:14 line 100 - Expected parameter for this function.
+100 A = CINT 1
+             ^
+ERROR at 11:14 line 110 - Comma expected in function parameter list.
+110 A = CINT(
+             ^
+ERROR at 12:15 line 120 - Comma expected in function parameter list.
+120 A = CINT(1
+              ^
+ERROR at 13:16 line 130 - Comma expected in function parameter list.
+130 A = CINT(1,
+               ^
+ERROR at 14:17 line 140 - Specified too many parameters for this function.
+140 A = CINT(1,2)
+                ^
+ERROR at 15:19 line 150 - Specified too many parameters for this function.
+150 A = CINT(1,2,3)
+                  ^
+Parsing ERRORS: 8
