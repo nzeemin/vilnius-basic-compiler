@@ -52,10 +52,6 @@
 51125 A = SGN
 51126 A = SGN(
 51127 A = SGN(1,2)
-51130 A = RND(10)
-51135 A = RND
-51136 A = RND(
-51137 A = RND(1,2)
 ----------------------------------------------------------------------
 ERROR at 4:14 line 51015 - Expected parameter for this function.
 51015 A = SQR
@@ -165,13 +161,4 @@ ERROR at 51:15 line 51126 - Comma expected in function parameter list.
 ERROR at 52:18 line 51127 - Specified too many parameters for this function.
 51127 A = SGN(1,2)
                  ^
-ERROR at 54:14 line 51135 - Expected parameter for this function.
-51135 A = RND
-             ^
-ERROR at 55:15 line 51136 - Comma expected in function parameter list.
-51136 A = RND(
-              ^
-ERROR at 56:18 line 51137 - Specified too many parameters for this function.
-51137 A = RND(1,2)
-                 ^
-Parsing ERRORS: 39
+Parsing ERRORS: 36

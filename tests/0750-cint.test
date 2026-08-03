@@ -1,0 +1,72 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 B% = 5
+30 C% = -5
+40 F = 5.93
+50 G = -6.352
+' CINT converts to Integer dropping the fractional part, same as FIX does,
+' see 5.2.1; the two values below are the examples from the manual.
+' The constant is folded by the compiler, the variable goes through FTOI,
+' both ways have to give the same result.
+60 A% = CINT(5.93)
+65 PRINT "5", A%
+70 A% = CINT(F)
+75 PRINT "5", A%
+80 A% = CINT(-6.352)
+85 PRINT "-6", A%
+90 A% = CINT(G)
+95 PRINT "-6", A%
+' The value is truncated towards zero, it is not rounded
+100 A% = CINT(2.5)
+105 PRINT "2", A%
+110 F = 2.5
+120 A% = CINT(F)
+125 PRINT "2", A%
+130 A% = CINT(-2.5)
+135 PRINT "-2", A%
+140 F = -2.5
+150 A% = CINT(F)
+155 PRINT "-2", A%
+' The values between -1 and 1 all give zero
+160 F = 0.9
+170 A% = CINT(F)
+175 PRINT "0", A%
+180 F = -0.9
+190 A% = CINT(F)
+195 PRINT "0", A%
+200 A% = CINT(0.0)
+205 PRINT "0", A%
+' An argument that is already Integer keeps its value, and the compiler
+' warns that the call has no effect. A constant is folded, so it does not warn.
+210 A% = CINT(5)
+215 PRINT "5", A%
+220 A% = CINT(B%)
+225 PRINT "5", A%
+230 A% = CINT(-5)
+235 PRINT "-5", A%
+240 A% = CINT(C%)
+245 PRINT "-5", A%
+' The result is an Integer and can be used in Integer arithmetic
+250 A% = CINT(5.93) + 1
+255 PRINT "6", A%
+260 F = 5.93
+270 A% = CINT(F) + 1
+275 PRINT "6", A%
+280 A% = CINT(B%) * 2
+285 PRINT "10", A%
+' The argument is an expression
+290 F = 7.5
+300 A% = CINT(F / 2)
+305 PRINT "3", A%
+310 A% = CINT(B% + 0.9)
+315 PRINT "5", A%
+' An Integer expression as the argument warns too; the constant needs the %
+' sign, without it the expression would become Single
+320 A% = CINT(B% + 1%)
+325 PRINT "6", A%
+----------------------------------------------------------------------
+WARNING: at 42:10 line 220 - CINT function call has no effect, value already has Integer type.
+WARNING: at 46:10 line 240 - CINT function call has no effect, value already has Integer type.
+WARNING: at 54:10 line 280 - CINT function call has no effect, value already has Integer type.
+WARNING: at 64:10 line 320 - CINT function call has no effect, value already has Integer type.

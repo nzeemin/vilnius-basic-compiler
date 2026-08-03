@@ -1,0 +1,44 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 B% = 5
+30 C% = -5
+40 F = 2.5
+' CSNG converts the value to Single, see 5.2.2. A constant argument is
+' folded by the compiler, a variable goes through ITOF.
+50 A% = CSNG(5) = 5.0
+55 PRINT "-1", A%
+60 A% = CSNG(B%) = 5.0
+65 PRINT "-1", A%
+70 A% = CSNG(-5) = -5.0
+75 PRINT "-1", A%
+80 A% = CSNG(C%) = -5.0
+85 PRINT "-1", A%
+' The result really is a Single: the divisions below keep the fraction
+90 A% = CSNG(B%) / 2 = 2.5
+95 PRINT "-1", A%
+100 A% = CSNG(B%) / 4 = 1.25
+105 PRINT "-1", A%
+' An argument that is already Single keeps its value, and the compiler
+' warns that the call has no effect
+110 A% = CSNG(F) = 2.5
+115 PRINT "-1", A%
+120 G = CSNG(F)
+130 A% = G = 2.5
+135 PRINT "-1", A%
+' A constant Single argument is folded, so there is no warning for it
+140 A% = CSNG(2.5) = 2.5
+145 PRINT "-1", A%
+' An Integer expression as the argument; the constants need the % sign,
+' without it they are Single and the whole expression becomes Single too
+150 A% = CSNG(B% + 1%) = 6.0
+155 PRINT "-1", A%
+160 A% = CSNG(B% * 2%) / 4 = 2.5
+165 PRINT "-1", A%
+' A Single expression as the argument warns, same as a Single variable
+170 A% = CSNG(F + 1) = 3.5
+175 PRINT "-1", A%
+----------------------------------------------------------------------
+WARNING: at 22:10 line 110 - CSNG function call has no effect, value already has Single type.
+WARNING: at 24:9 line 120 - CSNG function call has no effect, value already has Single type.
+WARNING: at 37:10 line 170 - CSNG function call has no effect, value already has Single type.

@@ -1,0 +1,88 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' The properties of the RND sequence, see 5.1.13. The values themselves are
+' not known here, so every check compares the results of RND with each other;
+' every line has to print -1.
+'NOTE: the values of RND are checked in 0730-rnd
+' A negative argument restarts the sequence from a known state
+20 X = RND(-1)
+30 A = RND(1)
+40 B% = A >= 0.0 AND A < 1.0
+50 PRINT "-1", B%
+' The same starting state gives the same sequence
+60 X = RND(-1)
+70 A = RND(1)
+80 X = RND(-1)
+90 B = RND(1)
+100 B% = A = B
+110 PRINT "-1", B%
+' The sequence is chosen by the mantissa of the negative argument and does not
+' depend on its exponent, see 5.1.13: -5 and -50 have the same mantissa, so
+' they give the same sequence
+120 X = RND(-5)
+130 A = RND(1)
+140 X = RND(-50)
+150 B = RND(1)
+160 B% = A = B
+170 PRINT "-1", B%
+' RND(0) repeats the value given by the previous call
+180 X = RND(-1)
+190 A = RND(1)
+200 B = RND(0)
+210 B% = A = B
+220 PRINT "-1", B%
+230 C = RND(0)
+240 B% = A = C
+250 PRINT "-1", B%
+' A zero in a variable goes through the runtime, not through the shortcut
+' the compiler uses for the constant zero; the result has to be the same
+260 Z% = 0
+270 X = RND(-1)
+280 A = RND(1)
+290 B = RND(Z%)
+300 B% = A = B
+310 PRINT "-1", B%
+' A positive argument gives the next value, it differs from the previous one
+320 X = RND(-1)
+330 A = RND(1)
+340 B = RND(1)
+350 B% = A <> B
+360 PRINT "-1", B%
+' A positive value in a variable works the same as the constant one
+370 S% = 1
+380 X = RND(-1)
+390 A = RND(1)
+400 X = RND(-1)
+410 B = RND(S%)
+420 B% = A = B
+430 PRINT "-1", B%
+' Every value of the sequence stays inside [0,1)
+440 X = RND(-1)
+450 A = RND(1)
+460 B% = A >= 0.0 AND A < 1.0
+470 PRINT "-1", B%
+480 A = RND(1)
+490 B% = A >= 0.0 AND A < 1.0
+500 PRINT "-1", B%
+' The sign of the argument decides, not its whole part: 0.5 is a positive
+' argument, so it gives the next value of the sequence, not the previous one
+510 X = RND(-1)
+520 A = RND(1)
+530 B = RND(0.5)
+540 B% = A <> B
+550 PRINT "-1", B%
+' A different mantissa gives a different sequence: -0.5 and -1 both restart it,
+' but not from the same place. -0.5 and -5 have the same mantissa, so they do.
+560 X = RND(-0.5)
+570 A = RND(1)
+580 X = RND(-1)
+590 B = RND(1)
+600 B% = A <> B
+610 PRINT "-1", B%
+620 X = RND(-0.5)
+630 A = RND(1)
+640 X = RND(-5)
+650 B = RND(1)
+660 B% = A = B
+670 PRINT "-1", B%

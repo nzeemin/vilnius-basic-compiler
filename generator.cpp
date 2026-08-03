@@ -2939,10 +2939,13 @@ void Generator::GenerateFuncCint(const ExpressionModel& expr, const ExpressionNo
     const ExpressionModel& expr1 = node.args[0];
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
-    if (expr1.GetExpressionValueType() == ValueTypeInteger)
-        return;  // already Integer
-
     GenerateExpression(expr1);
+
+    if (expr1.GetExpressionValueType() == ValueTypeInteger)
+    {
+        Warning(node.token, "CINT function call has no effect, value already has Integer type.");
+        return;  // already Integer, the value is in R0 already
+    }
 
     AddRuntimeCall(RuntimeFTOI, "to Integer");  // result in R0
 }
