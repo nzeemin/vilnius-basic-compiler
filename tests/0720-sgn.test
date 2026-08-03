@@ -1,0 +1,51 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 B% = 5
+30 C% = -5
+40 D% = 0
+' SGN gives -1, 0 or 1 depending on the sign of the argument, see 5.1.12.
+' The constant is folded by the compiler, the variable goes through FSGN,
+' both ways have to give the same result.
+50 A% = SGN(5)
+55 PRINT "1", A%
+60 A% = SGN(B%)
+65 PRINT "1", A%
+70 A% = SGN(-5)
+75 PRINT "-1", A%
+80 A% = SGN(C%)
+85 PRINT "-1", A%
+90 A% = SGN(0)
+95 PRINT "0", A%
+100 A% = SGN(D%)
+105 PRINT "0", A%
+' The same with Single arguments
+110 F = 2.5
+120 A% = SGN(F)
+125 PRINT "1", A%
+130 A% = SGN(2.5)
+135 PRINT "1", A%
+140 F = -2.5
+150 A% = SGN(F)
+155 PRINT "-1", A%
+160 A% = SGN(-2.5)
+165 PRINT "-1", A%
+170 F = 0.0
+180 A% = SGN(F)
+185 PRINT "0", A%
+190 A% = SGN(0.0)
+195 PRINT "0", A%
+' A small fraction still has a sign, it is not rounded to zero
+200 F = 0.001
+210 A% = SGN(F)
+215 PRINT "1", A%
+220 F = -0.001
+230 A% = SGN(F)
+235 PRINT "-1", A%
+' The argument is an expression
+240 A% = SGN(B% - 10)
+245 PRINT "-1", A%
+250 A% = SGN(B% * C%)
+255 PRINT "-1", A%
+260 A% = SGN(B% + C%)
+265 PRINT "0", A%

@@ -1,0 +1,58 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 F = 6.25
+30 G = -5.3
+40 B% = 5
+50 C% = -5
+' FIX drops the fractional part, see 5.1.10; the examples are from the manual.
+' The constant is folded by the compiler, the variable goes through FFIX,
+' both ways have to give the same result.
+60 A% = FIX(6.25)
+65 PRINT "6", A%
+70 A% = FIX(F)
+75 PRINT "6", A%
+80 A% = FIX(-5.3)
+85 PRINT "-5", A%
+90 A% = FIX(G)
+95 PRINT "-5", A%
+' The value is truncated towards zero, it is not rounded.
+' This is where FIX differs from INT: INT(-2.9) gives -3, FIX(-2.9) gives -2.
+100 A% = FIX(2.9)
+105 PRINT "2", A%
+110 F = 2.9
+120 A% = FIX(F)
+125 PRINT "2", A%
+130 A% = FIX(-2.9)
+135 PRINT "-2", A%
+140 F = -2.9
+150 A% = FIX(F)
+155 PRINT "-2", A%
+' The values between -1 and 1 all give zero
+160 A% = FIX(0.0)
+165 PRINT "0", A%
+170 F = 0.75
+180 A% = FIX(F)
+185 PRINT "0", A%
+190 F = -0.75
+200 A% = FIX(F)
+205 PRINT "0", A%
+' An Integer argument is converted to Single first, the value does not change
+210 A% = FIX(5)
+215 PRINT "5", A%
+220 A% = FIX(B%)
+225 PRINT "5", A%
+230 A% = FIX(C%)
+235 PRINT "-5", A%
+' The result is a Single equal to the whole part of the argument
+240 F = -5.3
+250 A% = FIX(F) = -5.0
+255 PRINT "-1", A%
+260 A% = FIX(6.25) = 6.0
+265 PRINT "-1", A%
+' The argument is an expression
+270 F = 7.5
+280 A% = FIX(F / 2)
+285 PRINT "3", A%
+290 A% = FIX(B% + 0.9)
+295 PRINT "5", A%

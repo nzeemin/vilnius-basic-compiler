@@ -1,0 +1,68 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 F = 6.25
+30 G = -5.3
+40 B% = 5
+50 C% = -5
+' INT gives the nearest integer not greater than the argument, see 5.1.11;
+' the examples are from the manual. The constant is folded by the compiler,
+' the variable goes through FINT, both ways have to give the same result.
+60 A% = INT(6.25)
+65 PRINT "6", A%
+70 A% = INT(F)
+75 PRINT "6", A%
+80 A% = INT(-5.3)
+85 PRINT "-6", A%
+90 A% = INT(G)
+95 PRINT "-6", A%
+' A negative value goes down, this is where INT differs from FIX:
+' FIX(-2.9) gives -2, INT(-2.9) gives -3
+100 A% = INT(2.9)
+105 PRINT "2", A%
+110 F = 2.9
+120 A% = INT(F)
+125 PRINT "2", A%
+130 A% = INT(-2.9)
+135 PRINT "-3", A%
+140 F = -2.9
+150 A% = INT(F)
+155 PRINT "-3", A%
+160 A% = FIX(-2.9) - INT(-2.9)
+165 PRINT "1", A%
+' The values between -1 and 1
+170 A% = INT(0.0)
+175 PRINT "0", A%
+180 F = 0.75
+190 A% = INT(F)
+195 PRINT "0", A%
+200 F = -0.75
+210 A% = INT(F)
+215 PRINT "-1", A%
+' A value that is already whole does not go down, even when it is negative
+220 A% = INT(-5.0)
+225 PRINT "-5", A%
+230 F = -5.0
+240 A% = INT(F)
+245 PRINT "-5", A%
+' An Integer argument is converted to Single first and stays whole
+250 A% = INT(5)
+255 PRINT "5", A%
+260 A% = INT(B%)
+265 PRINT "5", A%
+270 A% = INT(C%)
+275 PRINT "-5", A%
+' The result is a Single equal to the integer part
+280 F = -5.3
+290 A% = INT(F) = -6.0
+295 PRINT "-1", A%
+300 A% = INT(6.25) = 6.0
+305 PRINT "-1", A%
+' The argument is an expression
+310 F = 7.5
+320 A% = INT(F / 2)
+325 PRINT "3", A%
+330 A% = INT(B% + 0.9)
+335 PRINT "5", A%
+340 A% = INT(C% - 0.9)
+345 PRINT "-6", A%

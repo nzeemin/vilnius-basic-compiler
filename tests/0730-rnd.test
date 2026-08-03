@@ -1,0 +1,36 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' The values of RND taken from the real BASIC Vilnius. They are the same on
+' every run, so they can be compared with the constants below.
+' The values are compared with a tolerance: the constants are written with
+' 7 digits, and a Single keeps about that many, so the last digit may differ.
+'NOTE: the properties of the sequence are checked in 0731-rnd-seq
+' The first three values with the default starting state. These lines have to
+' go before any RND with a negative argument, such a call replaces the state.
+20 A = RND(1)
+30 PRINT ".8672345", A
+40 B = RND(1)
+50 PRINT ".6855049", B
+60 C = RND(1)
+70 PRINT ".3079186", C
+80 B% = ABS(A - 0.8672345) < 0.000001
+90 PRINT "-1", B%
+100 B% = ABS(B - 0.6855049) < 0.000001
+110 PRINT "-1", B%
+120 B% = ABS(C - 0.3079186) < 0.000001
+130 PRINT "-1", B%
+' RND with a negative argument returns a value too, and restarts the sequence:
+' PRINT RND(-1) gives .9642279, then two PRINT RND(1) give .1955422, .6406122
+140 A = RND(-1)
+150 PRINT ".9642279", A
+160 B = RND(1)
+170 PRINT ".1955422", B
+180 C = RND(1)
+190 PRINT ".6406122", C
+200 B% = ABS(A - 0.9642279) < 0.000001
+210 PRINT "-1", B%
+220 B% = ABS(B - 0.1955422) < 0.000001
+230 PRINT "-1", B%
+240 B% = ABS(C - 0.6406122) < 0.000001
+250 PRINT "-1", B%

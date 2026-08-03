@@ -3019,7 +3019,9 @@ void Generator::GenerateFuncRnd(const ExpressionModel& expr, const ExpressionNod
     assert(expr1.GetExpressionValueType() != ValueTypeString);
 
     // Special case for RND(0): return RNDSAV value
-    if (expr1.IsConstExpression() && std::floor(expr1.GetConstExpressionDValue()) == 0.0)
+    //NOTE: The sign of the argument decides what RND does, see 5.1.13, so only the
+    //      exact zero goes here: RND(0.5) has a positive argument, not a zero one.
+    if (expr1.IsConstExpression() && expr1.GetConstExpressionDValue() == 0.0)
     {
         AddLine("\tMOV\tRNDSAV+2, -(SP)\t; RND(0)");
         AddLine("\tMOV\tRNDSAV, -(SP)");

@@ -1,0 +1,60 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 B% = 5
+30 C% = -5
+40 D% = 0
+' ABS of an Integer argument gives an Integer, see 5.1.9.
+' The constant is folded by the compiler, the variable goes through BPL/NEG,
+' both ways have to give the same result.
+50 A% = ABS(5)
+55 PRINT "5", A%
+60 A% = ABS(B%)
+65 PRINT "5", A%
+70 A% = ABS(-5)
+75 PRINT "5", A%
+80 A% = ABS(C%)
+85 PRINT "5", A%
+90 A% = ABS(0)
+95 PRINT "0", A%
+100 A% = ABS(D%)
+105 PRINT "0", A%
+' The result keeps the Integer type, so it can be used in Integer arithmetic
+110 A% = ABS(C%) + 1
+115 PRINT "6", A%
+120 A% = ABS(C%) * 2
+125 PRINT "10", A%
+' ABS of a Single argument gives a Single; the sign bit is cleared
+130 F = 2.5
+140 A% = ABS(F)
+145 PRINT "2", A%
+150 F = -2.5
+160 A% = ABS(F)
+165 PRINT "2", A%
+170 A% = ABS(-2.5)
+175 PRINT "2", A%
+180 F = 0.0
+190 A% = ABS(F)
+195 PRINT "0", A%
+' Only the sign goes away, the value itself has to stay exactly the same
+200 F = -0.75
+210 A% = ABS(F) = 0.75
+215 PRINT "-1", A%
+220 A% = ABS(-0.75) = 0.75
+225 PRINT "-1", A%
+230 F = -2.5
+240 A% = ABS(F) = 2.5
+245 PRINT "-1", A%
+' The argument is an expression
+250 A% = ABS(B% - 10)
+255 PRINT "5", A%
+260 A% = ABS(C% * 2)
+265 PRINT "10", A%
+270 A% = ABS(B% + C%)
+275 PRINT "0", A%
+' The largest Integer value that can be negated
+280 A% = ABS(-32767)
+285 PRINT "32767", A%
+290 E% = -32767
+300 A% = ABS(E%)
+305 PRINT "32767", A%
