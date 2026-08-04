@@ -1,0 +1,23 @@
+-q
+----------------------------------------------------------------------
+10 A = IIF(1,2,3)
+100 A = IIF("A",1,2)
+110 A = IIF(1,"A",2)
+120 A = IIF(1,2,"A")
+130 A = IIF(B$,1,2)
+140 A = IIF(1,2,C$)
+150 A = IIF("A"+"B",1,2)
+160 A = IIF(,1,2)
+170 A = IIF(1,,2)
+180 A = IIF(1,2,)
+----------------------------------------------------------------------
+ERROR in line 100 at 2:13 - Expression should be of type Integer or Single.
+ERROR in line 110 at 3:15 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:17 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:13 - Expression should be of type Integer or Single.
+ERROR in line 140 at 6:17 - Expression should be of type Integer or Single.
+ERROR in line 150 at 7:16 - Expression should be of type Integer or Single.
+ERROR in line 160 in expression - Expression should not be empty.
+ERROR in line 170 in expression - Expression should not be empty.
+ERROR in line 180 in expression - Expression should not be empty.
+Validation ERRORS: 9

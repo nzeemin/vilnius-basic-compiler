@@ -1,0 +1,15 @@
+-q
+----------------------------------------------------------------------
+10 A% = LEN("ABC")
+100 A% = LEN()
+110 A% = LEN(1)
+120 A% = LEN(B%)
+130 A% = LEN(1+2)
+140 A% = LEN("")
+150 A% = LEN(B$)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:14 - Expression should be of type String.
+ERROR in line 120 at 4:14 - Expression should be of type String.
+ERROR in line 130 at 5:15 - Expression should be of type String.
+Validation ERRORS: 4

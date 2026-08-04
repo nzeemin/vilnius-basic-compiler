@@ -1,0 +1,38 @@
+-q
+----------------------------------------------------------------------
+10 A$ = MID$("ABCDEF",2)
+20 A$ = MID$("ABCDEF",2,3)
+30 A$ = MID$(B$,1)
+40 A$ = MID$(B$,C%,D%)
+50 A$ = MID$("ABC",1+1,2*2)
+60 A$ = MID$("ABC",2)'comment
+70 A$ = MID$
+80 A$ = MID$'comment
+90 A$ = MID$("ABC")
+100 A$ = MID$(
+110 A$ = MID$("ABC"
+120 A$ = MID$("ABC",
+130 A$ = MID$("ABC",1,2,3)
+----------------------------------------------------------------------
+ERROR at 7:13 line 70 - Expected parameters for this function.
+70 A$ = MID$
+            ^
+ERROR at 8:13 line 80 - Expected parameters for this function.
+80 A$ = MID$'comment
+            ^
+ERROR at 9:19 line 90 - Specified too few parameters for this function.
+90 A$ = MID$("ABC")
+                  ^
+ERROR at 10:15 line 100 - Comma expected in function parameter list.
+100 A$ = MID$(
+              ^
+ERROR at 11:20 line 110 - Comma expected in function parameter list.
+110 A$ = MID$("ABC"
+                   ^
+ERROR at 12:21 line 120 - Comma expected in function parameter list.
+120 A$ = MID$("ABC",
+                    ^
+ERROR at 13:26 line 130 - Specified too many parameters for this function.
+130 A$ = MID$("ABC",1,2,3)
+                         ^
+Parsing ERRORS: 7

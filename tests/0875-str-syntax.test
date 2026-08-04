@@ -1,0 +1,42 @@
+-q
+----------------------------------------------------------------------
+10 A$ = STR$(65)
+20 A$ = STR$(0)
+30 A$ = STR$(B%)
+40 A$ = STR$(-1.5)
+50 A$ = STR$(64+1)
+60 A$ = STR$(65)'comment
+70 A$ = STR$
+80 A$ = STR$'comment
+90 A$ = STR$ 65
+100 A$ = STR$(
+110 A$ = STR$(65
+120 A$ = STR$(65,
+130 A$ = STR$(65,66)
+140 A$ = STR$(65,66,67)
+----------------------------------------------------------------------
+ERROR at 7:13 line 70 - Expected parameter for this function.
+70 A$ = STR$
+            ^
+ERROR at 8:13 line 80 - Expected parameter for this function.
+80 A$ = STR$'comment
+            ^
+ERROR at 9:14 line 90 - Expected parameter for this function.
+90 A$ = STR$ 65
+             ^
+ERROR at 10:15 line 100 - Comma expected in function parameter list.
+100 A$ = STR$(
+              ^
+ERROR at 11:17 line 110 - Comma expected in function parameter list.
+110 A$ = STR$(65
+                ^
+ERROR at 12:18 line 120 - Comma expected in function parameter list.
+120 A$ = STR$(65,
+                 ^
+ERROR at 13:20 line 130 - Specified too many parameters for this function.
+130 A$ = STR$(65,66)
+                   ^
+ERROR at 14:23 line 140 - Specified too many parameters for this function.
+140 A$ = STR$(65,66,67)
+                      ^
+Parsing ERRORS: 8

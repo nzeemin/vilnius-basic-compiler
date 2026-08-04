@@ -1,0 +1,21 @@
+-q
+----------------------------------------------------------------------
+10 A$ = CHR$(65)
+100 A$ = CHR$()
+110 A$ = CHR$("A")
+120 A$ = CHR$(B$)
+130 A$ = CHR$("A"+"B")
+140 A$ = CHR$(-1)
+150 A$ = CHR$(256)
+160 A$ = CHR$(100+200)
+170 A$ = CHR$(255)
+180 A$ = CHR$(-B%)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:15 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:15 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:18 - Expression should be of type Integer or Single.
+ERROR in line 140 at 6:10 - Function CHR$ parameter is out of range 0..255.
+ERROR in line 150 at 7:10 - Function CHR$ parameter is out of range 0..255.
+ERROR in line 160 at 8:10 - Function CHR$ parameter is out of range 0..255.
+Validation ERRORS: 7

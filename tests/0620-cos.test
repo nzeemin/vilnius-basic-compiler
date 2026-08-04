@@ -1,0 +1,90 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' COS gives the cosine of the argument in radians, see 5.1.3. The result is
+' always Single and lies between -1 and 1. The constant is folded by the
+' compiler, the variable goes through the FCOS runtime call, both ways have
+' to give the same result.
+' A Single keeps about 7 digits, so every check uses a tolerance. Every line
+' prints the expected value, the calculated one, and -1 if they match.
+20 A = COS(0)
+25 E% = ABS(A - 1.0) < 0.00001
+30 PRINT "1"; A; E%
+35 F = 0.0
+40 A = COS(F)
+45 E% = ABS(A - 1.0) < 0.00001
+50 PRINT "1"; A; E%
+' The cosine of PI/3 is 0.5, of PI/4 is the half of the root of 2
+55 A = COS(PI/3)
+60 E% = ABS(A - 0.5) < 0.00001
+65 PRINT ".5"; A; E%
+70 F = PI/3
+75 A = COS(F)
+80 E% = ABS(A - 0.5) < 0.00001
+85 PRINT ".5"; A; E%
+90 A = COS(PI/4)
+95 E% = ABS(A - 0.7071068) < 0.00001
+100 PRINT ".7071068"; A; E%
+' The cosine is 0 at PI/2 and -1 at PI. The runtime calculates it with a
+' polynomial, so at the very bottom the result can be off by the last digit
+' and come out slightly below -1; the bound below allows for that.
+120 A = COS(PI/2)
+125 E% = ABS(A) < 0.0001
+130 PRINT "0"; A; E%
+135 F = PI/2
+140 A = COS(F)
+145 E% = ABS(A) < 0.0001
+150 PRINT "0"; A; E%
+155 A = COS(PI)
+160 E% = ABS(A + 1.0) < 0.00001 AND A >= -1.000001
+165 PRINT "-1"; A; E%
+' The cosine of 1 radian
+170 A = COS(1)
+175 E% = ABS(A - 0.5403023) < 0.00001
+180 PRINT ".5403023"; A; E%
+185 F = 1.0
+190 A = COS(F)
+195 E% = ABS(A - 0.5403023) < 0.00001
+200 PRINT ".5403023"; A; E%
+' COS is an even function, so a negative argument gives the same result
+205 B% = 1
+210 A = COS(B%)
+215 E% = ABS(A - 0.5403023) < 0.00001
+220 PRINT ".5403023"; A; E%
+225 B% = -1
+230 A = COS(B%)
+235 E% = ABS(A - 0.5403023) < 0.00001
+240 PRINT ".5403023"; A; E%
+' The cosine of the other arguments
+245 A = COS(0.5)
+250 E% = ABS(A - 0.8775826) < 0.00001
+255 PRINT ".8775826"; A; E%
+260 F = 0.5
+265 A = COS(F)
+270 E% = ABS(A - 0.8775826) < 0.00001
+275 PRINT ".8775826"; A; E%
+' Between PI/2 and 3*PI/2 the cosine is negative
+280 A = COS(2)
+285 E% = ABS(A + 0.4161468) < 0.00001
+290 PRINT "-.4161468"; A; E%
+295 A = COS(3)
+300 E% = ABS(A + 0.9899925) < 0.00001
+305 PRINT "-.9899925"; A; E%
+' COS(-X) = COS(X), see 5.1.3
+310 F = 0.7
+315 A = COS(-F) - COS(F)
+320 E% = ABS(A) < 0.00001
+325 PRINT "0"; A; E%
+' SIN(X)^2 + COS(X)^2 is 1 for any X
+330 A = COS(F) * COS(F) + SIN(F) * SIN(F)
+335 E% = ABS(A - 1.0) < 0.0001
+340 PRINT "1"; A; E%
+' COS(2X) is 1 - 2 * SIN(X)^2
+345 A = COS(F + F) - 1.0 + 2.0 * SIN(F) * SIN(F)
+350 E% = ABS(A) < 0.0001
+355 PRINT "0"; A; E%
+' The argument is an expression
+360 F = 1.0
+365 A = COS(F + F)
+370 E% = ABS(A + 0.4161468) < 0.00001
+375 PRINT "-.4161468"; A; E%

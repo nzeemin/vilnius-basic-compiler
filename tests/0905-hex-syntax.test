@@ -1,0 +1,42 @@
+-q
+----------------------------------------------------------------------
+10 A$ = HEX$(255)
+20 A$ = HEX$(0)
+30 A$ = HEX$(B%)
+40 A$ = HEX$(-1)
+50 A$ = HEX$(254+1)
+60 A$ = HEX$(255)'comment
+70 A$ = HEX$
+80 A$ = HEX$'comment
+90 A$ = HEX$ 255
+100 A$ = HEX$(
+110 A$ = HEX$(255
+120 A$ = HEX$(255,
+130 A$ = HEX$(255,16)
+140 A$ = HEX$(255,16,1)
+----------------------------------------------------------------------
+ERROR at 7:13 line 70 - Expected parameter for this function.
+70 A$ = HEX$
+            ^
+ERROR at 8:13 line 80 - Expected parameter for this function.
+80 A$ = HEX$'comment
+            ^
+ERROR at 9:14 line 90 - Expected parameter for this function.
+90 A$ = HEX$ 255
+             ^
+ERROR at 10:15 line 100 - Comma expected in function parameter list.
+100 A$ = HEX$(
+              ^
+ERROR at 11:18 line 110 - Comma expected in function parameter list.
+110 A$ = HEX$(255
+                 ^
+ERROR at 12:19 line 120 - Comma expected in function parameter list.
+120 A$ = HEX$(255,
+                  ^
+ERROR at 13:21 line 130 - Specified too many parameters for this function.
+130 A$ = HEX$(255,16)
+                    ^
+ERROR at 14:23 line 140 - Specified too many parameters for this function.
+140 A$ = HEX$(255,16,1)
+                      ^
+Parsing ERRORS: 8

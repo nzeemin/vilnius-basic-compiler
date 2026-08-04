@@ -1,0 +1,16 @@
+-q
+----------------------------------------------------------------------
+10 A% = ASC("A")
+100 A% = ASC()
+110 A% = ASC(1)
+120 A% = ASC(B%)
+130 A% = ASC(1+2)
+140 A% = ASC("")
+150 A% = ASC(B$)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:14 - Expression should be of type String.
+ERROR in line 120 at 4:14 - Expression should be of type String.
+ERROR in line 130 at 5:15 - Expression should be of type String.
+ERROR in line 140 at 6:10 - Function ASC parameter is empty.
+Validation ERRORS: 5

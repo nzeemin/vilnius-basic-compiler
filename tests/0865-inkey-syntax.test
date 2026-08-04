@@ -1,0 +1,24 @@
+-q
+----------------------------------------------------------------------
+10 A$ = INKEY$
+20 A$ = INKEY$'comment
+30 A$ = INKEY$ + "X"
+40 B% = LEN(INKEY$)
+50 A$ = INKEY$(
+60 A$ = INKEY$()
+70 A$ = INKEY$(1)
+80 A$ = INKEY$(1,2)
+----------------------------------------------------------------------
+ERROR at 5:15 line 50 - This function should not have any parameters.
+50 A$ = INKEY$(
+              ^
+ERROR at 6:15 line 60 - This function should not have any parameters.
+60 A$ = INKEY$()
+              ^
+ERROR at 7:15 line 70 - This function should not have any parameters.
+70 A$ = INKEY$(1)
+              ^
+ERROR at 8:15 line 80 - This function should not have any parameters.
+80 A$ = INKEY$(1,2)
+              ^
+Parsing ERRORS: 4

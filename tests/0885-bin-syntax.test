@@ -1,0 +1,42 @@
+-q
+----------------------------------------------------------------------
+10 A$ = BIN$(5)
+20 A$ = BIN$(0)
+30 A$ = BIN$(B%)
+40 A$ = BIN$(-1)
+50 A$ = BIN$(4+1)
+60 A$ = BIN$(5)'comment
+70 A$ = BIN$
+80 A$ = BIN$'comment
+90 A$ = BIN$ 5
+100 A$ = BIN$(
+110 A$ = BIN$(5
+120 A$ = BIN$(5,
+130 A$ = BIN$(5,6)
+140 A$ = BIN$(5,6,7)
+----------------------------------------------------------------------
+ERROR at 7:13 line 70 - Expected parameter for this function.
+70 A$ = BIN$
+            ^
+ERROR at 8:13 line 80 - Expected parameter for this function.
+80 A$ = BIN$'comment
+            ^
+ERROR at 9:14 line 90 - Expected parameter for this function.
+90 A$ = BIN$ 5
+             ^
+ERROR at 10:15 line 100 - Comma expected in function parameter list.
+100 A$ = BIN$(
+              ^
+ERROR at 11:16 line 110 - Comma expected in function parameter list.
+110 A$ = BIN$(5
+               ^
+ERROR at 12:17 line 120 - Comma expected in function parameter list.
+120 A$ = BIN$(5,
+                ^
+ERROR at 13:18 line 130 - Specified too many parameters for this function.
+130 A$ = BIN$(5,6)
+                 ^
+ERROR at 14:20 line 140 - Specified too many parameters for this function.
+140 A$ = BIN$(5,6,7)
+                   ^
+Parsing ERRORS: 8

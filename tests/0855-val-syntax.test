@@ -1,0 +1,41 @@
+-q
+----------------------------------------------------------------------
+10 A = VAL("123")
+20 A = VAL(B$)
+30 A = VAL("1"+"2")
+40 A = VAL(MID$("123",2))
+50 A = VAL("123")'comment
+60 A = VAL
+70 A = VAL'comment
+80 A = VAL "123"
+100 A = VAL(
+110 A = VAL("123"
+120 A = VAL("123",
+130 A = VAL("1","2")
+140 A = VAL("1","2","3")
+----------------------------------------------------------------------
+ERROR at 6:11 line 60 - Expected parameter for this function.
+60 A = VAL
+          ^
+ERROR at 7:11 line 70 - Expected parameter for this function.
+70 A = VAL'comment
+          ^
+ERROR at 8:12 line 80 - Expected parameter for this function.
+80 A = VAL "123"
+           ^
+ERROR at 9:13 line 100 - Comma expected in function parameter list.
+100 A = VAL(
+            ^
+ERROR at 10:18 line 110 - Comma expected in function parameter list.
+110 A = VAL("123"
+                 ^
+ERROR at 11:19 line 120 - Comma expected in function parameter list.
+120 A = VAL("123",
+                  ^
+ERROR at 12:20 line 130 - Specified too many parameters for this function.
+130 A = VAL("1","2")
+                   ^
+ERROR at 13:24 line 140 - Specified too many parameters for this function.
+140 A = VAL("1","2","3")
+                       ^
+Parsing ERRORS: 8

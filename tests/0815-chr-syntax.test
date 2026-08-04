@@ -1,0 +1,41 @@
+-q
+----------------------------------------------------------------------
+10 A$ = CHR$(65)
+20 A$ = CHR$(0)
+30 A$ = CHR$(B%)
+40 A$ = CHR$(64+1)
+50 A$ = CHR$(65)'comment
+60 A$ = CHR$
+70 A$ = CHR$'comment
+80 A$ = CHR$ 65
+100 A$ = CHR$(
+110 A$ = CHR$(65
+120 A$ = CHR$(65,
+130 A$ = CHR$(65,66)
+140 A$ = CHR$(65,66,67)
+----------------------------------------------------------------------
+ERROR at 6:13 line 60 - Expected parameter for this function.
+60 A$ = CHR$
+            ^
+ERROR at 7:13 line 70 - Expected parameter for this function.
+70 A$ = CHR$'comment
+            ^
+ERROR at 8:14 line 80 - Expected parameter for this function.
+80 A$ = CHR$ 65
+             ^
+ERROR at 9:15 line 100 - Comma expected in function parameter list.
+100 A$ = CHR$(
+              ^
+ERROR at 10:17 line 110 - Comma expected in function parameter list.
+110 A$ = CHR$(65
+                ^
+ERROR at 11:18 line 120 - Comma expected in function parameter list.
+120 A$ = CHR$(65,
+                 ^
+ERROR at 12:20 line 130 - Specified too many parameters for this function.
+130 A$ = CHR$(65,66)
+                   ^
+ERROR at 13:23 line 140 - Specified too many parameters for this function.
+140 A$ = CHR$(65,66,67)
+                      ^
+Parsing ERRORS: 8

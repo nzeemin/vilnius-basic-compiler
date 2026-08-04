@@ -1,0 +1,90 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' SIN gives the sine of the argument in radians, see 5.1.3. The result is
+' always Single and lies between -1 and 1. The constant is folded by the
+' compiler, the variable goes through the FSIN runtime call, both ways have
+' to give the same result.
+' A Single keeps about 7 digits, so every check uses a tolerance. Every line
+' prints the expected value, the calculated one, and -1 if they match.
+20 A = SIN(0)
+25 E% = ABS(A) < 0.00001
+30 PRINT "0"; A; E%
+35 F = 0.0
+40 A = SIN(F)
+45 E% = ABS(A) < 0.00001
+50 PRINT "0"; A; E%
+' The sine of PI/6 is 0.5, of PI/4 is the half of the root of 2
+55 A = SIN(PI/6)
+60 E% = ABS(A - 0.5) < 0.00001
+65 PRINT ".5"; A; E%
+70 F = PI/6
+75 A = SIN(F)
+80 E% = ABS(A - 0.5) < 0.00001
+85 PRINT ".5"; A; E%
+90 A = SIN(PI/4)
+95 E% = ABS(A - 0.7071068) < 0.00001
+100 PRINT ".7071068"; A; E%
+' The sine reaches 1 at PI/2 and -1 at -PI/2. The runtime calculates it with a
+' polynomial, so at the very peak the result can be off by the last digit and
+' come out slightly above 1; the bounds below allow for that.
+120 A = SIN(PI/2)
+125 E% = ABS(A - 1.0) < 0.00001
+130 PRINT "1"; A; E%
+135 F = PI/2
+140 A = SIN(F)
+145 E% = ABS(A - 1.0) < 0.00001 AND A <= 1.000001
+150 PRINT "1"; A; E%
+155 A = SIN(-PI/2)
+160 E% = ABS(A + 1.0) < 0.00001 AND A >= -1.000001
+165 PRINT "-1"; A; E%
+' The sine of 1 radian
+170 A = SIN(1)
+175 E% = ABS(A - 0.841471) < 0.00001
+180 PRINT ".841471"; A; E%
+185 F = 1.0
+190 A = SIN(F)
+195 E% = ABS(A - 0.841471) < 0.00001
+200 PRINT ".841471"; A; E%
+' An Integer argument goes through ITOF first, the result is the same
+205 B% = 1
+210 A = SIN(B%)
+215 E% = ABS(A - 0.841471) < 0.00001
+220 PRINT ".841471"; A; E%
+225 B% = -1
+230 A = SIN(B%)
+235 E% = ABS(A + 0.841471) < 0.00001
+240 PRINT "-.841471"; A; E%
+' The sine of the other arguments
+245 A = SIN(0.5)
+250 E% = ABS(A - 0.4794255) < 0.00001
+255 PRINT ".4794255"; A; E%
+260 F = 0.5
+265 A = SIN(F)
+270 E% = ABS(A - 0.4794255) < 0.00001
+275 PRINT ".4794255"; A; E%
+280 A = SIN(2)
+285 E% = ABS(A - 0.9092974) < 0.00001
+290 PRINT ".9092974"; A; E%
+' Above PI the sine is negative
+295 A = SIN(4)
+300 E% = ABS(A + 0.7568025) < 0.00001
+305 PRINT "-.7568025"; A; E%
+' SIN is an odd function: SIN(-X) = -SIN(X)
+310 F = 0.7
+315 A = SIN(-F) + SIN(F)
+320 E% = ABS(A) < 0.00001
+325 PRINT "0"; A; E%
+' SIN(X)^2 + COS(X)^2 is 1 for any X, see 5.1.3
+330 A = SIN(F) * SIN(F) + COS(F) * COS(F)
+335 E% = ABS(A - 1.0) < 0.0001
+340 PRINT "1"; A; E%
+' SIN(2X) is 2 * SIN(X) * COS(X)
+345 A = SIN(F + F) - 2.0 * SIN(F) * COS(F)
+350 E% = ABS(A) < 0.0001
+355 PRINT "0"; A; E%
+' The argument is an expression
+360 F = 1.0
+365 A = SIN(F + F)
+370 E% = ABS(A - 0.9092974) < 0.00001
+375 PRINT ".9092974"; A; E%

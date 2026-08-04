@@ -1,0 +1,40 @@
+-q
+----------------------------------------------------------------------
+10 A = IIF(B%,1,2)
+20 A = IIF(B%>0,1.5,2.5)
+30 A = IIF(1,C%,D%)
+40 A = IIF(B%,1,2)'comment
+50 A = IIF
+60 A = IIF'comment
+70 A = IIF(1)
+80 A = IIF(1,2)
+100 A = IIF(
+110 A = IIF(1,2,3
+120 A = IIF(1,2,
+130 A = IIF(1,2,3,4)
+----------------------------------------------------------------------
+ERROR at 5:11 line 50 - Expected parameters for this function.
+50 A = IIF
+          ^
+ERROR at 6:11 line 60 - Expected parameters for this function.
+60 A = IIF'comment
+          ^
+ERROR at 7:13 line 70 - Specified too few parameters for this function.
+70 A = IIF(1)
+            ^
+ERROR at 8:15 line 80 - Specified too few parameters for this function.
+80 A = IIF(1,2)
+              ^
+ERROR at 9:13 line 100 - Comma expected in function parameter list.
+100 A = IIF(
+            ^
+ERROR at 10:18 line 110 - Comma expected in function parameter list.
+110 A = IIF(1,2,3
+                 ^
+ERROR at 11:17 line 120 - Comma expected in function parameter list.
+120 A = IIF(1,2,
+                ^
+ERROR at 12:20 line 130 - Specified too many parameters for this function.
+130 A = IIF(1,2,3,4)
+                   ^
+Parsing ERRORS: 8

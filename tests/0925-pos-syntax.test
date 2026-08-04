@@ -1,0 +1,29 @@
+-q
+----------------------------------------------------------------------
+10 A% = POS
+20 A% = POS(0)
+30 A% = POS(B%)
+40 A% = POS()
+50 A% = POS'comment
+100 A% = POS(
+110 A% = POS(1
+120 A% = POS(1,
+130 A% = POS(1,2)
+140 A% = POS(1,2,3)
+----------------------------------------------------------------------
+ERROR at 6:14 line 100 - Comma expected in function parameter list.
+100 A% = POS(
+             ^
+ERROR at 7:15 line 110 - Comma expected in function parameter list.
+110 A% = POS(1
+              ^
+ERROR at 8:16 line 120 - Comma expected in function parameter list.
+120 A% = POS(1,
+               ^
+ERROR at 9:17 line 130 - Specified too many parameters for this function.
+130 A% = POS(1,2)
+                ^
+ERROR at 10:19 line 140 - Specified too many parameters for this function.
+140 A% = POS(1,2,3)
+                  ^
+Parsing ERRORS: 5

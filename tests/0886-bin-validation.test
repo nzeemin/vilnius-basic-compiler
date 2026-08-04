@@ -1,0 +1,20 @@
+-q
+----------------------------------------------------------------------
+10 A$ = BIN$(5)
+100 A$ = BIN$()
+110 A$ = BIN$("A")
+120 A$ = BIN$(B$)
+130 A$ = BIN$("A"+"B")
+140 A$ = BIN$(40000)
+150 A$ = BIN$(-40000)
+160 A$ = BIN$(32767)
+170 A$ = BIN$(-32768)
+180 A$ = BIN$(B%)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:15 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:15 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:18 - Expression should be of type Integer or Single.
+ERROR in line 140 at 6:10 - Function BIN$ parameter is out of Integer range.
+ERROR in line 150 at 7:10 - Function BIN$ parameter is out of Integer range.
+Validation ERRORS: 6

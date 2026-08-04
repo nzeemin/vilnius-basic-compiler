@@ -1,0 +1,29 @@
+-q
+----------------------------------------------------------------------
+10 A% = CSRLIN
+20 A% = CSRLIN(0)
+30 A% = CSRLIN(B%)
+40 A% = CSRLIN()
+50 A% = CSRLIN'comment
+100 A% = CSRLIN(
+110 A% = CSRLIN(1
+120 A% = CSRLIN(1,
+130 A% = CSRLIN(1,2)
+140 A% = CSRLIN(1,2,3)
+----------------------------------------------------------------------
+ERROR at 6:17 line 100 - Comma expected in function parameter list.
+100 A% = CSRLIN(
+                ^
+ERROR at 7:18 line 110 - Comma expected in function parameter list.
+110 A% = CSRLIN(1
+                 ^
+ERROR at 8:19 line 120 - Comma expected in function parameter list.
+120 A% = CSRLIN(1,
+                  ^
+ERROR at 9:20 line 130 - Specified too many parameters for this function.
+130 A% = CSRLIN(1,2)
+                   ^
+ERROR at 10:22 line 140 - Specified too many parameters for this function.
+140 A% = CSRLIN(1,2,3)
+                     ^
+Parsing ERRORS: 5

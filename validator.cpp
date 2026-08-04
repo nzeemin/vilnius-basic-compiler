@@ -2207,13 +2207,13 @@ void Validator::ValidateFuncVal(ExpressionModel& expr, ExpressionNode& node)
     if (!CheckStringExpression(expr1))
         return;
 
-    node.vtype = ValueTypeString;
-    node.constval = expr1.IsConstExpression();
-
-    if (node.constval)
-    {
-        //TODO
-    }
+    //NOTE: VAL converts a string to a number, so the result is Single and not
+    //      String, see 5.3.4 and the function spec in the parser.
+    node.vtype = ValueTypeSingle;
+    //NOTE: The constant is not folded: to do that here we would have to parse
+    //      the number the same way the runtime does it. Until that is written,
+    //      the value has to be calculated at run time, so it is not a constant.
+    node.constval = false;
 }
 
 void Validator::ValidateFuncInkey(ExpressionModel& expr, ExpressionNode& node)
@@ -2379,7 +2379,7 @@ void Validator::ValidateFuncIif(ExpressionModel& expr, ExpressionNode& node)
     if (!CheckIntegerOrSingleExpression(expr2))
         return;
 
-    ExpressionModel& expr3 = node.args[1];
+    ExpressionModel& expr3 = node.args[2];
     if (!CheckIntegerOrSingleExpression(expr3))
         return;
 

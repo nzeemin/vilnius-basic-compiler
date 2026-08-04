@@ -1,0 +1,37 @@
+-q
+----------------------------------------------------------------------
+10 A$ = STRING$(5,"*")
+20 A$ = STRING$(5,42)
+30 A$ = STRING$(B%,C$)
+40 A$ = STRING$(2+3,64)
+50 A$ = STRING$(5,"*")'comment
+60 A$ = STRING$
+70 A$ = STRING$'comment
+80 A$ = STRING$("A")
+100 A$ = STRING$(
+110 A$ = STRING$(5
+120 A$ = STRING$(5,
+130 A$ = STRING$(5,"*",1)
+----------------------------------------------------------------------
+ERROR at 6:16 line 60 - Expected parameters for this function.
+60 A$ = STRING$
+               ^
+ERROR at 7:16 line 70 - Expected parameters for this function.
+70 A$ = STRING$'comment
+               ^
+ERROR at 8:20 line 80 - Specified too few parameters for this function.
+80 A$ = STRING$("A")
+                   ^
+ERROR at 9:18 line 100 - Comma expected in function parameter list.
+100 A$ = STRING$(
+                 ^
+ERROR at 10:19 line 110 - Comma expected in function parameter list.
+110 A$ = STRING$(5
+                  ^
+ERROR at 11:20 line 120 - Comma expected in function parameter list.
+120 A$ = STRING$(5,
+                   ^
+ERROR at 12:25 line 130 - Specified too many parameters for this function.
+130 A$ = STRING$(5,"*",1)
+                        ^
+Parsing ERRORS: 7

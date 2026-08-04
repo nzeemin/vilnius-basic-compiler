@@ -1,0 +1,20 @@
+-q
+----------------------------------------------------------------------
+10 A$ = HEX$(255)
+100 A$ = HEX$()
+110 A$ = HEX$("A")
+120 A$ = HEX$(B$)
+130 A$ = HEX$("A"+"B")
+140 A$ = HEX$(40000)
+150 A$ = HEX$(-40000)
+160 A$ = HEX$(32767)
+170 A$ = HEX$(-32768)
+180 A$ = HEX$(B%)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:15 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:15 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:18 - Expression should be of type Integer or Single.
+ERROR in line 140 at 6:10 - Function HEX$ parameter is out of Integer range.
+ERROR in line 150 at 7:10 - Function HEX$ parameter is out of Integer range.
+Validation ERRORS: 6

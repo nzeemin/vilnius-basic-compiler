@@ -1,0 +1,32 @@
+-q
+----------------------------------------------------------------------
+10 A = FRE
+20 A = FRE(0)
+30 A = FRE(1)
+40 A = FRE(B%)
+50 A = FRE("")
+60 A = FRE(A$)
+70 A = FRE()
+80 A = FRE(1)'comment
+100 A = FRE(
+110 A = FRE(1
+120 A = FRE(1,
+130 A = FRE(1,2)
+140 A = FRE(1,2,3)
+----------------------------------------------------------------------
+ERROR at 9:13 line 100 - Comma expected in function parameter list.
+100 A = FRE(
+            ^
+ERROR at 10:14 line 110 - Comma expected in function parameter list.
+110 A = FRE(1
+             ^
+ERROR at 11:15 line 120 - Comma expected in function parameter list.
+120 A = FRE(1,
+              ^
+ERROR at 12:16 line 130 - Specified too many parameters for this function.
+130 A = FRE(1,2)
+               ^
+ERROR at 13:18 line 140 - Specified too many parameters for this function.
+140 A = FRE(1,2,3)
+                 ^
+Parsing ERRORS: 5

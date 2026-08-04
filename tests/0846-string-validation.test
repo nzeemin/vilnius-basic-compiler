@@ -1,0 +1,25 @@
+-q
+----------------------------------------------------------------------
+10 A$ = STRING$(5,"*")
+100 A$ = STRING$(,"*")
+110 A$ = STRING$("A","*")
+120 A$ = STRING$(B$,"*")
+130 A$ = STRING$(300,"*")
+140 A$ = STRING$(-1,"*")
+150 A$ = STRING$(5,"")
+160 A$ = STRING$(5,300)
+170 A$ = STRING$(5,-1)
+180 A$ = STRING$(0,"*")
+190 A$ = STRING$(255,"*")
+200 A$ = STRING$(5,255)
+210 A$ = STRING$(B%,C$)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:18 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:18 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:10 - Function STRING$ first parameter is not in range 0..255.
+ERROR in line 140 at 6:10 - Function STRING$ first parameter is not in range 0..255.
+ERROR in line 150 at 7:10 - Function STRING$ second parameter is empty string.
+ERROR in line 160 at 8:10 - Function STRING$ second parameter is not in range 0..255.
+ERROR in line 170 at 9:10 - Function STRING$ second parameter is not in range 0..255.
+Validation ERRORS: 8

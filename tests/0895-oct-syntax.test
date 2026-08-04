@@ -1,0 +1,42 @@
+-q
+----------------------------------------------------------------------
+10 A$ = OCT$(8)
+20 A$ = OCT$(0)
+30 A$ = OCT$(B%)
+40 A$ = OCT$(-1)
+50 A$ = OCT$(7+1)
+60 A$ = OCT$(8)'comment
+70 A$ = OCT$
+80 A$ = OCT$'comment
+90 A$ = OCT$ 8
+100 A$ = OCT$(
+110 A$ = OCT$(8
+120 A$ = OCT$(8,
+130 A$ = OCT$(8,9)
+140 A$ = OCT$(8,9,10)
+----------------------------------------------------------------------
+ERROR at 7:13 line 70 - Expected parameter for this function.
+70 A$ = OCT$
+            ^
+ERROR at 8:13 line 80 - Expected parameter for this function.
+80 A$ = OCT$'comment
+            ^
+ERROR at 9:14 line 90 - Expected parameter for this function.
+90 A$ = OCT$ 8
+             ^
+ERROR at 10:15 line 100 - Comma expected in function parameter list.
+100 A$ = OCT$(
+              ^
+ERROR at 11:16 line 110 - Comma expected in function parameter list.
+110 A$ = OCT$(8
+               ^
+ERROR at 12:17 line 120 - Comma expected in function parameter list.
+120 A$ = OCT$(8,
+                ^
+ERROR at 13:18 line 130 - Specified too many parameters for this function.
+130 A$ = OCT$(8,9)
+                 ^
+ERROR at 14:21 line 140 - Specified too many parameters for this function.
+140 A$ = OCT$(8,9,10)
+                    ^
+Parsing ERRORS: 8
