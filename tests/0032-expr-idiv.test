@@ -14,6 +14,15 @@
 160 ? B% \ 16%
 320 ? B% \ 32%
 640 ? B% \ 64%
+' The dividend is negative: the integer division truncates towards zero,
+' so -5 \ 2 gives -2 and not -3. The sign of the divider is checked too.
+1000 C% = -1600%
+1005 ? C% \ -5%
+1007 ? C% \ -2%
+1008 ? C% \ -1%
+1020 ? C% \ 2%
+1030 ? C% \ 3%
+1080 ? C% \ 8%
 ----------------------------------------------------------------------
 WARNING: at 6:11 line 10 - Division by 1 reduced to nothing, consider to remove the Division.
 ----------------------------------------------------------------------
@@ -37,16 +46,17 @@ N5:
 ; 6 ? B% \ -4%
 N6:
 	MOV	VARIB, R0	; var B%
-	NEG	R0		; * -1
-	ASR	R0
-	ASR	R0		; / 4
+	MOV	R0, R1
+	MOV	#-4., R0
+	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 7 ? B% \ -2%
 N7:
 	MOV	VARIB, R0	; var B%
-	NEG	R0		; * -1
-	ASR	R0		; / 2
+	MOV	R0, R1
+	MOV	#-2., R0
+	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 8 ? B% \ -1%
@@ -63,7 +73,9 @@ N10:
 ; 20 ? B% \ 2%
 N20:
 	MOV	VARIB, R0	; var B%
-	ASR	R0		; / 2
+	MOV	R0, R1
+	MOV	#2., R0
+	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 30 ? B% \ 3%
@@ -77,8 +89,9 @@ N30:
 ; 40 ? B% \ 4%
 N40:
 	MOV	VARIB, R0	; var B%
-	ASR	R0
-	ASR	R0		; / 4
+	MOV	R0, R1
+	MOV	#4., R0
+	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 50 ? B% \ 5%
@@ -92,7 +105,9 @@ N50:
 ; 80 ? B% \ 8%
 N80:
 	MOV	VARIB, R0	; var B%
-	ASH	#-3, R0		; / 8.
+	MOV	R0, R1
+	MOV	#8., R0
+	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 160 ? B% \ 16%
@@ -119,6 +134,55 @@ N640:
 	CALL	IDIV		; Integer division
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
+; 1000 C% = -1600%
+N1000:
+	MOV	#-1600., VARIC	; var C% assignment
+; 1005 ? C% \ -5%
+N1005:
+	MOV	VARIC, R0	; var C%
+	MOV	R0, R1
+	MOV	#-5., R0
+	CALL	IDIV		; Integer division
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 1007 ? C% \ -2%
+N1007:
+	MOV	VARIC, R0	; var C%
+	MOV	R0, R1
+	MOV	#-2., R0
+	CALL	IDIV		; Integer division
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 1008 ? C% \ -1%
+N1008:
+	MOV	VARIC, R0	; var C%
+	NEG	R0		; / -1
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 1020 ? C% \ 2%
+N1020:
+	MOV	VARIC, R0	; var C%
+	MOV	R0, R1
+	MOV	#2., R0
+	CALL	IDIV		; Integer division
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 1030 ? C% \ 3%
+N1030:
+	MOV	VARIC, R0	; var C%
+	MOV	R0, R1
+	MOV	#3., R0
+	CALL	IDIV		; Integer division
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 1080 ? C% \ 8%
+N1080:
+	MOV	VARIC, R0	; var C%
+	MOV	R0, R1
+	MOV	#8., R0
+	CALL	IDIV		; Integer division
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
 LEND:
 ; ъБЧЕТЫЕОЙЕ РТПЗТБННЩ
 SAVESP = . + 2
@@ -130,6 +194,7 @@ ST0:	.WORD	0	; empty string
 ; VARIABLES
 	.EVEN
 VARIB:	.WORD	0	; B%
+VARIC:	.WORD	0	; C%
 ; RUNTIME CALLS
 	.GLOBL	WREOL, WRINT, IDIV
 	.END	START

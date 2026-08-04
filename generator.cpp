@@ -2195,17 +2195,6 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
         // Special case for some const values
         switch (ivalue)
         {
-        case -4:
-            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            AddLine("\tNEG\tR0\t; * -1");
-            AddLine("\tASR\tR0");
-            AddLine("\tASR\tR0\t; / 4");
-            return;
-        case -2:
-            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            AddLine("\tNEG\tR0\t; * -1");
-            AddLine("\tASR\tR0\t; / 2");
-            return;
         case -1:
             GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             AddLine("\tNEG\tR0\t; / -1");
@@ -2219,27 +2208,9 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
             GenerateOperandAsInteger(expr, nodeleft);  // result in R0
             Warning(noderight.token, "Division by 1 reduced to nothing, consider to remove the Division.");
             return;
-        case 2:
-            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            AddLine("\tASR\tR0\t; / 2");
-            return;
-        case 4:
-            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            AddLine("\tASR\tR0");
-            AddLine("\tASR\tR0\t; / 4");
-            return;
-        case 8:
-            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            if (g_platform == PlatformUKNC)  // no EIS
-                AddLine("\tASH\t#-3, R0\t; / 8.");
-            else  // no EIS
-            {
-                AddLine("\tASR\tR0");
-                AddLine("\tASR\tR0");
-                AddLine("\tASR\tR0\t; / 8.");
-            }
-            return;
-        //TODO: Special cases: divide by 16/32/64
+        //NOTE: There is no special case for a power of two here. ASR and ASH shift the
+        //      sign bit in, so they round down, while the integer division truncates
+        //      towards zero: -5 \ 2 gives -2 and not -3. IDIV does that already.
         }
 
         // Const expression at right
@@ -2290,23 +2261,9 @@ void Generator::GenerateOperMod(const ExpressionModel& expr, const ExpressionNod
             Warning(node.token, "MOD 1 reduced to 0; consider to remove this MOD.");
             AddLine("\tCLR\tR0\t; MOD 1");
             return;
-        case 2:
-            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            AddLine("\tBIC\t#177776, R0\t; MOD 2");
-            return;
-        case 4:
-            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            AddLine("\tBIC\t#177774, R0\t; MOD 4");
-            return;
-        case 8:
-            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            AddLine("\tBIC\t#177770, R0\t; MOD 8");
-            return;
-        case 16:
-            GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            AddLine("\tBIC\t#177760, R0\t; MOD 16");
-            return;
-        //TODO: MOD by 32/64/128/256
+        //NOTE: There is no special case for a power of two here. Masking the lower bits
+        //      gives the positive remainder, while the remainder has to take the sign of
+        //      the dividend: -5 MOD 4 gives -1 and not 3. IDIV does that already.
         }
 
         // Const expression at right
@@ -3078,8 +3035,27 @@ void Generator::GenerateFuncInp(const ExpressionModel& expr, const ExpressionNod
     const ExpressionModel& expr2 = node.args[1];
     assert(expr2.GetExpressionValueType() != ValueTypeString);
 
-    //TODO: If mask is 0 then return 0 and WARN
-    //TODO: If mask is 0xFFFF then same as PEEK and WARN
+    // Special cases for the const mask
+    if (expr2.IsConstExpression())
+    {
+        //NOTE: The mask is a 16-bit value, so &HFFFF gives -1 here, see ParseDValue.
+        int imask = ConstToInteger(expr2.GetConstExpressionDValue()) & 0xFFFF;
+
+        if (imask == 0)  // Nothing left of the value, the result is always 0
+        {
+            Warning(node.token, "INP with mask 0 reduced to 0, consider to remove this INP.");
+            AddLine("\tCLR\tR0\t; INP mask 0");
+            return;
+        }
+
+        if (imask == 0xFFFF)  // The mask keeps all the bits, same as PEEK
+        {
+            Warning(node.token, "INP with mask 177777 does the same as PEEK, consider to use PEEK.");
+            GenerateExpression(expr1);  // R0 = address
+            AddLine("\tMOV\t(R0), R0\t; INP");
+            return;
+        }
+    }
 
     //TODO: Special case for const expression and variable expression
     GenerateExpression(expr1);  // R0 = address

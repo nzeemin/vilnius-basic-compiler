@@ -1,0 +1,16 @@
+-q
+----------------------------------------------------------------------
+' INP applies the mask to the value read from the address. Two const masks
+' are special: 0 leaves nothing of the value, and 177777 keeps all of it,
+' so the compiler warns about both. A mask in a variable is not const and
+' gives no warning.
+10 A% = INP(1000, 255)
+20 A% = INP(1000, 0)
+30 A% = INP(1000, &HFFFF)
+40 A% = INP(1000, 65535)
+50 B% = 255
+60 A% = INP(1000, B%)
+----------------------------------------------------------------------
+WARNING: at 6:9 line 20 - INP with mask 0 reduced to 0, consider to remove this INP.
+WARNING: at 7:9 line 30 - INP with mask 177777 does the same as PEEK, consider to use PEEK.
+WARNING: at 8:9 line 40 - INP with mask 177777 does the same as PEEK, consider to use PEEK.

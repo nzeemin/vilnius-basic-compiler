@@ -6,6 +6,17 @@
 40 ? B% MOD 4%
 50 ? B% MOD 5%
 80 ? B% MOD 8%
+160 ? B% MOD 16%
+320 ? B% MOD 32%
+640 ? B% MOD 64%
+1280 ? B% MOD 128%
+2560 ? B% MOD 256%
+' The dividend is negative: the remainder takes the sign of the dividend,
+' so -5 MOD 4 gives -1 and not 3.
+3000 C% = -5%
+3004 ? C% MOD 4%
+3005 ? C% MOD 5%
+3008 ? C% MOD 8%
 ----------------------------------------------------------------------
 WARNING: at 2:9 line 10 - MOD 1 reduced to 0; consider to remove this MOD.
 ----------------------------------------------------------------------
@@ -26,13 +37,19 @@ N10:
 ; 20 ? B% MOD 2%
 N20:
 	MOV	VARIB, R0	; var B%
-	BIC	#177776, R0	; MOD 2
+	MOV	R0, R1
+	MOV	#2., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 40 ? B% MOD 4%
 N40:
 	MOV	VARIB, R0	; var B%
-	BIC	#177774, R0	; MOD 4
+	MOV	R0, R1
+	MOV	#4., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 ; 50 ? B% MOD 5%
@@ -47,7 +64,85 @@ N50:
 ; 80 ? B% MOD 8%
 N80:
 	MOV	VARIB, R0	; var B%
-	BIC	#177770, R0	; MOD 8
+	MOV	R0, R1
+	MOV	#8., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 160 ? B% MOD 16%
+N160:
+	MOV	VARIB, R0	; var B%
+	MOV	R0, R1
+	MOV	#16., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 320 ? B% MOD 32%
+N320:
+	MOV	VARIB, R0	; var B%
+	MOV	R0, R1
+	MOV	#32., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 640 ? B% MOD 64%
+N640:
+	MOV	VARIB, R0	; var B%
+	MOV	R0, R1
+	MOV	#64., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 1280 ? B% MOD 128%
+N1280:
+	MOV	VARIB, R0	; var B%
+	MOV	R0, R1
+	MOV	#128., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 2560 ? B% MOD 256%
+N2560:
+	MOV	VARIB, R0	; var B%
+	MOV	R0, R1
+	MOV	#256., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 3000 C% = -5%
+N3000:
+	MOV	#-5., VARIC	; var C% assignment
+; 3004 ? C% MOD 4%
+N3004:
+	MOV	VARIC, R0	; var C%
+	MOV	R0, R1
+	MOV	#4., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 3005 ? C% MOD 5%
+N3005:
+	MOV	VARIC, R0	; var C%
+	MOV	R0, R1
+	MOV	#5., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
+	CALL	WRINT		; PRINT Integer
+	CALL	WREOL
+; 3008 ? C% MOD 8%
+N3008:
+	MOV	VARIC, R0	; var C%
+	MOV	R0, R1
+	MOV	#8., R0
+	CALL	IDIV		; Integer division
+	MOV	R1, R0		; MOD result
 	CALL	WRINT		; PRINT Integer
 	CALL	WREOL
 LEND:
@@ -61,6 +156,7 @@ ST0:	.WORD	0	; empty string
 ; VARIABLES
 	.EVEN
 VARIB:	.WORD	0	; B%
+VARIC:	.WORD	0	; C%
 ; RUNTIME CALLS
 	.GLOBL	WREOL, WRINT, IDIV
 	.END	START
