@@ -1,0 +1,15 @@
+-q
+----------------------------------------------------------------------
+10 A% = POS
+100 A% = POS()
+110 A% = POS("A")
+120 A% = POS(B$)
+130 A% = POS("A"+"B")
+140 A% = POS(B%)
+150 A% = POS(1.5)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:14 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:14 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:17 - Expression should be of type Integer or Single.
+Validation ERRORS: 4

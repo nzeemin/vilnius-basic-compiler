@@ -1,0 +1,25 @@
+-q
+----------------------------------------------------------------------
+10 A$ = MID$("ABC",2)
+100 A$ = MID$(,2)
+110 A$ = MID$(1,2)
+120 A$ = MID$(B%,2)
+130 A$ = MID$("ABC","X")
+140 A$ = MID$("ABC",2,"X")
+150 A$ = MID$("ABC",0)
+160 A$ = MID$("ABC",256)
+170 A$ = MID$("ABC",2,-1)
+180 A$ = MID$("ABC",1)
+190 A$ = MID$("ABC",255)
+200 A$ = MID$("ABC",2,0)
+210 A$ = MID$(B$,C%,D%)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:15 - Expression should be of type String.
+ERROR in line 120 at 4:15 - Expression should be of type String.
+ERROR in line 130 at 5:21 - Expression should be of type Integer or Single.
+ERROR in line 140 at 6:23 - Expression should be of type Integer or Single.
+ERROR in line 150 at 7:10 - Function MID$ second parameter out of range 1..255.
+ERROR in line 160 at 8:10 - Function MID$ second parameter out of range 1..255.
+ERROR in line 170 at 9:10 - Function MID$ third parameter should not be negative.
+Validation ERRORS: 8

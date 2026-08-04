@@ -1,0 +1,16 @@
+-q
+----------------------------------------------------------------------
+45400 LOCATE 1,2, 1
+45401 LOCATE 1,2 'comment
+45450 LOCATE
+45452 LOCATE .
+45454 LOCATE ,
+45456 LOCATE ,,
+----------------------------------------------------------------------
+ERROR at 3:13 line 45450 - Arguments expected.
+45450 LOCATE
+            ^
+ERROR at 6:16 line 45456 - Expression should not be empty.
+45456 LOCATE ,,
+               ^
+Parsing ERRORS: 2

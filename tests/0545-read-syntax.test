@@ -1,0 +1,21 @@
+-q
+----------------------------------------------------------------------
+42500 READ A
+42550 READ
+42552 READ 1
+42554 READ ,
+42556 READ "A"
+----------------------------------------------------------------------
+ERROR at 2:11 line 42550 - Identifier expected.
+42550 READ
+          ^
+ERROR at 3:12 line 42552 - Identifier expected.
+42552 READ 1
+           ^
+ERROR at 4:12 line 42554 - Identifier expected.
+42554 READ ,
+           ^
+ERROR at 5:12 line 42556 - Identifier expected.
+42556 READ "A"
+           ^
+Parsing ERRORS: 4

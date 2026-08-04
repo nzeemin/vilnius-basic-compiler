@@ -5,22 +5,12 @@
 41912 STOP A
 41914 STOP .
 41920 END
+41922 END 'comment
 41930 END 1
+41932 END A
+41934 END .
+41936 END;
 41940 REM
-42100 DIM A
-42102 DIM A%
-42104 DIM A$
-42106 DIM A$, B$
-42108 DIM A%, A, A$
-42110 DIM A$(10)
-42112 DIM A%(10,10)
-42150 DIM
-42152 DIM A,
-42154 DIM 1
-42160 DIM A(
-42162 DIM A()
-42164 DIM A(B)
-42166 DIM A(3+2)
 42200 KEY 1, "AAA"
 42250 KEY
 42252 KEY 1
@@ -28,13 +18,6 @@
 42256 KEY 1, "AAA",
 42300 CLEAR
 42400 DATA 1
-42500 READ A
-42550 READ
-42552 READ 1
-42554 READ ,
-42600 RESTORE
-42650 RESTORE A
-42652 RESTORE ,
 42710 DEF USR1=&O10000
 42711 DEF USR=&O12345
 42715 DEF USR
@@ -58,26 +41,17 @@
 45152 CLS A%
 45154 CLS .
 45156 CLS;
-45250 COLOR
-45252 COLOR ,,
 45300 SCREEN 1
 45350 SCREEN
 45352 SCREEN 'comment
 45354 SCREEN "A"
 45356 SCREEN A$
-45400 LOCATE 1,2, 1
-45401 LOCATE 1,2 'comment
-45450 LOCATE
-45452 LOCATE .
-45454 LOCATE ,
-45456 LOCATE ,,
-46700 DRAW "ABC"
-46701 DRAW A$
-46750 DRAW
-46752 DRAW A$, B$
 47100 BEEP
+47102 BEEP 'comment
 47150 BEEP 1
 47152 BEEP A
+47154 BEEP .
+47156 BEEP;
 48100 TRON
 48150 TRON ,
 48152 TRON A
@@ -94,133 +68,94 @@ ERROR at 3:12 line 41912 - Unexpected text at the end of the statement.
 ERROR at 4:12 line 41914 - Unexpected text at the end of the statement.
 41914 STOP .
            ^
-ERROR at 6:11 line 41930 - Unexpected text at the end of the statement.
+ERROR at 7:11 line 41930 - Unexpected text at the end of the statement.
 41930 END 1
           ^
-ERROR at 15:10 line 42150 - Identifier expected.
-42150 DIM
-         ^
-ERROR at 16:13 line 42152 - Identifier expected.
-42152 DIM A,
-            ^
-ERROR at 17:11 line 42154 - Identifier expected.
-42154 DIM 1
+ERROR at 8:11 line 41932 - Unexpected text at the end of the statement.
+41932 END A
           ^
-ERROR at 18:13 line 42160 - Array index expected.
-42160 DIM A(
-            ^
-ERROR at 19:13 line 42162 - Array index expected.
-42162 DIM A()
-            ^
-ERROR at 20:13 line 42164 - Array index expected.
-42164 DIM A(B)
-            ^
-ERROR at 21:14 line 42166 - Comma expected.
-42166 DIM A(3+2)
-             ^
-ERROR at 23:10 line 42250 - Expression should not be empty.
+ERROR at 9:11 line 41934 - Unexpected text at the end of the statement.
+41934 END .
+          ^
+ERROR at 10:10 line 41936 - Unexpected text at the end of the statement.
+41936 END;
+         ^
+ERROR at 13:10 line 42250 - Expression should not be empty.
 42250 KEY
          ^
-ERROR at 24:12 line 42252 - Comma expected.
+ERROR at 14:12 line 42252 - Comma expected.
 42252 KEY 1
            ^
-ERROR at 25:13 line 42254 - Expression should not be empty.
+ERROR at 15:13 line 42254 - Expression should not be empty.
 42254 KEY 1,
             ^
-ERROR at 26:19 line 42256 - Unexpected text at the end of the statement.
+ERROR at 16:19 line 42256 - Unexpected text at the end of the statement.
 42256 KEY 1, "AAA",
                   ^
-ERROR at 30:11 line 42550 - Identifier expected.
-42550 READ
-          ^
-ERROR at 31:12 line 42552 - Identifier expected.
-42552 READ 1
-           ^
-ERROR at 32:12 line 42554 - Identifier expected.
-42554 READ ,
-           ^
-ERROR at 34:15 line 42650 - Numeric argument expected.
-42650 RESTORE A
-              ^
-ERROR at 35:15 line 42652 - Numeric argument expected.
-42652 RESTORE ,
-              ^
-ERROR at 38:14 line 42715 - Equal sign expected.
+ERROR at 21:14 line 42715 - Equal sign expected.
 42715 DEF USR
              ^
-ERROR at 39:15 line 42716 - Expression should not be empty.
+ERROR at 22:15 line 42716 - Expression should not be empty.
 42716 DEF USR=
               ^
-ERROR at 40:15 line 42717 - Equal sign expected.
+ERROR at 23:15 line 42717 - Equal sign expected.
 42717 DEF USR1
               ^
-ERROR at 41:16 line 42718 - Expression should not be empty.
+ERROR at 24:16 line 42718 - Expression should not be empty.
 42718 DEF USR1=
                ^
-ERROR at 44:13 line 42725 - Identifier expected.
+ERROR at 27:13 line 42725 - Identifier expected.
 42725 DEF FN
             ^
-ERROR at 46:16 line 42727 - Expression should not be empty.
+ERROR at 29:16 line 42727 - Expression should not be empty.
 42727 DEF FN A=
                ^
-ERROR at 55:11 line 45150 - Unexpected text at the end of the statement.
+ERROR at 38:11 line 45150 - Unexpected text at the end of the statement.
 45150 CLS 0
           ^
-ERROR at 56:11 line 45152 - Unexpected text at the end of the statement.
+ERROR at 39:11 line 45152 - Unexpected text at the end of the statement.
 45152 CLS A%
           ^
-ERROR at 57:11 line 45154 - Unexpected text at the end of the statement.
+ERROR at 40:11 line 45154 - Unexpected text at the end of the statement.
 45154 CLS .
           ^
-ERROR at 58:10 line 45156 - Unexpected text at the end of the statement.
+ERROR at 41:10 line 45156 - Unexpected text at the end of the statement.
 45156 CLS;
          ^
-ERROR at 59:12 line 45250 - Arguments expected.
-45250 COLOR
-           ^
-ERROR at 60:15 line 45252 - Expression should not be empty.
-45252 COLOR ,,
-              ^
-ERROR at 62:13 line 45350 - Numeric argument expected.
+ERROR at 43:13 line 45350 - Numeric argument expected.
 45350 SCREEN
             ^
-ERROR at 63:14 line 45352 - Numeric argument expected.
+ERROR at 44:14 line 45352 - Numeric argument expected.
 45352 SCREEN 'comment
              ^
-ERROR at 64:14 line 45354 - Numeric argument expected.
+ERROR at 45:14 line 45354 - Numeric argument expected.
 45354 SCREEN "A"
              ^
-ERROR at 65:14 line 45356 - Numeric argument expected.
+ERROR at 46:14 line 45356 - Numeric argument expected.
 45356 SCREEN A$
              ^
-ERROR at 68:13 line 45450 - Arguments expected.
-45450 LOCATE
-            ^
-ERROR at 71:16 line 45456 - Expression should not be empty.
-45456 LOCATE ,,
-               ^
-ERROR at 74:11 line 46750 - Expression should not be empty.
-46750 DRAW
-          ^
-ERROR at 75:14 line 46752 - Unexpected text at the end of the statement.
-46752 DRAW A$, B$
-             ^
-ERROR at 77:12 line 47150 - Unexpected text at the end of the statement.
+ERROR at 49:12 line 47150 - Unexpected text at the end of the statement.
 47150 BEEP 1
            ^
-ERROR at 78:12 line 47152 - Unexpected text at the end of the statement.
+ERROR at 50:12 line 47152 - Unexpected text at the end of the statement.
 47152 BEEP A
            ^
-ERROR at 80:12 line 48150 - Unexpected text at the end of the statement.
+ERROR at 51:12 line 47154 - Unexpected text at the end of the statement.
+47154 BEEP .
+           ^
+ERROR at 52:11 line 47156 - Unexpected text at the end of the statement.
+47156 BEEP;
+          ^
+ERROR at 54:12 line 48150 - Unexpected text at the end of the statement.
 48150 TRON ,
            ^
-ERROR at 81:12 line 48152 - Unexpected text at the end of the statement.
+ERROR at 55:12 line 48152 - Unexpected text at the end of the statement.
 48152 TRON A
            ^
-ERROR at 83:13 line 48250 - Unexpected text at the end of the statement.
+ERROR at 57:13 line 48250 - Unexpected text at the end of the statement.
 48250 TROFF .
             ^
-ERROR at 84:13 line 48252 - Unexpected text at the end of the statement.
+ERROR at 58:13 line 48252 - Unexpected text at the end of the statement.
 48252 TROFF A
             ^
-Parsing ERRORS: 46
+Parsing ERRORS: 33

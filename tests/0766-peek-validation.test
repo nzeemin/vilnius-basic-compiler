@@ -1,0 +1,16 @@
+-q
+----------------------------------------------------------------------
+10 A% = PEEK(1000)
+100 A% = PEEK()
+110 A% = PEEK("A")
+120 A% = PEEK(B$)
+130 A% = PEEK("A"+"B")
+140 A% = PEEK(B%)
+150 A% = PEEK(-1)
+160 A% = PEEK(1.5)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:15 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:15 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:18 - Expression should be of type Integer or Single.
+Validation ERRORS: 4

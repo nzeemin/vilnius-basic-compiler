@@ -1,0 +1,13 @@
+-q
+----------------------------------------------------------------------
+42600 RESTORE
+42650 RESTORE A
+42652 RESTORE ,
+----------------------------------------------------------------------
+ERROR at 2:15 line 42650 - Numeric argument expected.
+42650 RESTORE A
+              ^
+ERROR at 3:15 line 42652 - Numeric argument expected.
+42652 RESTORE ,
+              ^
+Parsing ERRORS: 2

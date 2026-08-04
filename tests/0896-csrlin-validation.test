@@ -1,0 +1,15 @@
+-q
+----------------------------------------------------------------------
+10 A% = CSRLIN
+100 A% = CSRLIN()
+110 A% = CSRLIN("A")
+120 A% = CSRLIN(B$)
+130 A% = CSRLIN("A"+"B")
+140 A% = CSRLIN(B%)
+150 A% = CSRLIN(1.5)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:17 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:17 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:20 - Expression should be of type Integer or Single.
+Validation ERRORS: 4

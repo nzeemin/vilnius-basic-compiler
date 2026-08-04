@@ -1,0 +1,39 @@
+-q
+----------------------------------------------------------------------
+42100 DIM A
+42102 DIM A%
+42104 DIM A$
+42106 DIM A$, B$
+42108 DIM A%, A, A$
+42110 DIM A$(10)
+42112 DIM A%(10,10)
+42150 DIM
+42152 DIM A,
+42154 DIM 1
+42160 DIM A(
+42162 DIM A()
+42164 DIM A(B)
+42166 DIM A(3+2)
+----------------------------------------------------------------------
+ERROR at 8:10 line 42150 - Identifier expected.
+42150 DIM
+         ^
+ERROR at 9:13 line 42152 - Identifier expected.
+42152 DIM A,
+            ^
+ERROR at 10:11 line 42154 - Identifier expected.
+42154 DIM 1
+          ^
+ERROR at 11:13 line 42160 - Array index expected.
+42160 DIM A(
+            ^
+ERROR at 12:13 line 42162 - Array index expected.
+42162 DIM A()
+            ^
+ERROR at 13:13 line 42164 - Array index expected.
+42164 DIM A(B)
+            ^
+ERROR at 14:14 line 42166 - Comma expected.
+42166 DIM A(3+2)
+             ^
+Parsing ERRORS: 7

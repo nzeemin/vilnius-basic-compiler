@@ -1,0 +1,14 @@
+-q
+----------------------------------------------------------------------
+46700 DRAW "ABC"
+46701 DRAW A$
+46750 DRAW
+46752 DRAW A$, B$
+----------------------------------------------------------------------
+ERROR at 3:11 line 46750 - Expression should not be empty.
+46750 DRAW
+          ^
+ERROR at 4:14 line 46752 - Unexpected text at the end of the statement.
+46752 DRAW A$, B$
+             ^
+Parsing ERRORS: 2

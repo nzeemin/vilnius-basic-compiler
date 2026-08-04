@@ -1,0 +1,21 @@
+-q
+----------------------------------------------------------------------
+10 A% = POINT(10,20)
+100 A% = POINT(,20)
+110 A% = POINT(10,)
+120 A% = POINT("A",20)
+130 A% = POINT(10,"A")
+140 A% = POINT(B$,20)
+150 A% = POINT(10,C$)
+160 A% = POINT("A"+"B",20)
+170 A% = POINT(B%,C%)
+180 A% = POINT(1.5,2.5)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 in expression - Expression should not be empty.
+ERROR in line 120 at 4:16 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:19 - Expression should be of type Integer or Single.
+ERROR in line 140 at 6:16 - Expression should be of type Integer or Single.
+ERROR in line 150 at 7:19 - Expression should be of type Integer or Single.
+ERROR in line 160 at 8:19 - Expression should be of type Integer or Single.
+Validation ERRORS: 7

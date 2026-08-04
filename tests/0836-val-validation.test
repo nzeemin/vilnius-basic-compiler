@@ -1,0 +1,16 @@
+-q
+----------------------------------------------------------------------
+10 A = VAL("123")
+100 A = VAL()
+110 A = VAL(1)
+120 A = VAL(B%)
+130 A = VAL(1+2)
+140 A = VAL("")
+150 A = VAL(B$)
+160 A = VAL("1"+"2")
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:13 - Expression should be of type String.
+ERROR in line 120 at 4:13 - Expression should be of type String.
+ERROR in line 130 at 5:14 - Expression should be of type String.
+Validation ERRORS: 4

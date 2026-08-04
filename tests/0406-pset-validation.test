@@ -1,0 +1,20 @@
+-q
+----------------------------------------------------------------------
+10 PSET (10, 20), 1
+100 PSET ("A", 20), 1
+110 PSET (10, "A"), 1
+120 PSET (10, 20), "A"
+130 PSET (B$, 20), 1
+140 PSET (10, 20), -1
+150 PSET (10, 20), 9
+160 PSET (10, 20), 0
+170 PSET (10, 20), 8
+180 PSET (B%, C%), D%
+----------------------------------------------------------------------
+ERROR in line 100 at 2:11 - Expression should be of type Integer or Single.
+ERROR in line 110 at 3:15 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:20 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:11 - Expression should be of type Integer or Single.
+ERROR in line 140 - Parameter value (-1) is out of range 0..8.
+ERROR in line 150 - Parameter value (9) is out of range 0..8.
+Validation ERRORS: 6
