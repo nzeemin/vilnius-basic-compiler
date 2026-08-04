@@ -1996,7 +1996,13 @@ void Validator::ValidateFuncLog(ExpressionModel& expr, ExpressionNode& node)
 
     if (node.constval)
     {
-        node.token.dvalue = log(expr1.GetConstExpressionDValue());
+        double dvalue = expr1.GetConstExpressionDValue();
+        //NOTE: The logarithm of zero is minus infinity, and of a negative value
+        //      is not a number; neither can be put in the generated code.
+        if (dvalue <= 0.0)
+            EXPR_ERROR("Logarithm with non-positive argument.");
+
+        node.token.dvalue = log(dvalue);
     }
 }
 

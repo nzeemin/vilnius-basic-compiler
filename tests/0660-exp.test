@@ -1,0 +1,89 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' EXP gives e raised to the power of the argument, see 5.1.6. The result is
+' always Single. The constant is folded by the compiler, the variable goes
+' through the FEXP runtime call, both ways have to give the same result.
+' A Single keeps about 7 digits, so every check uses a tolerance. Every line
+' prints the expected value, the calculated one, and -1 if they match.
+20 A = EXP(0)
+25 E% = ABS(A - 1.0) < 0.00001
+30 PRINT "1"; A; E%
+' e itself, and its reciprocal
+35 A = EXP(1)
+40 E% = ABS(A - 2.718282) < 0.00001
+45 PRINT "2.718282"; A; E%
+50 F = 1.0
+55 A = EXP(F)
+60 E% = ABS(A - 2.718282) < 0.00001
+65 PRINT "2.718282"; A; E%
+70 A = EXP(-1)
+75 E% = ABS(A - 0.3678794) < 0.00001
+80 PRINT ".3678794"; A; E%
+85 F = -1.0
+90 A = EXP(F)
+95 E% = ABS(A - 0.3678794) < 0.00001
+100 PRINT ".3678794"; A; E%
+' An Integer argument goes through ITOF first, the result is the same
+105 B% = 1
+110 A = EXP(B%)
+115 E% = ABS(A - 2.718282) < 0.00001
+120 PRINT "2.718282"; A; E%
+125 B% = -1
+130 A = EXP(B%)
+135 E% = ABS(A - 0.3678794) < 0.00001
+140 PRINT ".3678794"; A; E%
+' The square of e, and the fractional arguments
+145 A = EXP(2)
+150 E% = ABS(A - 7.389056) < 0.00001
+155 PRINT "7.389056"; A; E%
+160 F = 2.0
+165 A = EXP(F)
+170 E% = ABS(A - 7.389056) < 0.00001
+175 PRINT "7.389056"; A; E%
+180 A = EXP(-2)
+185 E% = ABS(A - 0.1353353) < 0.00001
+190 PRINT ".1353353"; A; E%
+195 A = EXP(0.5)
+200 E% = ABS(A - 1.648721) < 0.00001
+205 PRINT "1.648721"; A; E%
+210 F = 0.5
+215 A = EXP(F)
+220 E% = ABS(A - 1.648721) < 0.00001
+225 PRINT "1.648721"; A; E%
+' A large argument gives a large result, a Single holds up to about 1.7E+38
+245 A = EXP(10)
+250 E% = ABS(A - 22026.47) < 0.01
+255 PRINT "22026.47"; A; E%
+260 F = 10.0
+265 A = EXP(F)
+270 E% = ABS(A - 22026.47) < 0.01
+275 PRINT "22026.47"; A; E%
+280 A = EXP(20)
+285 E% = ABS(A - 4.851652E+08) < 100.0
+290 PRINT "4.851652E+08"; A; E%
+' A large negative argument gives a result close to zero, but never below it
+295 A = EXP(-10)
+300 E% = ABS(A - 4.539993E-05) < 0.0000000001 AND A > 0.0
+305 PRINT "4.539993E-05"; A; E%
+' EXP(-X) is 1 / EXP(X), so the product of the two is 1
+330 F = 0.7
+335 A = EXP(-F) * EXP(F)
+340 E% = ABS(A - 1.0) < 0.00001
+345 PRINT "1"; A; E%
+' EXP(X) * EXP(Y) is EXP(X+Y), see 5.1.6
+350 F = 0.7
+355 G = 1.3
+360 A = EXP(F) * EXP(G) - EXP(F + G)
+365 E% = ABS(A) < 0.0001
+370 PRINT "0"; A; E%
+' LOG is the inverse of EXP
+375 F = 0.3
+380 A = LOG(EXP(F)) - F
+385 E% = ABS(A) < 0.00001
+390 PRINT "0"; A; E%
+' The argument is an expression
+395 F = 1.0
+400 A = EXP(F + F)
+405 E% = ABS(A - 7.389056) < 0.00001
+410 PRINT "7.389056"; A; E%

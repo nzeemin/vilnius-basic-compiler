@@ -5,9 +5,18 @@
 110 A = LOG("AAA")
 120 A = LOG(B$)
 130 A = LOG("A"+"B")
+140 A = LOG(0)
+150 A = LOG(-1)
+160 A = LOG(-1.5)
+170 A = LOG(2-3)
+180 A = LOG(-B%)
 ----------------------------------------------------------------------
 ERROR in line 100 in expression - Expression should not be empty.
 ERROR in line 110 at 3:13 - Expression should be of type Integer or Single.
 ERROR in line 120 at 4:13 - Expression should be of type Integer or Single.
 ERROR in line 130 at 5:16 - Expression should be of type Integer or Single.
-Validation ERRORS: 4
+ERROR in line 140 at 6:9 - Logarithm with non-positive argument.
+ERROR in line 150 at 7:9 - Logarithm with non-positive argument.
+ERROR in line 160 at 8:9 - Logarithm with non-positive argument.
+ERROR in line 170 at 9:9 - Logarithm with non-positive argument.
+Validation ERRORS: 8

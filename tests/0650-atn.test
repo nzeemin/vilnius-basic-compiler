@@ -1,0 +1,99 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' ATN gives the arctangent of the argument in radians, see 5.1.5. The result
+' is always Single and lies between -PI/2 and PI/2. The constant is folded by
+' the compiler, the variable goes through the FATN runtime call, both ways
+' have to give the same result.
+' A Single keeps about 7 digits, so every check uses a tolerance. Every line
+' prints the expected value, the calculated one, and -1 if they match.
+20 A = ATN(0)
+25 E% = ABS(A) < 0.00001
+30 PRINT "0"; A; E%
+' The arctangent of 1 is PI/4, and of -1 is -PI/4
+55 A = ATN(1)
+60 E% = ABS(A - 0.7853982) < 0.00001
+65 PRINT ".7853982"; A; E%
+70 F = 1.0
+75 A = ATN(F)
+80 E% = ABS(A - 0.7853982) < 0.00001
+85 PRINT ".7853982"; A; E%
+90 A = ATN(-1)
+95 E% = ABS(A + 0.7853982) < 0.00001
+100 PRINT "-.7853982"; A; E%
+105 F = -1.0
+110 A = ATN(F)
+115 E% = ABS(A + 0.7853982) < 0.00001
+120 PRINT "-.7853982"; A; E%
+' An Integer argument goes through ITOF first, the result is the same
+125 B% = 1
+130 A = ATN(B%)
+135 E% = ABS(A - 0.7853982) < 0.00001
+140 PRINT ".7853982"; A; E%
+145 B% = -1
+150 A = ATN(B%)
+155 E% = ABS(A + 0.7853982) < 0.00001
+160 PRINT "-.7853982"; A; E%
+' The arctangent of the values below 1
+165 A = ATN(0.5)
+170 E% = ABS(A - 0.4636476) < 0.00001
+175 PRINT ".4636476"; A; E%
+180 F = 0.5
+185 A = ATN(F)
+190 E% = ABS(A - 0.4636476) < 0.00001
+195 PRINT ".4636476"; A; E%
+200 A = ATN(-0.5)
+205 E% = ABS(A + 0.4636476) < 0.00001
+210 PRINT "-.4636476"; A; E%
+215 A = ATN(0.1)
+220 E% = ABS(A - 0.09966865) < 0.00001
+225 PRINT ".09966865"; A; E%
+' The arctangent of the values above 1
+230 A = ATN(2)
+235 E% = ABS(A - 1.107149) < 0.00001
+240 PRINT "1.107149"; A; E%
+245 A = ATN(3)
+250 E% = ABS(A - 1.249046) < 0.00001
+255 PRINT "1.249046"; A; E%
+260 F = 3.0
+265 A = ATN(F)
+270 E% = ABS(A - 1.249046) < 0.00001
+275 PRINT "1.249046"; A; E%
+' A large argument gives a result close to PI/2, but never reaching it
+280 A = ATN(1000)
+285 E% = ABS(A - 1.5697963) < 0.00001 AND A < PI/2
+290 PRINT "1.569796"; A; E%
+295 F = 1000.0
+300 A = ATN(F)
+305 E% = ABS(A - 1.5697963) < 0.00001 AND A < PI/2
+310 PRINT "1.569796"; A; E%
+315 A = ATN(-1000)
+320 E% = ABS(A + 1.5697963) < 0.00001 AND A > -PI/2
+325 PRINT "-1.569796"; A; E%
+' ATN is an odd function: ATN(-X) = -ATN(X)
+330 F = 0.7
+335 A = ATN(-F) + ATN(F)
+340 E% = ABS(A) < 0.00001
+345 PRINT "0"; A; E%
+' ATN(1) * 4 is PI, see 5.1.5. The argument is a variable on purpose: with a
+' constant the whole expression is folded by the compiler and the runtime is
+' never called.
+355 F = 1.0
+360 A = ATN(F) * 4 - PI
+365 E% = ABS(A) < 0.00001
+370 PRINT "0"; A; E%
+' ATN(X) + ATN(1/X) is PI/2 for any positive X
+375 F = 2.0
+380 A = ATN(F) + ATN(1.0/F) - PI/2
+385 E% = ABS(A) < 0.00001
+390 PRINT "0"; A; E%
+' TAN is the inverse of ATN
+395 F = 0.3
+400 A = TAN(ATN(F)) - F
+405 E% = ABS(A) < 0.00001
+410 PRINT "0"; A; E%
+' The argument is an expression, the result is used in one
+415 F = 1.0
+420 A = ATN(F + F)
+425 E% = ABS(A - 1.107149) < 0.00001
+430 PRINT "1.107149"; A; E%

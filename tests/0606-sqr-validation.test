@@ -1,0 +1,21 @@
+-q
+----------------------------------------------------------------------
+10 A = SQR(1)
+100 A = SQR()
+110 A = SQR("AAA")
+120 A = SQR(B$)
+130 A = SQR("A"+"B")
+140 A = SQR(-1)
+150 A = SQR(-1.5)
+160 A = SQR(0-1)
+170 A = SQR(-B%)
+180 A = SQR(0)
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:13 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:13 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:16 - Expression should be of type Integer or Single.
+ERROR in line 140 at 6:9 - Square root with negative argument.
+ERROR in line 150 at 7:9 - Square root with negative argument.
+ERROR in line 160 at 8:9 - Square root with negative argument.
+Validation ERRORS: 7

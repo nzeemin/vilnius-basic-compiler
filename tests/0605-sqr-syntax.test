@@ -1,0 +1,44 @@
+-q
+----------------------------------------------------------------------
+10 A = SQR(1)
+20 A = SQR(0)
+30 A = SQR(-1)
+40 A = SQR(B%)
+50 A = SQR(1+2)
+60 A = SQR(1)'comment
+70 A = SQR
+80 A = SQR'comment
+90 A = SQR 1
+100 A = SQR(
+110 A = SQR(1
+120 A = SQR(1,
+130 A = SQR(1,2)
+140 A = SQR(1,2,3)
+150 A = SQR(SQR(16))
+160 A = SQR(-B%)
+----------------------------------------------------------------------
+ERROR at 7:11 line 70 - Expected parameter for this function.
+70 A = SQR
+          ^
+ERROR at 8:11 line 80 - Expected parameter for this function.
+80 A = SQR'comment
+          ^
+ERROR at 9:12 line 90 - Expected parameter for this function.
+90 A = SQR 1
+           ^
+ERROR at 10:13 line 100 - Comma expected in function parameter list.
+100 A = SQR(
+            ^
+ERROR at 11:14 line 110 - Comma expected in function parameter list.
+110 A = SQR(1
+             ^
+ERROR at 12:15 line 120 - Comma expected in function parameter list.
+120 A = SQR(1,
+              ^
+ERROR at 13:16 line 130 - Specified too many parameters for this function.
+130 A = SQR(1,2)
+               ^
+ERROR at 14:18 line 140 - Specified too many parameters for this function.
+140 A = SQR(1,2,3)
+                 ^
+Parsing ERRORS: 8

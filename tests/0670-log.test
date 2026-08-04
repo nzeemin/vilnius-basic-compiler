@@ -1,0 +1,89 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' LOG gives the natural logarithm of the argument, see 5.1.7. The result is
+' always Single. The constant is folded by the compiler, the variable goes
+' through the FLOG runtime call, both ways have to give the same result.
+' A Single keeps about 7 digits, so every check uses a tolerance. Every line
+' prints the expected value, the calculated one, and -1 if they match.
+20 A = LOG(1)
+25 E% = ABS(A) < 0.00001
+30 PRINT "0"; A; E%
+' The logarithm of e is 1
+35 A = LOG(2.718282)
+40 E% = ABS(A - 1.0) < 0.00001
+45 PRINT "1"; A; E%
+50 F = 2.718282
+55 A = LOG(F)
+60 E% = ABS(A - 1.0) < 0.00001
+65 PRINT "1"; A; E%
+' The logarithm of 2 and of 10
+70 A = LOG(2)
+75 E% = ABS(A - 0.6931472) < 0.00001
+80 PRINT ".6931472"; A; E%
+85 F = 2.0
+90 A = LOG(F)
+95 E% = ABS(A - 0.6931472) < 0.00001
+100 PRINT ".6931472"; A; E%
+105 A = LOG(10)
+110 E% = ABS(A - 2.302585) < 0.00001
+115 PRINT "2.302585"; A; E%
+120 F = 10.0
+125 A = LOG(F)
+130 E% = ABS(A - 2.302585) < 0.00001
+135 PRINT "2.302585"; A; E%
+' An Integer argument goes through ITOF first, the result is the same
+140 B% = 2
+145 A = LOG(B%)
+150 E% = ABS(A - 0.6931472) < 0.00001
+155 PRINT ".6931472"; A; E%
+160 B% = 10
+165 A = LOG(B%)
+170 E% = ABS(A - 2.302585) < 0.00001
+175 PRINT "2.302585"; A; E%
+' The arguments below 1 give a negative result
+180 A = LOG(0.5)
+185 E% = ABS(A + 0.6931472) < 0.00001
+190 PRINT "-.6931472"; A; E%
+195 F = 0.5
+200 A = LOG(F)
+205 E% = ABS(A + 0.6931472) < 0.00001
+210 PRINT "-.6931472"; A; E%
+215 A = LOG(0.1)
+220 E% = ABS(A + 2.302585) < 0.00001
+225 PRINT "-2.302585"; A; E%
+' The large arguments give a result growing very slowly
+230 A = LOG(3)
+235 E% = ABS(A - 1.098612) < 0.00001
+240 PRINT "1.098612"; A; E%
+245 A = LOG(100)
+250 E% = ABS(A - 4.60517) < 0.0001
+255 PRINT "4.60517"; A; E%
+260 F = 100.0
+265 A = LOG(F)
+270 E% = ABS(A - 4.60517) < 0.0001
+275 PRINT "4.60517"; A; E%
+280 A = LOG(1000)
+285 E% = ABS(A - 6.907755) < 0.0001
+290 PRINT "6.907755"; A; E%
+' LOG(1/X) is -LOG(X), so the sum of the two is 0
+295 F = 0.7
+300 A = LOG(1.0/F) + LOG(F)
+305 E% = ABS(A) < 0.00001
+310 PRINT "0"; A; E%
+' LOG(X*Y) is LOG(X) + LOG(Y), see 5.1.7
+315 F = 3.0
+320 G = 7.0
+325 A = LOG(F * G) - LOG(F) - LOG(G)
+330 E% = ABS(A) < 0.0001
+335 PRINT "0"; A; E%
+' EXP is the inverse of LOG
+340 F = 5.0
+345 A = EXP(LOG(F)) - F
+350 E% = ABS(A) < 0.0001
+355 PRINT "0"; A; E%
+' The argument is an expression
+360 F = 10.0
+365 A = LOG(F * F)
+370 E% = ABS(A - 4.60517) < 0.0001
+375 PRINT "4.60517"; A; E%

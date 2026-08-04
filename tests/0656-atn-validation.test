@@ -1,0 +1,13 @@
+-q
+----------------------------------------------------------------------
+10 A = ATN(1)
+100 A = ATN()
+110 A = ATN("AAA")
+120 A = ATN(B$)
+130 A = ATN("A"+"B")
+----------------------------------------------------------------------
+ERROR in line 100 in expression - Expression should not be empty.
+ERROR in line 110 at 3:13 - Expression should be of type Integer or Single.
+ERROR in line 120 at 4:13 - Expression should be of type Integer or Single.
+ERROR in line 130 at 5:16 - Expression should be of type Integer or Single.
+Validation ERRORS: 4

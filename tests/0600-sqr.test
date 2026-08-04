@@ -1,0 +1,87 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' SQR gives the square root of the argument, see 5.1.2. The result is always
+' Single, and the argument may not be negative. The constant is folded by the
+' compiler, the variable goes through the FSQR runtime call, both ways have to
+' give the same result.
+' A Single keeps about 7 digits, so every check uses a tolerance. Every line
+' prints the expected value, the calculated one, and -1 if they match.
+20 A = SQR(0)
+25 E% = ABS(A) < 0.00001
+30 PRINT "0"; A; E%
+35 F = 0.0
+40 A = SQR(F)
+45 E% = ABS(A) < 0.00001
+50 PRINT "0"; A; E%
+' The exact roots of the perfect squares
+55 A = SQR(1)
+60 E% = ABS(A - 1.0) < 0.00001
+65 PRINT "1"; A; E%
+70 A = SQR(4)
+75 E% = ABS(A - 2.0) < 0.00001
+80 PRINT "2"; A; E%
+85 F = 4.0
+90 A = SQR(F)
+95 E% = ABS(A - 2.0) < 0.00001
+100 PRINT "2"; A; E%
+105 A = SQR(9)
+110 E% = ABS(A - 3.0) < 0.00001
+115 PRINT "3"; A; E%
+' An Integer argument goes through ITOF first, the result is the same
+120 B% = 9
+125 A = SQR(B%)
+130 E% = ABS(A - 3.0) < 0.00001
+135 PRINT "3"; A; E%
+140 B% = 16
+145 A = SQR(B%)
+150 E% = ABS(A - 4.0) < 0.00001
+155 PRINT "4"; A; E%
+' The roots that are not exact
+160 A = SQR(2)
+165 E% = ABS(A - 1.414214) < 0.00001
+170 PRINT "1.414214"; A; E%
+175 F = 2.0
+180 A = SQR(F)
+185 E% = ABS(A - 1.414214) < 0.00001
+190 PRINT "1.414214"; A; E%
+195 A = SQR(3)
+200 E% = ABS(A - 1.732051) < 0.00001
+205 PRINT "1.732051"; A; E%
+' The arguments below 1 give a result above the argument
+225 A = SQR(0.25)
+230 E% = ABS(A - 0.5) < 0.00001
+235 PRINT ".5"; A; E%
+240 F = 0.25
+245 A = SQR(F)
+250 E% = ABS(A - 0.5) < 0.00001
+255 PRINT ".5"; A; E%
+260 A = SQR(0.0001)
+265 E% = ABS(A - 0.01) < 0.00001
+270 PRINT ".01"; A; E%
+' The large arguments
+275 A = SQR(100)
+280 E% = ABS(A - 10.0) < 0.00001
+285 PRINT "10"; A; E%
+290 F = 100.0
+295 A = SQR(F)
+300 E% = ABS(A - 10.0) < 0.00001
+305 PRINT "10"; A; E%
+310 A = SQR(1000000)
+315 E% = ABS(A - 1000.0) < 0.001
+320 PRINT "1000"; A; E%
+' SQR(X) * SQR(X) is X
+325 F = 7.0
+330 A = SQR(F) * SQR(F) - F
+335 E% = ABS(A) < 0.0001
+340 PRINT "0"; A; E%
+' SQR(X*X) is X for a positive X
+345 F = 3.5
+350 A = SQR(F * F) - F
+355 E% = ABS(A) < 0.0001
+360 PRINT "0"; A; E%
+' The argument is an expression
+365 F = 8.0
+370 A = SQR(F + F)
+375 E% = ABS(A - 4.0) < 0.00001
+380 PRINT "4"; A; E%

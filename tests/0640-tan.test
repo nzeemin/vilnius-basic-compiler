@@ -1,0 +1,95 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' TAN gives the tangent of the argument in radians, see 5.1.4. The result is
+' always Single. The constant is folded by the compiler, the variable goes
+' through the FTAN runtime call, both ways have to give the same result.
+' A Single keeps about 7 digits, so every check uses a tolerance. Every line
+' prints the expected value, the calculated one, and -1 if they match.
+20 A = TAN(0)
+25 E% = ABS(A) < 0.00001
+30 PRINT "0"; A; E%
+' The tangent of PI/4 is 1, and of -PI/4 is -1
+35 A = TAN(PI/4)
+40 E% = ABS(A - 1.0) < 0.00001
+45 PRINT "1"; A; E%
+50 F = PI/4
+55 A = TAN(F)
+60 E% = ABS(A - 1.0) < 0.00001
+65 PRINT "1"; A; E%
+70 A = TAN(-PI/4)
+75 E% = ABS(A + 1.0) < 0.00001
+80 PRINT "-1"; A; E%
+85 F = -PI/4
+90 A = TAN(F)
+95 E% = ABS(A + 1.0) < 0.00001
+100 PRINT "-1"; A; E%
+' The tangent of 1 radian
+105 A = TAN(1)
+110 E% = ABS(A - 1.557408) < 0.00001
+115 PRINT "1.557408"; A; E%
+120 F = 1.0
+125 A = TAN(F)
+130 E% = ABS(A - 1.557408) < 0.00001
+135 PRINT "1.557408"; A; E%
+' An Integer argument goes through ITOF first, the result is the same
+140 B% = 1
+145 A = TAN(B%)
+150 E% = ABS(A - 1.557408) < 0.00001
+155 PRINT "1.557408"; A; E%
+160 B% = -1
+165 A = TAN(B%)
+170 E% = ABS(A + 1.557408) < 0.00001
+175 PRINT "-1.557408"; A; E%
+' The tangent of the values below PI/4
+180 A = TAN(0.5)
+185 E% = ABS(A - 0.5463025) < 0.00001
+190 PRINT ".5463025"; A; E%
+195 F = 0.5
+200 A = TAN(F)
+205 E% = ABS(A - 0.5463025) < 0.00001
+210 PRINT ".5463025"; A; E%
+215 A = TAN(-0.5)
+220 E% = ABS(A + 0.5463025) < 0.00001
+225 PRINT "-.5463025"; A; E%
+230 A = TAN(0.1)
+235 E% = ABS(A - 0.1003347) < 0.00001
+240 PRINT ".1003347"; A; E%
+' Above PI/2 the tangent is negative again
+245 A = TAN(2)
+250 E% = ABS(A + 2.18504) < 0.0001
+255 PRINT "-2.18504"; A; E%
+280 A = TAN(3)
+285 E% = ABS(A + 0.1425465) < 0.00001
+290 PRINT "-.1425465"; A; E%
+' Close to PI/2 the tangent grows without a limit
+295 A = TAN(1.5)
+300 E% = ABS(A - 14.10142) < 0.001
+305 PRINT "14.10142"; A; E%
+310 F = 1.5
+315 A = TAN(F)
+320 E% = ABS(A - 14.10142) < 0.001
+325 PRINT "14.10142"; A; E%
+' TAN is an odd function: TAN(-X) = -TAN(X)
+330 F = 0.7
+335 A = TAN(-F) + TAN(F)
+340 E% = ABS(A) < 0.00001
+345 PRINT "0"; A; E%
+' TAN(X) = SIN(X) / COS(X), see 5.1.4
+350 A = TAN(F) - SIN(F) / COS(F)
+355 E% = ABS(A) < 0.00001
+360 PRINT "0"; A; E%
+' The period of TAN is PI, and not 2*PI
+365 A = TAN(F) - TAN(F + PI)
+370 E% = ABS(A) < 0.0001
+375 PRINT "0"; A; E%
+' ATN is the inverse of TAN for the arguments between -PI/2 and PI/2
+380 F = 0.3
+385 A = TAN(ATN(F)) - F
+390 E% = ABS(A) < 0.00001
+395 PRINT "0"; A; E%
+' The argument is an expression
+400 F = 1.0
+405 A = TAN(F + F)
+410 E% = ABS(A + 2.18504) < 0.0001
+415 PRINT "-2.18504"; A; E%

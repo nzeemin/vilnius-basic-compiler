@@ -1,86 +1,18 @@
 -q
 ----------------------------------------------------------------------
 51000 REM 5.1. Числовые функции
-51010 A = SQR(0)
-51012 A = SQR(-1) ' Синтаксически правильно, будет ошибка на валидации
-51015 A = SQR
-51016 A = SQR(
-51017 A = SQR(1,2)
-51020 A = SIN(0)
-51021 REM A = SIN(PI/2)
-51025 A = SIN
-51026 A = SIN(
-51027 A = SIN(1,2)
-51030 A = COS(0)
-51031 REM A = COS(PI/2)
-51035 A = COS
-51036 A = COS(
-51037 A = COS(1,2)
-51040 A = TAN(0)
-51045 A = TAN
-51046 A = TAN(
-51047 A = TAN(1,2)
-51050 A = ATN(0)
-51055 A = ATN
-51056 A = ATN(
-51057 A = ATN(1,2)
 51060 A = PI
 51065 A = PI(
 51066 A = PI()
 51067 A = PI(1,2)
 ----------------------------------------------------------------------
-ERROR at 4:14 line 51015 - Expected parameter for this function.
-51015 A = SQR
-             ^
-ERROR at 5:15 line 51016 - Comma expected in function parameter list.
-51016 A = SQR(
-              ^
-ERROR at 6:18 line 51017 - Specified too many parameters for this function.
-51017 A = SQR(1,2)
-                 ^
-ERROR at 9:14 line 51025 - Expected parameter for this function.
-51025 A = SIN
-             ^
-ERROR at 10:15 line 51026 - Comma expected in function parameter list.
-51026 A = SIN(
-              ^
-ERROR at 11:18 line 51027 - Specified too many parameters for this function.
-51027 A = SIN(1,2)
-                 ^
-ERROR at 14:14 line 51035 - Expected parameter for this function.
-51035 A = COS
-             ^
-ERROR at 15:15 line 51036 - Comma expected in function parameter list.
-51036 A = COS(
-              ^
-ERROR at 16:18 line 51037 - Specified too many parameters for this function.
-51037 A = COS(1,2)
-                 ^
-ERROR at 18:14 line 51045 - Expected parameter for this function.
-51045 A = TAN
-             ^
-ERROR at 19:15 line 51046 - Comma expected in function parameter list.
-51046 A = TAN(
-              ^
-ERROR at 20:18 line 51047 - Specified too many parameters for this function.
-51047 A = TAN(1,2)
-                 ^
-ERROR at 22:14 line 51055 - Expected parameter for this function.
-51055 A = ATN
-             ^
-ERROR at 23:15 line 51056 - Comma expected in function parameter list.
-51056 A = ATN(
-              ^
-ERROR at 24:18 line 51057 - Specified too many parameters for this function.
-51057 A = ATN(1,2)
-                 ^
-ERROR at 26:13 line 51065 - This function should not have any parameters.
+ERROR at 3:13 line 51065 - This function should not have any parameters.
 51065 A = PI(
             ^
-ERROR at 27:13 line 51066 - This function should not have any parameters.
+ERROR at 4:13 line 51066 - This function should not have any parameters.
 51066 A = PI()
             ^
-ERROR at 28:13 line 51067 - This function should not have any parameters.
+ERROR at 5:13 line 51067 - This function should not have any parameters.
 51067 A = PI(1,2)
             ^
-Parsing ERRORS: 18
+Parsing ERRORS: 3
