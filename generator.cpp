@@ -461,6 +461,9 @@ void Generator::GenerateDataBlock()
                 case ValueTypeString:
                     GenerateConstString("", elem.svalue);
                     break;
+                default:
+                    assert(false);  // unexpected value type
+                    break;
                 }
 
                 if (!line.empty() && k == datacount - 1)
@@ -623,6 +626,9 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
         }
         case ValueTypeString:
             AddComment("TODO constval String");
+            return;
+        default:
+            assert(false);  // unexpected value type
             return;
         }
     }
@@ -1867,6 +1873,9 @@ void Generator::GenerateRead(StatementModel& statement)
         case ValueTypeString:
             AddLine("\tMOV\t#" + deconame + ", R0");
             AddRuntimeCall(RuntimeREAS, "READ String");
+            break;
+        default:
+            assert(false);  // unexpected value type
             break;
         }
     }

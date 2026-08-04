@@ -224,8 +224,16 @@ void process_test_run(const string& workingdir, const string& modulename, const 
 void process_test_run(const string& workingdir, const string& modulename, const string& commandline, const string& outfilename)
 {
     char bufcwd[PATH_MAX];
-    getwd(bufcwd);
-    chdir(workingdir.c_str());
+    if (getcwd(bufcwd, sizeof(bufcwd)) == nullptr)
+    {
+        std::cout << "Failed to get the current directory." << std::endl;
+        return;
+    }
+    if (chdir(workingdir.c_str()) != 0)
+    {
+        std::cout << "Failed to change the directory to " << workingdir << std::endl;
+        return;
+    }
 
     string fullcommand = modulename + " " + commandline + " >" + outfilename + " 2>" + outfilename;
     //std::cout << "Running the test: " << fullcommand << std::endl;
@@ -235,7 +243,8 @@ void process_test_run(const string& workingdir, const string& modulename, const 
         std::cout << "Failed to run the test: result " << result << std::endl;
     }
 
-    chdir(bufcwd);
+    if (chdir(bufcwd) != 0)
+        std::cout << "Failed to change the directory back to " << bufcwd << std::endl;
 }
 #endif
 
