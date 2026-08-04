@@ -10,7 +10,19 @@
 40 A% = INP(1000, 65535)
 50 B% = 255
 60 A% = INP(1000, B%)
+' The address and the mask can be Single, then the compiler converts them to
+' Integer with FTOI. A Single const mask is folded the same as an Integer one.
+70 A% = INP(1000.0, 255)
+80 F = 1000.0
+90 A% = INP(F, 255)
+100 A% = INP(1000, 15.0)
+110 G = 15.0
+120 A% = INP(1000, G)
+130 A% = INP(1000, 0.0)
+140 A% = INP(1000.0, 65535.0)
 ----------------------------------------------------------------------
 WARNING: at 6:9 line 20 - INP with mask 0 reduced to 0, consider to remove this INP.
 WARNING: at 7:9 line 30 - INP with mask 177777 does the same as PEEK, consider to use PEEK.
 WARNING: at 8:9 line 40 - INP with mask 177777 does the same as PEEK, consider to use PEEK.
+WARNING: at 19:10 line 130 - INP with mask 0 reduced to 0, consider to remove this INP.
+WARNING: at 20:10 line 140 - INP with mask 177777 does the same as PEEK, consider to use PEEK.

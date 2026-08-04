@@ -707,6 +707,9 @@ private:
     void GenerateExpression(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprFunction(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateOperandAsInteger(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateOperandAsInteger(const ExpressionModel& expr);
+    void GenerateOperandAsSingle(const ExpressionModel& expr);
+    void GenerateOperandAsSingle(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprUnaryNot(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprUnaryMinus(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateExprBinaryOperation(const ExpressionModel& expr, const ExpressionNode& node);
