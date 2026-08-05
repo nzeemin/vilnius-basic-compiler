@@ -1258,7 +1258,15 @@ void Generator::GenerateIf(StatementModel& statement)
 
     GenerateExpression(expr);
     if (expr.GetExpressionValueType() == ValueTypeSingle)
-        AddLine("\tTST\t(SP)");  // check float value high word for 0
+    {
+        //NOTE: The Single result is two words on the stack; both have to be removed,
+        //      otherwise every IF with a Single condition leaks two words and a program
+        //      with many of them overflows the stack. A Single is zero only when its
+        //      high word (sign and exponent) is zero, so testing the high word is enough.
+        AddLine("\tMOV\t(SP)+, R0\t; IF Single: high word");
+        AddLine("\tTST\t(SP)+\t; drop low word");
+        AddLine("\tTST\tR0\t; check float high word for 0");
+    }
     // set flags: Z=0 for TRUE, Z=1 for FALSE
     AddLine("\tBEQ\t" + (haveelse ? labelelse : labelend));
     AddComment("THEN");
