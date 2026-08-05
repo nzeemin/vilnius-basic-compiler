@@ -1645,7 +1645,7 @@ void Generator::GenerateOut(StatementModel& statement)
         stat2 = "\tMOV\t" + expr2.GetVariableExpressionDecoratedName() + ", ";
     else
     {
-        GenerateExpression(expr2);
+        GenerateOperandAsInteger(expr2);  // Single mask -> Integer in R0
         stat2 = "\tMOV\tR0, ";
     }
 
@@ -1670,7 +1670,7 @@ void Generator::GenerateOut(StatementModel& statement)
         else
         {
             AddLine(stat2 + "-(SP)\t; PUSH mask");
-            GenerateExpression(expr2);  // result in R0
+            GenerateOperandAsInteger(expr2);  // Single mask -> Integer in R0
             AddLine("\tMOV\t(SP)+, R1\t; POP R1 mask");  // mask -> R1
             AddLine("\t" + operation + "\tR1, (R0)\t; OUT");
         }
@@ -1685,7 +1685,7 @@ void Generator::GenerateOut(StatementModel& statement)
             stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
         else
         {
-            GenerateExpression(expr1);  // result in R0
+            GenerateOperandAsInteger(expr1);  // Single address -> Integer in R0
             stat1 = "\tMOV\tR0, ";
         }
 
@@ -1697,7 +1697,7 @@ void Generator::GenerateOut(StatementModel& statement)
         else
         {
             AddLine(stat1 + "-(SP)\t; PUSH address");
-            GenerateExpression(expr3);  // result in R0
+            GenerateOperandAsInteger(expr3);  // Single code -> Integer in R0
             AddLine("\tMOV\t(SP)+, R2\t; POP R2 address");  // address -> R2
             AddLine("\tTST\tR0");
         }
