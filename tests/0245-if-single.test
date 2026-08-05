@@ -8,41 +8,41 @@
 20 F = 1.5
 30 A% = 0
 40 IF F THEN A% = 1
-50 PRINT "1"; A%
+50 PRINT "1", A%
 ' A zero Single is false
 60 F = 0.0
 70 A% = 9
 80 IF F THEN A% = 1
-90 PRINT "9"; A%
+90 PRINT "9", A%
 ' A negative Single is nonzero, so it is true
 100 F = -2.5
 110 A% = 0
 120 IF F THEN A% = 1
-130 PRINT "1"; A%
+130 PRINT "1", A%
 ' A very small nonzero Single is still true
 140 F = 0.0001
 150 A% = 0
 160 IF F THEN A% = 1
-170 PRINT "1"; A%
+170 PRINT "1", A%
 ' A variable that holds zero from a calculation is false
 180 F = 2.5
 185 F = F - 2.5
 190 A% = 9
 200 IF F THEN A% = 1
-210 PRINT "9"; A%
+210 PRINT "9", A%
 ' A Single from a function is true when nonzero
 220 F = SQR(2.0)
 230 A% = 0
 240 IF F THEN A% = 1
-250 PRINT "1"; A%
+250 PRINT "1", A%
 ' IF with ELSE: a nonzero Single takes THEN
 260 F = 3.14
 270 IF F THEN A% = 7 ELSE A% = 8
-280 PRINT "7"; A%
+280 PRINT "7", A%
 ' a zero Single takes ELSE
 290 F = 0.0
 300 IF F THEN A% = 7 ELSE A% = 8
-310 PRINT "8"; A%
+310 PRINT "8", A%
 ' Many Single conditions in a loop: F is nonzero on every pass, so the count
 ' must reach 100. A drifting stack from the IF condition would corrupt this.
 320 C% = 0
@@ -50,39 +50,39 @@
 340 F = I% * 0.5
 350 IF F THEN C% = C% + 1
 360 NEXT I%
-370 PRINT "100"; C%
+370 PRINT "100", C%
 ' A Single expression under IF is tested the same way. The difference of two
 ' variables, nonzero, is true
 400 F = 3.0
 410 G = 1.0
 420 A% = 0
 430 IF F - G THEN A% = 1
-440 PRINT "1"; A%
+440 PRINT "1", A%
 ' the difference is exactly zero, so false
 450 F = 2.0
 460 G = 2.0
 470 A% = 9
 480 IF F - G THEN A% = 1
-490 PRINT "9"; A%
+490 PRINT "9", A%
 ' a product expression, nonzero, is true
 500 F = 1.5
 510 G = 2.0
 520 A% = 0
 530 IF F * G THEN A% = 1
-540 PRINT "1"; A%
+540 PRINT "1", A%
 ' a sum that cancels to zero is false
 550 F = 2.5
 560 G = -2.5
 570 A% = 9
 580 IF F + G THEN A% = 1
-590 PRINT "9"; A%
+590 PRINT "9", A%
 ' a function inside the condition expression, nonzero, is true
 600 F = 2.0
 610 A% = 0
 620 IF SQR(F) - 1.0 THEN A% = 1
-630 PRINT "1"; A%
+630 PRINT "1", A%
 ' a Single expression with ELSE, zero takes ELSE
 640 F = 4.0
 650 G = 4.0
 660 IF F - G THEN A% = 7 ELSE A% = 8
-670 PRINT "8"; A%
+670 PRINT "8", A%

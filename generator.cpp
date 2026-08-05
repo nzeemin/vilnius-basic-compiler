@@ -1373,7 +1373,8 @@ void Generator::GenerateOn(StatementModel& statement)
     ExpressionModel& expr = statement.args[0];
     assert(expr.GetExpressionValueType() != ValueTypeString);
 
-    GenerateExpression(expr);
+    // Expression is Integer or Single, converting to Integer
+    GenerateOperandAsInteger(expr);  // result in R0
 
     string labeltable = GetNextLocalLabel();  // local label for jump table
     string labelend = GetNextLocalLabel();  // local label for statement end address
@@ -1588,7 +1589,8 @@ void Generator::GeneratePoke(StatementModel& statement)
         stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
     else
     {
-        GenerateExpression(expr1);
+        // The address must be an Integer; Single converted to Integer
+        GenerateOperandAsInteger(expr1);  // result in R0
         stat1 = "\tMOV\tR0, ";
     }
 
@@ -1609,7 +1611,7 @@ void Generator::GeneratePoke(StatementModel& statement)
     else
     {
         AddLine(stat1 + "-(SP)\t; PUSH address");
-        GenerateExpression(expr2);  // result in R0
+        GenerateOperandAsInteger(expr2);  // value as Integer in R0, stack balanced
         stat2 = "\tMOV\tR0, ";
         AddLine("\tMOV\t(SP)+, R1\t; POP R1");  // address -> R1
     }

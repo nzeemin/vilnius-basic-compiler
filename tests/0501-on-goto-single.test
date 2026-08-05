@@ -1,0 +1,55 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' ON..GOSUB / ON..GOTO with a Single selector. The value selects the branch
+' (1-based); a zero or out-of-range value calls nothing. Each block sets A% in
+' the called subroutine and prints the expected value next to A%.
+20 F = 1.0
+30 A% = 0
+40 ON F GOSUB 1000, 2000
+50 PRINT "1", A%
+60 F = 2.0
+70 A% = 0
+80 ON F GOSUB 1000, 2000
+90 PRINT "2", A%
+' a zero selector calls nothing
+100 F = 0.0
+110 A% = 9
+120 ON F GOSUB 1000, 2000
+130 PRINT "9", A%
+' a selector past the last case calls nothing
+140 F = 3.0
+150 A% = 9
+160 ON F GOSUB 1000, 2000
+170 PRINT "9", A%
+' a Single expression as the selector, F + G = 1.0
+180 F = 0.5
+190 G = 0.5
+200 A% = 0
+210 ON F + G GOSUB 1000, 2000
+220 PRINT "1", A%
+' ON..GOTO form with a Single selector
+230 F = 2.0
+240 A% = 0
+250 ON F GOTO 300, 320
+260 A% = 9
+270 GOTO 340
+300 A% = 1
+310 GOTO 340
+320 A% = 2
+330 GOTO 340
+340 PRINT "2", A%
+' many Single selectors in a loop: a leaked stack word would crash this
+350 C% = 0
+360 FOR I% = 1 TO 100
+370 F = 1.0
+380 ON F GOSUB 1000, 2000
+390 C% = C% + A%
+400 NEXT I%
+410 PRINT "100", C%
+420 GOTO 9000
+1000 A% = 1
+1010 RETURN
+2000 A% = 2
+2010 RETURN
+9000 END

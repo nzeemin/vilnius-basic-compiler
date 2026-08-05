@@ -1,0 +1,101 @@
+-q
+----------------------------------------------------------------------
+' POKE with Single address and value. A Single is not an Integer, so the
+' compiler must convert it (FTOI) and leave the value in R0, keeping the
+' stack balanced. A const Single folds, so these use variables and expressions.
+10 F = 1000.0
+20 G = 4.0
+30 V = 64.0
+' Single variable as the address
+40 POKE F, 100%
+' Single expression as the address
+50 POKE F + G, 100%
+' Single variable as the value
+60 POKE 200%, V
+' Single expression as the value
+70 POKE 200%, V + 1.0
+' both address and value Single
+80 POKE F, V
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+START:
+; Инициализация программы
+	MTPS	#340			; disable interrupts
+	CLR	@#177560
+	MTPS	#0			; enable interrupts
+	MOV	SP, SAVESP
+; 10 F = 1000.0
+N10:
+	CLR	VARFF		; var F! = const 1000.
+	MOV	#042572, VARFF+2
+; 20 G = 4.0
+N20:
+	CLR	VARFG		; var G! = const 4.
+	MOV	#040600, VARFG+2
+; 30 V = 64.0
+N30:
+	CLR	VARFV		; var V! = const 64.
+	MOV	#041600, VARFV+2
+; 40 POKE F, 100%
+N40:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, R1
+	MOV	#100., (R1)	; POKE
+; 50 POKE F + G, 100%
+N50:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	MOV	VARFG,   -(SP)	; var G!
+	MOV	VARFG+2, -(SP)
+	FADD	SP		; Operation '+'
+	CALL	FTOI		; to Integer
+	MOV	R0, R1
+	MOV	#100., (R1)	; POKE
+; 60 POKE 200%, V
+N60:
+	MOV	#200., -(SP)	; PUSH address
+	MOV	VARFV,   -(SP)	; var V!
+	MOV	VARFV+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	(SP)+, R1	; POP R1
+	MOV	R0, (R1)	; POKE
+; 70 POKE 200%, V + 1.0
+N70:
+	MOV	#200., -(SP)	; PUSH address
+	MOV	VARFV,   -(SP)	; var V!
+	MOV	VARFV+2, -(SP)
+	CLR	-(SP)		; const 1.
+	MOV	#040200, -(SP)
+	FADD	SP		; Operation '+'
+	CALL	FTOI		; to Integer
+	MOV	(SP)+, R1	; POP R1
+	MOV	R0, (R1)	; POKE
+; 80 POKE F, V
+N80:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, -(SP)	; PUSH address
+	MOV	VARFV,   -(SP)	; var V!
+	MOV	VARFV+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	(SP)+, R1	; POP R1
+	MOV	R0, (R1)	; POKE
+LEND:
+; Завершение программы
+SAVESP = . + 2
+	MOV	#776, SP	; restore SP
+	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
+; VARIABLES
+	.EVEN
+VARFF:	.WORD	0,0	; F!
+VARFG:	.WORD	0,0	; G!
+VARFV:	.WORD	0,0	; V!
+; RUNTIME CALLS
+	.GLOBL	FTOI
+	.END	START
