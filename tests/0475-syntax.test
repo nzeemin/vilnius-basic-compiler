@@ -1,9 +1,11 @@
 -q
 ----------------------------------------------------------------------
 41900 STOP
+41902 STOP 'comment
 41910 STOP 1
 41912 STOP A
 41914 STOP .
+41916 STOP;
 41920 END
 41922 END 'comment
 41930 END 1
@@ -31,8 +33,6 @@
 42727 DEF FN A=
 43100 PRINT
 43125 LPRINT
-43200 INPUT A
-43210 INPUT "AAA"; A
 43300 OPEN "AAA"
 43400 CLOSE
 45100 CLS
@@ -59,55 +59,61 @@
 48250 TROFF .
 48252 TROFF A
 ----------------------------------------------------------------------
-ERROR at 2:12 line 41910 - Unexpected text at the end of the statement.
+ERROR at 3:12 line 41910 - Unexpected text at the end of the statement.
 41910 STOP 1
            ^
-ERROR at 3:12 line 41912 - Unexpected text at the end of the statement.
+ERROR at 4:12 line 41912 - Unexpected text at the end of the statement.
 41912 STOP A
            ^
-ERROR at 4:12 line 41914 - Unexpected text at the end of the statement.
+ERROR at 5:12 line 41914 - Unexpected text at the end of the statement.
 41914 STOP .
            ^
-ERROR at 7:11 line 41930 - Unexpected text at the end of the statement.
+ERROR at 6:11 line 41916 - Unexpected text at the end of the statement.
+41916 STOP;
+          ^
+ERROR at 9:11 line 41930 - Unexpected text at the end of the statement.
 41930 END 1
           ^
-ERROR at 8:11 line 41932 - Unexpected text at the end of the statement.
+ERROR at 10:11 line 41932 - Unexpected text at the end of the statement.
 41932 END A
           ^
-ERROR at 9:11 line 41934 - Unexpected text at the end of the statement.
+ERROR at 11:11 line 41934 - Unexpected text at the end of the statement.
 41934 END .
           ^
-ERROR at 10:10 line 41936 - Unexpected text at the end of the statement.
+ERROR at 12:10 line 41936 - Unexpected text at the end of the statement.
 41936 END;
          ^
-ERROR at 13:10 line 42250 - Expression should not be empty.
+ERROR at 15:10 line 42250 - Expression should not be empty.
 42250 KEY
          ^
-ERROR at 14:12 line 42252 - Comma expected.
+ERROR at 16:12 line 42252 - Comma expected.
 42252 KEY 1
            ^
-ERROR at 15:13 line 42254 - Expression should not be empty.
+ERROR at 17:13 line 42254 - Expression should not be empty.
 42254 KEY 1,
             ^
-ERROR at 16:19 line 42256 - Unexpected text at the end of the statement.
+ERROR at 18:19 line 42256 - Unexpected text at the end of the statement.
 42256 KEY 1, "AAA",
                   ^
-ERROR at 21:14 line 42715 - Equal sign expected.
+ERROR at 23:14 line 42715 - Equal sign expected.
 42715 DEF USR
              ^
-ERROR at 22:15 line 42716 - Expression should not be empty.
+ERROR at 24:15 line 42716 - Expression should not be empty.
 42716 DEF USR=
               ^
-ERROR at 23:15 line 42717 - Equal sign expected.
+ERROR at 25:15 line 42717 - Equal sign expected.
 42717 DEF USR1
               ^
-ERROR at 24:16 line 42718 - Expression should not be empty.
+ERROR at 26:16 line 42718 - Expression should not be empty.
 42718 DEF USR1=
                ^
-ERROR at 27:13 line 42725 - Identifier expected.
+ERROR at 29:13 line 42725 - Identifier expected.
 42725 DEF FN
             ^
-ERROR at 29:16 line 42727 - Expression should not be empty.
+ERROR at 30:15 line 42726 - Equal sign expected.
+42726 DEF FN A
+              ^
+ERROR at 31:16 line 42727 - Expression should not be empty.
 42727 DEF FN A=
                ^
 ERROR at 38:11 line 45150 - Unexpected text at the end of the statement.
@@ -158,4 +164,4 @@ ERROR at 57:13 line 48250 - Unexpected text at the end of the statement.
 ERROR at 58:13 line 48252 - Unexpected text at the end of the statement.
 48252 TROFF A
             ^
-Parsing ERRORS: 33
+Parsing ERRORS: 35

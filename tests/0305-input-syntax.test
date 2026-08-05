@@ -1,0 +1,34 @@
+-q
+----------------------------------------------------------------------
+10 INPUT A
+20 INPUT A, B
+30 INPUT A%, B$, C
+40 INPUT "Name"; A
+50 INPUT "Name"; A, B
+60 INPUT A'comment
+100 INPUT
+110 INPUT 1
+120 INPUT "AAA"
+140 INPUT A B
+150 INPUT A,
+160 INPUT A, 1
+----------------------------------------------------------------------
+ERROR at 7:10 line 100 - Identifier expected.
+100 INPUT
+         ^
+ERROR at 8:11 line 110 - Identifier expected.
+110 INPUT 1
+          ^
+ERROR at 9:16 line 120 - Semicolon expected.
+120 INPUT "AAA"
+               ^
+ERROR at 10:13 line 140 - Unexpected text at the end of the statement.
+140 INPUT A B
+            ^
+ERROR at 11:13 line 150 - Identifier expected.
+150 INPUT A,
+            ^
+ERROR at 12:14 line 160 - Identifier expected.
+160 INPUT A, 1
+             ^
+Parsing ERRORS: 6

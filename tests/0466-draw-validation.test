@@ -1,0 +1,18 @@
+-q
+----------------------------------------------------------------------
+10 DRAW "ABC"
+20 DRAW A$
+100 DRAW 1%
+110 DRAW 1
+120 DRAW A%
+130 DRAW A
+140 DRAW 1.5
+150 DRAW 1%+2%
+----------------------------------------------------------------------
+ERROR in line 100 at 3:10 - Expression should be of type String.
+ERROR in line 110 at 4:10 - Expression should be of type String.
+ERROR in line 120 at 5:10 - Expression should be of type String.
+ERROR in line 130 at 6:10 - Expression should be of type String.
+ERROR in line 140 at 7:10 - Expression should be of type String.
+ERROR in line 150 at 8:12 - Expression should be of type String.
+Validation ERRORS: 6

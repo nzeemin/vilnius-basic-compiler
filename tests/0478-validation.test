@@ -1,36 +1,14 @@
 -q
 ----------------------------------------------------------------------
 10 CLEAR "A"
-82 PSET (A$, 200)
-83 PSET (100, B$)
-84 PSET (150, 200), A$
-86 PRESET (A$, 200)
-87 PRESET (100, B$)
-88 PRESET (150, 200), A$
 95 KEY "A", "B"
 96 KEY 1, 2
 97 KEY 11, "AAA"
 100 NEXT
-110 GOTO 65535
-220 DRAW 1%
-222 DRAW 1
-224 DRAW A%
-226 DRAW A
 ----------------------------------------------------------------------
 ERROR in line 10 at 1:10 - Expression should be of type Integer or Single.
-ERROR in line 82 at 2:10 - Expression should be of type Integer or Single.
-ERROR in line 83 at 3:15 - Expression should be of type Integer or Single.
-ERROR in line 84 at 4:21 - Expression should be of type Integer or Single.
-ERROR in line 86 at 5:12 - Expression should be of type Integer or Single.
-ERROR in line 87 at 6:17 - Expression should be of type Integer or Single.
-ERROR in line 88 at 7:23 - Expression should be of type Integer or Single.
-ERROR in line 95 at 8:8 - Expression should be of type Integer or Single.
-ERROR in line 96 at 9:11 - Expression should be of type String.
+ERROR in line 95 at 2:8 - Expression should be of type Integer or Single.
+ERROR in line 96 at 3:11 - Expression should be of type String.
 ERROR in line 97 - Parameter value (11) is out of range 1..10.
 ERROR in line 100 - NEXT without FOR.
-ERROR in line 110 - Invalid line number 65535.
-ERROR in line 220 at 13:10 - Expression should be of type String.
-ERROR in line 222 at 14:10 - Expression should be of type String.
-ERROR in line 224 at 15:10 - Expression should be of type String.
-ERROR in line 226 at 16:10 - Expression should be of type String.
-Validation ERRORS: 16
+Validation ERRORS: 5

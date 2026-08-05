@@ -1,0 +1,14 @@
+-q
+----------------------------------------------------------------------
+10 GOTO 30
+20 GOTO 10
+30 GOTO 20
+40 GOTO 40
+100 GOTO 999
+110 GOTO 105
+120 GOTO 65535
+----------------------------------------------------------------------
+ERROR in line 100 - Invalid line number 999.
+ERROR in line 110 - Invalid line number 105.
+ERROR in line 120 - Invalid line number 65535.
+Validation ERRORS: 3

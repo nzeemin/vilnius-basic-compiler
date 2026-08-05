@@ -1,0 +1,30 @@
+-q
+----------------------------------------------------------------------
+10 WIDTH 40
+20 WIDTH 40, 25
+100 WIDTH
+110 WIDTH "A"
+120 WIDTH 40,
+130 WIDTH 40, "B"
+140 WIDTH 40 25
+150 WIDTH 40, 25, 3
+----------------------------------------------------------------------
+ERROR at 3:10 line 100 - Numeric argument expected.
+100 WIDTH
+         ^
+ERROR at 4:11 line 110 - Numeric argument expected.
+110 WIDTH "A"
+          ^
+ERROR at 5:14 line 120 - Numeric argument expected.
+120 WIDTH 40,
+             ^
+ERROR at 6:15 line 130 - Numeric argument expected.
+130 WIDTH 40, "B"
+              ^
+ERROR at 7:14 line 140 - Unexpected text.
+140 WIDTH 40 25
+             ^
+ERROR at 8:17 line 150 - Unexpected text at the end of the statement.
+150 WIDTH 40, 25, 3
+                ^
+Parsing ERRORS: 6

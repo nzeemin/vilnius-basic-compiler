@@ -1,0 +1,25 @@
+-q
+----------------------------------------------------------------------
+10 DATA 1
+20 DATA 1, 2, 3
+30 DATA "A", "B"
+40 DATA 1, "two", 3
+50 DATA -1, -5
+100 DATA
+110 DATA
+120 DATA 1,
+130 DATA 1,
+----------------------------------------------------------------------
+ERROR at 6:9 line 100 - Number or string expected.
+100 DATA
+        ^
+ERROR at 7:9 line 110 - Number or string expected.
+110 DATA
+        ^
+ERROR at 8:12 line 120 - Number or string expected.
+120 DATA 1,
+           ^
+ERROR at 9:12 line 130 - Number or string expected.
+130 DATA 1,
+           ^
+Parsing ERRORS: 4

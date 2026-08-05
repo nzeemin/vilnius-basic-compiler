@@ -1,0 +1,14 @@
+-q
+----------------------------------------------------------------------
+10 GOSUB 30
+20 GOSUB 10
+30 GOSUB 20
+40 GOSUB 40
+100 GOSUB 999
+110 GOSUB 105
+120 GOSUB 65535
+----------------------------------------------------------------------
+ERROR in line 100 - Invalid line number 999.
+ERROR in line 110 - Invalid line number 105.
+ERROR in line 120 - Invalid line number 65535.
+Validation ERRORS: 3

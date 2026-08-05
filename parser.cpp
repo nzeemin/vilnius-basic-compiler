@@ -881,17 +881,25 @@ void Parser::ParseData(StatementModel& statement)
     Token token;
     while (true)
     {
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
         if (token.type == TokenTypeOperation && token.text == "-")  // unary minus
         {
-            token = GetNextToken();
+            GetNextToken();  // '-'
+            token = PeekNextToken();
             if (token.type != TokenTypeNumber)
                 MODEL_ERROR("Number expected.");
+            GetNextToken();  // number
             token.text.insert(0, "-");
             token.dvalue = -token.dvalue;  // invert sign
         }
         else if (token.type != TokenTypeNumber && token.type != TokenTypeString)
+        {
             MODEL_ERROR("Number or string expected.");
+        }
+        else
+        {
+            GetNextToken();  // number or string
+        }
         statement.params.push_back(token);
 
         token = PeekNextTokenSkipDivider();
@@ -1086,9 +1094,11 @@ void Parser::ParseInput(StatementModel& statement)
     {
         GetNextToken();
         statement.params.push_back(token);
-        token = GetNextTokenSkipDivider();
+
+        token = PeekNextTokenSkipDivider();
         if (token.type != TokenTypeSymbol || token.symbol != ';')
             MODEL_ERROR("Semicolon expected.");
+        GetNextToken();  // semicolon
     }
 
     while (true)
@@ -1116,18 +1126,20 @@ void Parser::ParseOpen(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr1);
     statement.args.push_back(expr1);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.IsKeyword(KeywordFOR))
     {
-        token = GetNextTokenSkipDivider();
+        GetNextToken();  // FOR
+        token = PeekNextTokenSkipDivider();
         if (token.IsKeyword(KeywordINPUT))
             statement.filemode = FileModeInput;
         else if (token.IsKeyword(KeywordOUTPUT))
             statement.filemode = FileModeOutput;
         else
             MODEL_ERROR(MSG_UNEXPECTED);
+        GetNextToken();  // INPUT or OUTPUT
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
     }
 
     if (!token.IsEndOfStatement())
@@ -1563,9 +1575,10 @@ void Parser::ParsePsetPreset(StatementModel& statement)
     CHECK_EXPRESSION_NOT_EMPTY(expr2);
     statement.args.push_back(expr2);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (!token.IsCloseBracket())
         MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+    GetNextToken();
 
     token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
@@ -1883,11 +1896,17 @@ void Parser::ParseRestore(StatementModel& statement)
 
 void Parser::ParseDef(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if (token.IsKeyword(KeywordFN))  // DEF FN
+    {
+        GetNextToken();  // FN
         ParseDefFn(statement);
+    }
     else if (token.IsKeyword(KeywordUSR))  // DEF USR
+    {
+        GetNextToken();  // USR
         ParseDefUsr(statement);
+    }
     else
         MODEL_ERROR("\'FN\' or \'USR\' expected.");
 }
@@ -1896,34 +1915,40 @@ void Parser::ParseDefFn(StatementModel& statement)
 {
     statement.deffnorusr = true;
 
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeIdentifier)
         MODEL_ERROR("Identifier expected.");
+    GetNextToken();  // identifier
     statement.ident = token;
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.IsOpenBracket())  // Parse optional parameters
     {
+        GetNextToken();  // open bracket
         while (true)
         {
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (token.type != TokenTypeIdentifier)
                 MODEL_ERROR("Identifier expected.");
+            GetNextToken();  // identifier
             statement.params.push_back(token);
 
-            token = GetNextTokenSkipDivider();
+            token = PeekNextTokenSkipDivider();
             if (!token.IsComma())
-                break;
+                break;  // token holds the non-comma, checked as close bracket below
+            GetNextToken();  // comma
         }
 
         if (!token.IsCloseBracket())
             MODEL_ERROR(MSG_CLOSE_BRACKET_EXPECTED);
+        GetNextToken();  // close bracket
 
-        token = GetNextTokenSkipDivider();
+        token = PeekNextTokenSkipDivider();
     }
 
     if (!token.IsEqualSign())
         MODEL_ERROR("Equal sign expected.");
+    GetNextToken();  // equal sign
 
     token = PeekNextTokenSkipDivider();
     ExpressionModel expr = ParseExpression();
@@ -1983,20 +2008,23 @@ void Parser::ParseScreen(StatementModel& statement)
 // WIDTH <Integer>, [<Integer>]
 void Parser::ParseWidth(StatementModel& statement)
 {
-    Token token = GetNextTokenSkipDivider();
+    Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
         MODEL_ERROR("Numeric argument expected.");
+    GetNextToken();  // number
     statement.params.push_back(token);
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
         return;
     if (!token.IsComma())
         MODEL_ERROR(MSG_UNEXPECTED);
+    GetNextToken();  // comma
 
-    token = GetNextTokenSkipDivider();
+    token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
         MODEL_ERROR("Numeric argument expected.");
+    GetNextToken();  // number
     statement.params.push_back(token);
 
     token = PeekNextTokenSkipDivider();

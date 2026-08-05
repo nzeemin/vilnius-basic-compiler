@@ -1,0 +1,14 @@
+-q
+----------------------------------------------------------------------
+10 A% = 1
+20 ON A% GOTO 40, 100
+30 ON A% GOTO 10, 20
+40 ON A% GOTO 999
+100 ON A% GOTO 30, 105
+110 ON A% GOSUB 20, 888
+120 ON A% GOSUB 120
+----------------------------------------------------------------------
+ERROR in line 40 - Invalid line number 999
+ERROR in line 100 - Invalid line number 105
+ERROR in line 110 - Invalid line number 888
+Validation ERRORS: 3
