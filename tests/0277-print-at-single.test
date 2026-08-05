@@ -1,0 +1,105 @@
+-q
+----------------------------------------------------------------------
+' PRINT AT(col,row) with Single arguments. A Single must be converted (FTOI)
+' to an Integer position, keeping the stack balanced. Const folds, so these
+' use variables and expressions. Both arguments are always present, so this
+' uses WRAT only and does not need the (unimplemented) cursor readback.
+10 F = 5.0
+20 G = 3.0
+30 H = 2.0
+' both column and row Single variables
+40 ? AT(F, G)"X";
+' Single column, Integer row
+50 ? AT(F, 4%)"X";
+' Integer column, Single row
+60 ? AT(6%, G)"X";
+' Single expressions as the position
+70 ? AT(F + H, G + H)"X";
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+START:
+; Инициализация программы
+	MTPS	#340			; disable interrupts
+	CLR	@#177560
+	MTPS	#0			; enable interrupts
+	MOV	SP, SAVESP
+; 10 F = 5.0
+N10:
+	CLR	VARFF		; var F! = const 5.
+	MOV	#040640, VARFF+2
+; 20 G = 3.0
+N20:
+	CLR	VARFG		; var G! = const 3.
+	MOV	#040500, VARFG+2
+; 30 H = 2.0
+N30:
+	CLR	VARFH		; var H! = const 2.
+	MOV	#040400, VARFH+2
+; 40 ? AT(F, G)"X";
+N40:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, -(SP)	; PUSH column
+	MOV	VARFG,   -(SP)	; var G!
+	MOV	VARFG+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	(SP)+, R1	; POP R1
+	CALL	WRAT		; PRINT AT
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+; 50 ? AT(F, 4%)"X";
+N50:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, R1
+	MOV	#4., R0
+	CALL	WRAT		; PRINT AT
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+; 60 ? AT(6%, G)"X";
+N60:
+	MOV	#6., -(SP)	; PUSH column
+	MOV	VARFG,   -(SP)	; var G!
+	MOV	VARFG+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	(SP)+, R1	; POP R1
+	CALL	WRAT		; PRINT AT
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+; 70 ? AT(F + H, G + H)"X";
+N70:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	MOV	VARFH,   -(SP)	; var H!
+	MOV	VARFH+2, -(SP)
+	FADD	SP		; Operation '+'
+	CALL	FTOI		; to Integer
+	MOV	R0, -(SP)	; PUSH column
+	MOV	VARFG,   -(SP)	; var G!
+	MOV	VARFG+2, -(SP)
+	MOV	VARFH,   -(SP)	; var H!
+	MOV	VARFH+2, -(SP)
+	FADD	SP		; Operation '+'
+	CALL	FTOI		; to Integer
+	MOV	(SP)+, R1	; POP R1
+	CALL	WRAT		; PRINT AT
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+LEND:
+; Завершение программы
+SAVESP = . + 2
+	MOV	#776, SP	; restore SP
+	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
+; VARIABLES
+	.EVEN
+VARFF:	.WORD	0,0	; F!
+VARFG:	.WORD	0,0	; G!
+VARFH:	.WORD	0,0	; H!
+; RUNTIME CALLS
+	.GLOBL	WRCH, WRAT, FTOI
+	.END	START

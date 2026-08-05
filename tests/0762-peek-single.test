@@ -1,0 +1,33 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' PEEK with a Single address must read the same location as the Integer
+' address, so each line compares the two and prints -1 when they match.
+' PEEK only reads memory, so any even address is safe to probe.
+' address 0, Single variable
+20 A% = PEEK(0%)
+30 F = 0.0
+40 B% = PEEK(F)
+50 C% = (A% = B%)
+60 PRINT "-1", C%
+' a nonzero address, Single variable
+70 A% = PEEK(100%)
+80 F = 100.0
+90 B% = PEEK(F)
+100 C% = (A% = B%)
+110 PRINT "-1", C%
+' a Single expression as the address, F + G = 50
+120 A% = PEEK(50%)
+130 F = 25.0
+140 G = 25.0
+150 B% = PEEK(F + G)
+160 C% = (A% = B%)
+170 PRINT "-1", C%
+' many Single-address PEEKs in a loop: a leaked stack word would crash this,
+' and the last read must still match the Integer PEEK of the same address
+180 F = 200.0
+190 FOR I% = 1 TO 100
+200 B% = PEEK(F)
+210 NEXT I%
+220 C% = (B% = PEEK(200%))
+230 PRINT "-1", C%

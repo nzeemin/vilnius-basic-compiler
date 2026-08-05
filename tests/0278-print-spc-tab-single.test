@@ -1,0 +1,111 @@
+-q
+----------------------------------------------------------------------
+' PRINT TAB(n) and SPC(n) with Single arguments. The position/count must be an
+' Integer in R0, so a Single is converted (FTOI) and the stack kept balanced.
+' These use variables, expressions and const Singles.
+10 F = 5.0
+20 G = 3.0
+' TAB with a Single variable
+30 ? TAB(F)"X"
+' TAB with a Single expression
+40 ? TAB(F + G)"X"
+' TAB with a const Single
+50 ? TAB(3.0)"X"
+' SPC with a Single variable
+60 ? SPC(F)"X"
+' SPC with a Single expression
+70 ? SPC(F + G)"X"
+' SPC with a const Single
+80 ? SPC(2.0)"X"
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+START:
+; Инициализация программы
+	MTPS	#340			; disable interrupts
+	CLR	@#177560
+	MTPS	#0			; enable interrupts
+	MOV	SP, SAVESP
+; 10 F = 5.0
+N10:
+	CLR	VARFF		; var F! = const 5.
+	MOV	#040640, VARFF+2
+; 20 G = 3.0
+N20:
+	CLR	VARFG		; var G! = const 3.
+	MOV	#040500, VARFG+2
+; 30 ? TAB(F)"X"
+N30:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CALL	FTOI		; to Integer
+	CALL	WRTAB		; PRINT tab
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+	CALL	WREOL
+; 40 ? TAB(F + G)"X"
+N40:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	MOV	VARFG,   -(SP)	; var G!
+	MOV	VARFG+2, -(SP)
+	FADD	SP		; Operation '+'
+	CALL	FTOI		; to Integer
+	CALL	WRTAB		; PRINT tab
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+	CALL	WREOL
+; 50 ? TAB(3.0)"X"
+N50:
+	CLR	-(SP)		; const 3.
+	MOV	#040500, -(SP)
+	CALL	FTOI		; to Integer
+	CALL	WRTAB		; PRINT tab
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+	CALL	WREOL
+; 60 ? SPC(F)"X"
+N60:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CALL	FTOI		; to Integer
+	CALL	WRSPC		; PRINT spaces
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+	CALL	WREOL
+; 70 ? SPC(F + G)"X"
+N70:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	MOV	VARFG,   -(SP)	; var G!
+	MOV	VARFG+2, -(SP)
+	FADD	SP		; Operation '+'
+	CALL	FTOI		; to Integer
+	CALL	WRSPC		; PRINT spaces
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+	CALL	WREOL
+; 80 ? SPC(2.0)"X"
+N80:
+	CLR	-(SP)		; const 2.
+	MOV	#040400, -(SP)
+	CALL	FTOI		; to Integer
+	CALL	WRSPC		; PRINT spaces
+	MOV	#88., R0	; 'X'
+	CALL	WRCH		; PRINT char
+	CALL	WREOL
+LEND:
+; Завершение программы
+SAVESP = . + 2
+	MOV	#776, SP	; restore SP
+	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
+; VARIABLES
+	.EVEN
+VARFF:	.WORD	0,0	; F!
+VARFG:	.WORD	0,0	; G!
+; RUNTIME CALLS
+	.GLOBL	WRCH, WREOL, WRSPC, WRTAB
+	.GLOBL	FTOI
+	.END	START

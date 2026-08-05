@@ -985,7 +985,8 @@ void Generator::GenerateColor(StatementModel& statement)
             stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
         else
         {
-            GenerateExpression(expr1);
+            // Integer parameter; Single converted to Integer
+            GenerateOperandAsInteger(expr1);  // result in R0
             stat1 = "\tMOV\tR0, ";
         }
     }
@@ -1005,7 +1006,7 @@ void Generator::GenerateColor(StatementModel& statement)
         {
             AddLine(stat1 + "-(SP)");  // PUSH
             stat1 = "\tMOV\t(SP)+, ";
-            GenerateExpression(expr2);  // result in R0
+            GenerateOperandAsInteger(expr2);  // value as Integer in R0, stack balanced
             stat2 = "\tMOV\tR0, ";
         }
     }
@@ -1035,7 +1036,7 @@ void Generator::GenerateColor(StatementModel& statement)
         else
         {
             AddLine(stat2 + "-(SP)");  // PUSH
-            GenerateExpression(expr3);  // result in R0
+            GenerateOperandAsInteger(expr3);  // value as Integer in R0, stack balanced
             AddLine("\tMOV\tR0, R2");
             AddLine("\tMOV\t(SP)+, R1");  // POP R1
             AddLine(stat1 + "R0");
@@ -1419,7 +1420,7 @@ void Generator::GenerateLocate(StatementModel& statement)
             stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
         else
         {
-            GenerateExpression(expr1);
+            GenerateOperandAsInteger(expr1);  // Single column -> Integer in R0
             stat1 = "\tMOV\tR0, ";
         }
 
@@ -1439,7 +1440,7 @@ void Generator::GenerateLocate(StatementModel& statement)
         else
         {
             AddLine(stat1 + "-(SP)\t; PUSH column");
-            GenerateExpression(expr2);  // R0
+            GenerateOperandAsInteger(expr2);  // Single row -> Integer in R0
             AddLine("\tMOV\t(SP)+, R1\t; POP R1 column");  // column -> R1
         }
 
@@ -1464,7 +1465,7 @@ void Generator::GenerateLocate(StatementModel& statement)
         else
         {
             AddLine("\tMOV\tR2, -(SP)\t; PUSH row");
-            GenerateExpression(expr1);  // result in R0
+            GenerateOperandAsInteger(expr1);  // Single column -> Integer in R0
             AddLine("\tMOV\tR0, R1\t; column");
             AddLine("\tMOV\t(SP)+, R0\t; POP R0 row");  // row -> R0
         }
@@ -1490,7 +1491,7 @@ void Generator::GenerateLocate(StatementModel& statement)
         else
         {
             AddLine("\tMOV\tR1, -(SP)\t; PUSH column");
-            GenerateExpression(expr2);  // result in R0 = row
+            GenerateOperandAsInteger(expr2);  // Single row -> Integer in R0
             AddLine("\tMOV\t(SP)+, R1\t; POP R1 column");  // column -> R1
         }
 
@@ -1512,8 +1513,8 @@ void Generator::GenerateLocate(StatementModel& statement)
         const ExpressionModel& expr3 = statement.args[2];  // on/off, could be empty
         assert(expr3.GetExpressionValueType() != ValueTypeString);
 
-        GenerateExpression(expr3);
-        
+        GenerateOperandAsInteger(expr3);  // Single on/off -> Integer in R0
+
         AddRuntimeCall(RuntimeCURSR, "show/hide cursor");
     }
 }
@@ -1743,7 +1744,7 @@ void Generator::GeneratePrint(StatementModel& statement)
         {
             assert(root.args.size() == 1);
             const ExpressionModel& expr1 = root.args[0];
-            GenerateExpression(expr1);
+            GenerateOperandAsInteger(expr1);  // Single tab position -> Integer in R0
             AddRuntimeCall(RuntimeWRTAB, "PRINT tab");
         }
         else if (root.token.IsKeyword(KeywordSPC))  // SPC(num)
@@ -1754,7 +1755,7 @@ void Generator::GeneratePrint(StatementModel& statement)
                 ;  // skip SPC(0) or SPC(-1)
             else
             {
-                GenerateExpression(expr1);
+                GenerateOperandAsInteger(expr1);  // Single space count -> Integer in R0
                 AddRuntimeCall(RuntimeWRSPC, "PRINT spaces");
             }
         }
@@ -1798,7 +1799,7 @@ void Generator::GeneratePrintAt(const ExpressionModel& expr)
         stat1 = "\tMOV\t" + expr1.GetVariableExpressionDecoratedName() + ", ";
     else
     {
-        GenerateExpression(expr1);
+        GenerateOperandAsInteger(expr1);  // Single column -> Integer in R0
         stat1 = "\tMOV\tR0, ";
     }
 
@@ -1819,7 +1820,7 @@ void Generator::GeneratePrintAt(const ExpressionModel& expr)
     else
     {
         AddLine(stat1 + "-(SP)\t; PUSH column");
-        GenerateExpression(expr2);  // R0
+        GenerateOperandAsInteger(expr2);  // Single row -> Integer in R0
         AddLine("\tMOV\t(SP)+, R1\t; POP R1");  // column -> R1
     }
 
@@ -3025,14 +3026,15 @@ void Generator::GenerateFuncPeek(const ExpressionModel& expr, const ExpressionNo
         AddLine("\tMOV\t@#" + std::to_string(ivalue) + "., R0" + comment);
         return;
     }
-    else if (expr1.IsVariableExpression())
+    else if (expr1.IsVariableExpression() && expr1.GetExpressionValueType() == ValueTypeInteger)
     {
+        // Integer variable holds the address
         AddLine("\tMOV\t@" + expr1.GetVariableExpressionDecoratedName() + ", R0" + comment);
         return;
     }
 
-    GenerateExpression(expr1);
-    //TODO: For Single expression, convert to Integer
+    // The address parameter, Integer; Single converted to Integer
+    GenerateOperandAsInteger(expr1);  // result in R0
     AddLine("\tMOV\t(R0), R0" + comment);
 }
 

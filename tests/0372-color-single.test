@@ -1,0 +1,127 @@
+-q
+----------------------------------------------------------------------
+' COLOR with Single arguments. A Single is not an Integer, so the compiler
+' must convert it (FTOI) and leave the value in the register, keeping the
+' stack balanced. A const folds, so these use variables and expressions.
+10 F = 1.0
+20 G = 2.0
+30 H = 3.0
+' foreground: Single variable
+40 COLOR F
+' foreground: Single expression
+50 COLOR F + 1.0
+' foreground and background Single
+60 COLOR F, G
+' all three Single
+70 COLOR F, G, H
+' background Single, foreground empty
+80 COLOR , G
+' border Single, foreground and background empty
+90 COLOR , , H
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+START:
+; Инициализация программы
+	MTPS	#340			; disable interrupts
+	CLR	@#177560
+	MTPS	#0			; enable interrupts
+	MOV	SP, SAVESP
+; 10 F = 1.0
+N10:
+	CLR	VARFF		; var F! = const 1.
+	MOV	#040200, VARFF+2
+; 20 G = 2.0
+N20:
+	CLR	VARFG		; var G! = const 2.
+	MOV	#040400, VARFG+2
+; 30 H = 3.0
+N30:
+	CLR	VARFH		; var H! = const 3.
+	MOV	#040500, VARFH+2
+; 40 COLOR F
+N40:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, R0
+	MOV	#-1, R1
+	MOV	#-1, R2
+	CALL	COLR		; COLOR
+; 50 COLOR F + 1.0
+N50:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CLR	-(SP)		; const 1.
+	MOV	#040200, -(SP)
+	FADD	SP		; Operation '+'
+	CALL	FTOI		; to Integer
+	MOV	R0, R0
+	MOV	#-1, R1
+	MOV	#-1, R2
+	CALL	COLR		; COLOR
+; 60 COLOR F, G
+N60:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, -(SP)
+	MOV	VARFG,   -(SP)	; var G!
+	MOV	VARFG+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	(SP)+, R0
+	MOV	R0, R1
+	MOV	#-1, R2
+	CALL	COLR		; COLOR
+; 70 COLOR F, G, H
+N70:
+	MOV	VARFF,   -(SP)	; var F!
+	MOV	VARFF+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, -(SP)
+	MOV	VARFG,   -(SP)	; var G!
+	MOV	VARFG+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, -(SP)
+	MOV	VARFH,   -(SP)	; var H!
+	MOV	VARFH+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, R2
+	MOV	(SP)+, R1
+	MOV	(SP)+, R0
+	CALL	COLR		; COLOR
+; 80 COLOR , G
+N80:
+	MOV	#-1, -(SP)
+	MOV	VARFG,   -(SP)	; var G!
+	MOV	VARFG+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	(SP)+, R0
+	MOV	R0, R1
+	MOV	#-1, R2
+	CALL	COLR		; COLOR
+; 90 COLOR , , H
+N90:
+	MOV	#-1, -(SP)
+	MOV	VARFH,   -(SP)	; var H!
+	MOV	VARFH+2, -(SP)
+	CALL	FTOI		; to Integer
+	MOV	R0, R2
+	MOV	(SP)+, R1
+	MOV	#-1, R0
+	CALL	COLR		; COLOR
+LEND:
+; Завершение программы
+SAVESP = . + 2
+	MOV	#776, SP	; restore SP
+	EMT	350		; .EXIT
+; STRINGS
+	.EVEN
+ST0:	.WORD	0	; empty string
+; VARIABLES
+	.EVEN
+VARFF:	.WORD	0,0	; F!
+VARFG:	.WORD	0,0	; G!
+VARFH:	.WORD	0,0	; H!
+; RUNTIME CALLS
+	.GLOBL	FTOI, COLR
+	.END	START
