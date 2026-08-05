@@ -2220,7 +2220,7 @@ void Generator::GenerateOperDivInt(const ExpressionModel& expr, const Expression
             return;
         case 1:
             GenerateOperandAsInteger(expr, nodeleft);  // result in R0
-            Warning(noderight.token, "Division by 1 reduced to nothing, consider to remove the Division.");
+            Warning(noderight.token, "Division by 1 reduced to nothing, consider to remove the division.");
             return;
         //NOTE: There is no special case for a power of two here. ASR and ASH shift the
         //      sign bit in, so they round down, while the integer division truncates
@@ -2267,7 +2267,7 @@ void Generator::GenerateOperMod(const ExpressionModel& expr, const ExpressionNod
         switch (ivalue)
         {
         case 0:  // check if divider is zero
-            std::cerr << "ERROR in expression at " << node.token.line << ":" << node.token.pos << " - MOD didiver is zero." << std::endl;
+            std::cerr << "ERROR in expression at " << node.token.line << ":" << node.token.pos << " - MOD divider is zero." << std::endl;
             m_line->error = true;
             RegisterError();
             return;

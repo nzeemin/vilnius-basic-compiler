@@ -95,13 +95,13 @@ ERROR at 17:13 line 42254 - Expression should not be empty.
 ERROR at 18:19 line 42256 - Unexpected text at the end of the statement.
 42256 KEY 1, "AAA",
                   ^
-ERROR at 23:14 line 42715 - Equal sign expected.
+ERROR at 23:14 line 42715 - Equal sign ('=') expected.
 42715 DEF USR
              ^
 ERROR at 24:15 line 42716 - Expression should not be empty.
 42716 DEF USR=
               ^
-ERROR at 25:15 line 42717 - Equal sign expected.
+ERROR at 25:15 line 42717 - Equal sign ('=') expected.
 42717 DEF USR1
               ^
 ERROR at 26:16 line 42718 - Expression should not be empty.
@@ -110,7 +110,7 @@ ERROR at 26:16 line 42718 - Expression should not be empty.
 ERROR at 29:13 line 42725 - Identifier expected.
 42725 DEF FN
             ^
-ERROR at 30:15 line 42726 - Equal sign expected.
+ERROR at 30:15 line 42726 - Equal sign ('=') expected.
 42726 DEF FN A
               ^
 ERROR at 31:16 line 42727 - Expression should not be empty.

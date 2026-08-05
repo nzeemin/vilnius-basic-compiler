@@ -18,13 +18,13 @@
 110 ON 1 GOSUB 100
 120 ON A GOTO 100
 ----------------------------------------------------------------------
-ERROR at 1:6 line 10 - Expreession expected.
+ERROR at 1:6 line 10 - Expression expected.
 10 ON
      ^
-ERROR at 2:7 line 12 - Expreession expected.
+ERROR at 2:7 line 12 - Expression expected.
 12 ON 
       ^
-ERROR at 3:6 line 14 - Expreession expected.
+ERROR at 3:6 line 14 - Expression expected.
 14 ON'comment
      ^
 ERROR at 4:7 line 16 - Expression should not be empty.

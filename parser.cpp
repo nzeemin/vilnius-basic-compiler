@@ -112,6 +112,12 @@ const char* MSG_COMMA_EXPECTED = "Comma expected.";
 const char* MSG_OPEN_BRACKET_EXPECTED = "Open bracket expected.";
 const char* MSG_CLOSE_BRACKET_EXPECTED = "Close bracket expected.";
 const char* MSG_ARGUMENTS_EXPECTED = "Arguments expected.";
+const char* MSG_IDENTIFIER_EXPECTED = "Identifier expected.";
+const char* MSG_NUMERIC_ARGUMENT_EXPECTED = "Numeric argument expected.";
+const char* MSG_OPERAND_EXPECTED = "Operand expected in expression.";
+const char* MSG_LINE_NUMBER_EXPECTED = "Line number expected.";
+const char* MSG_LINE_NUMBER_MUST_BE_INTEGER = "Line number must be an Integer.";
+const char* MSG_EQUAL_SIGN_EXPECTED = "Equal sign (\'=\') expected.";
 
 
 const ParserFunctionSpec* Parser::FindFunctionSpec(KeywordIndex keyword)
@@ -463,7 +469,7 @@ ExpressionModel Parser::ParseExpression()
         {
             if (token.IsEndOfExpression())
             {
-                Error(token, "Operand expected in expression.");
+                Error(token, MSG_OPERAND_EXPECTED);
                 return expression;
             }
 
@@ -501,7 +507,7 @@ ExpressionModel Parser::ParseExpression()
                 token = PeekNextTokenSkipDivider();
                 if (token.IsEndOfExpression())
                 {
-                    Error(token, "Operand expected in expression.");
+                    Error(token, MSG_OPERAND_EXPECTED);
                     return expression;
                 }
                 token = GetNextToken();  // get the token we peeked
@@ -647,7 +653,7 @@ ExpressionModel Parser::ParseExpression()
                                 return expression;
                             if (expri.IsEmpty())
                             {
-                                Error(token, "Expression should not be empty.");
+                                Error(token, MSG_EXPRESSION_SHOULDNOT_BE_EMPTY);
                                 return expression;
                             }
                             node.args.push_back(expri);
@@ -687,7 +693,7 @@ VariableModel Parser::ParseVariable()
     Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeIdentifier)
     {
-        Error(token, "Identifier expected.");
+        Error(token, MSG_IDENTIFIER_EXPECTED);
         return var;
     }
     token = GetNextToken();  // Identifier
@@ -738,7 +744,7 @@ VariableExpressionModel Parser::ParseVariableExpression()
     Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeIdentifier)
     {
-        Error(token, "Identifier expected.");
+        Error(token, MSG_IDENTIFIER_EXPECTED);
         return var;
     }
     token = GetNextToken();  // Identifier
@@ -946,14 +952,14 @@ void Parser::ParseFor(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeIdentifier)
-        MODEL_ERROR("Identifier expected.");
+        MODEL_ERROR(MSG_IDENTIFIER_EXPECTED);
     GetNextToken();  // identifier
 
     statement.ident = token;
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsEqualSign())
-        MODEL_ERROR("Equal sign (\'=\') expected.");
+        MODEL_ERROR(MSG_EQUAL_SIGN_EXPECTED);
     GetNextToken();  // equal sign
 
     token = PeekNextTokenSkipDivider();
@@ -996,7 +1002,7 @@ void Parser::ParseGotoGosub(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
-        MODEL_ERROR("Line number expected.");
+        MODEL_ERROR(MSG_LINE_NUMBER_EXPECTED);
     token = GetNextToken();  // line number
     statement.paramline = atoi(token.text.c_str());
 
@@ -1025,7 +1031,7 @@ void Parser::ParseIf(StatementModel& statement)
     {
         GetNextToken();  // line number
         if (!token.IsDValueInteger())
-            MODEL_ERROR("Line number must be an Integer.");
+            MODEL_ERROR(MSG_LINE_NUMBER_MUST_BE_INTEGER);
         statement.params.push_back(token);
     }
     else if (!isthen)  // GOTO without line number
@@ -1064,7 +1070,7 @@ void Parser::ParseIf(StatementModel& statement)
     {
         GetNextToken();  // Number
         if (!token.IsDValueInteger())
-            MODEL_ERROR("Line number must be an Integer.");
+            MODEL_ERROR(MSG_LINE_NUMBER_MUST_BE_INTEGER);
         statement.params.push_back(token);
     }
     else  // statement under ELSE
@@ -1220,7 +1226,7 @@ void Parser::ParseLetShort(Token& tokenIdentOrMid, StatementModel& statement)
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsEqualSign())
-        MODEL_ERROR("Equal sign (\'=\') expected.");
+        MODEL_ERROR(MSG_EQUAL_SIGN_EXPECTED);
     GetNextToken();  // equal sign
 
     token = PeekNextTokenSkipDivider();
@@ -1282,7 +1288,7 @@ void Parser::ParseNext(StatementModel& statement)
     {
         token = PeekNextTokenSkipDivider();
         if (token.type != TokenTypeIdentifier)
-            MODEL_ERROR("Identifier expected.");
+            MODEL_ERROR(MSG_IDENTIFIER_EXPECTED);
         GetNextToken();  // identifier
 
         statement.params.push_back(token);
@@ -1300,7 +1306,7 @@ void Parser::ParseOn(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
     if (token.IsEndOfStatement())
-        MODEL_ERROR("Expreession expected.");
+        MODEL_ERROR("Expression expected.");
 
     ExpressionModel expr = ParseExpression();
     CHECK_MODEL_ERROR;
@@ -1318,7 +1324,7 @@ void Parser::ParseOn(StatementModel& statement)
     {
         token = PeekNextTokenSkipDivider();
         if (token.type != TokenTypeNumber)
-            MODEL_ERROR("Line number expected.");
+            MODEL_ERROR(MSG_LINE_NUMBER_EXPECTED);
         token = GetNextToken();  // line number
         statement.params.push_back(token);
 
@@ -1885,7 +1891,7 @@ void Parser::ParseRestore(StatementModel& statement)
     }
     GetNextToken();
     if (token.type != TokenTypeNumber)
-        MODEL_ERROR("Numeric argument expected.");
+        MODEL_ERROR(MSG_NUMERIC_ARGUMENT_EXPECTED);
     //TODO: Check for valid range
     statement.paramline = (int)token.dvalue;
 
@@ -1917,7 +1923,7 @@ void Parser::ParseDefFn(StatementModel& statement)
 
     Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeIdentifier)
-        MODEL_ERROR("Identifier expected.");
+        MODEL_ERROR(MSG_IDENTIFIER_EXPECTED);
     GetNextToken();  // identifier
     statement.ident = token;
 
@@ -1929,7 +1935,7 @@ void Parser::ParseDefFn(StatementModel& statement)
         {
             token = PeekNextTokenSkipDivider();
             if (token.type != TokenTypeIdentifier)
-                MODEL_ERROR("Identifier expected.");
+                MODEL_ERROR(MSG_IDENTIFIER_EXPECTED);
             GetNextToken();  // identifier
             statement.params.push_back(token);
 
@@ -1947,7 +1953,7 @@ void Parser::ParseDefFn(StatementModel& statement)
     }
 
     if (!token.IsEqualSign())
-        MODEL_ERROR("Equal sign expected.");
+        MODEL_ERROR(MSG_EQUAL_SIGN_EXPECTED);
     GetNextToken();  // equal sign
 
     token = PeekNextTokenSkipDivider();
@@ -1976,7 +1982,7 @@ void Parser::ParseDefUsr(StatementModel& statement)
 
     token = PeekNextTokenSkipDivider();
     if (!token.IsEqualSign())
-        MODEL_ERROR("Equal sign expected.");
+        MODEL_ERROR(MSG_EQUAL_SIGN_EXPECTED);
     GetNextToken();  // equal sign
 
     token = PeekNextTokenSkipDivider();
@@ -1994,7 +2000,7 @@ void Parser::ParseScreen(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
-        MODEL_ERROR("Numeric argument expected.");
+        MODEL_ERROR(MSG_NUMERIC_ARGUMENT_EXPECTED);
     GetNextToken();
 
     statement.params.push_back(token);
@@ -2010,7 +2016,7 @@ void Parser::ParseWidth(StatementModel& statement)
 {
     Token token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
-        MODEL_ERROR("Numeric argument expected.");
+        MODEL_ERROR(MSG_NUMERIC_ARGUMENT_EXPECTED);
     GetNextToken();  // number
     statement.params.push_back(token);
 
@@ -2023,7 +2029,7 @@ void Parser::ParseWidth(StatementModel& statement)
 
     token = PeekNextTokenSkipDivider();
     if (token.type != TokenTypeNumber)
-        MODEL_ERROR("Numeric argument expected.");
+        MODEL_ERROR(MSG_NUMERIC_ARGUMENT_EXPECTED);
     GetNextToken();  // number
     statement.params.push_back(token);
 

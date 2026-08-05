@@ -1139,7 +1139,7 @@ void Validator::ValidatePrint(StatementModel& statement)
         else if (root.token.IsKeyword(KeywordTAB))
         {
             if (root.args.size() != 1)
-                MODEL_ERROR("One expressions expected for TAB function.");
+                MODEL_ERROR("One expression expected for TAB function.");
             ExpressionModel& expr1 = root.args[0];
             if (!CheckIntegerOrSingleExpression(expr1))
                 return;
@@ -1147,7 +1147,7 @@ void Validator::ValidatePrint(StatementModel& statement)
         else if (root.token.IsKeyword(KeywordSPC))
         {
             if (root.args.size() != 1)
-                MODEL_ERROR("One expressions expected for SPC function.");
+                MODEL_ERROR("One expression expected for SPC function.");
             ExpressionModel& expr1 = root.args[0];
             if (!CheckIntegerOrSingleExpression(expr1))
                 return;
