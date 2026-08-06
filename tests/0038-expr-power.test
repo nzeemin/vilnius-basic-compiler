@@ -14,76 +14,52 @@
 80 A% = 2% ^ 3%
 85 PRINT "8", A%
 90 A = B% ^ C%
-95 PRINT "8", A
 100 E% = ABS(A - 8.0) < 0.000001
-105 PRINT "-1", E%
+105 PRINT "8", A, E%
 ' A negative base with an odd exponent gives a negative result
 110 A% = (-2%) ^ 3%
 115 PRINT "-8", A%
 120 A = D% ^ C%
-125 PRINT "-8", A
 130 E% = ABS(A + 8.0) < 0.000001
-135 PRINT "-1", E%
+135 PRINT "-8", A, E%
 ' An even power of a negative base is positive. The brackets are needed here,
 ' see the precedence check in lines 400-430 below.
 140 A% = (-2%) ^ 2%
 145 PRINT "4", A%
 150 A = D% ^ B%
-155 PRINT "4", A
 160 E% = ABS(A - 4.0) < 0.000001
-165 PRINT "-1", E%
+165 PRINT "4", A, E%
 ' The zero exponent gives 1 for any base
 170 A% = 2% ^ 0%
 175 PRINT "1", A%
 180 A% = (-7%) ^ 0%
 185 PRINT "1", A%
 190 A = B% ^ Z%
-195 PRINT "1", A
 200 E% = ABS(A - 1.0) < 0.000001
-205 PRINT "-1", E%
+205 PRINT "1", A, E%
 ' The base 1 gives 1 for any exponent
-210 A% = 1% ^ 100%
-215 PRINT "1", A%
 220 A = 1% ^ B%
-225 PRINT "1", A
 230 E% = ABS(A - 1.0) < 0.000001
-235 PRINT "-1", E%
+235 PRINT "1", A, E%
 ' A result outside the Integer range stays Single even for Integer operands
 240 A = 2% ^ 16%
-245 PRINT "65536", A
 250 E% = ABS(A - 65536.0) < 1.0
-255 PRINT "-1", E%
+255 PRINT "65536", A, E%
 ' A Single exponent: 2 ^ 0.5 is the square root of 2
 260 A = 2% ^ 0.5
-265 PRINT "1.414214", A
 270 E% = ABS(A - 1.4142136) < 0.00001
-275 PRINT "-1", E%
+275 PRINT "1.414214", A, E%
 280 A = F ^ G
-285 PRINT "1.414214", A
 290 E% = ABS(A - 1.4142136) < 0.00001
-295 PRINT "-1", E%
-' A Single base with an Integer exponent
-300 A = 1.5 ^ 2%
-305 PRINT "2.25", A
-310 F = 1.5
-320 A = F ^ B%
-325 PRINT "2.25", A
-330 E% = ABS(A - 2.25) < 0.000001
-335 PRINT "-1", E%
-' A negative Single base, the exponent is in a variable
-340 F = -1.5
-350 A = F ^ B%
-355 PRINT "2.25", A
-360 E% = ABS(A - 2.25) < 0.000001
-365 PRINT "-1", E%
+295 PRINT "1.414214", A, E%
 ' The '^' binds tighter than the unary minus, see 2.3.5: -2 ^ 2 is -(2 ^ 2)
 ' and not (-2) ^ 2, so the result is -4 and not 4
+300 F = 1.5
 370 A% = -2% ^ 2%
 375 PRINT "-4", A%
 380 A = -F ^ 2%
-385 PRINT "-2.25", A
 390 E% = A < 0.0
-395 PRINT "-1", E%
+395 PRINT "-2.25", A, E%
 ' The '^' binds tighter than '*' and '+' too
 400 A% = 2% + 3% ^ 2%
 405 PRINT "11", A%

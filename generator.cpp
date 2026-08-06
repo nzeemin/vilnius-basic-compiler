@@ -2359,9 +2359,10 @@ void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionN
     // Single ^ Single or Integer ^ Single => call FPWF
     else if (noderight.vtype == ValueTypeSingle)
     {
-        // FPWF wants the base at (SP+2)(SP+4) and the exponent at (SP+6)(SP+10)
-        GenerateOperandAsSingle(expr, noderight);  // exponent -> deeper on the stack
-        GenerateOperandAsSingle(expr, nodeleft);  // base -> on top of the stack
+        // FPWF wants the exponent on top of the stack and the base below it:
+        // on entry (SP+2)(SP+4) = exponent, (SP+6)(SP+10) = base.
+        GenerateOperandAsSingle(expr, nodeleft);  // base -> deeper on the stack
+        GenerateOperandAsSingle(expr, noderight);  // exponent -> on top of the stack
         AddRuntimeCall(RuntimeFPWF, comment);  // result on stack
     }
     else
