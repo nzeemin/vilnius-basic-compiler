@@ -1631,9 +1631,105 @@ FATN$T:	.WORD	035302, 037305	; c5 = 0.0963035
 
 ;#####################################################################
 ;## FEXP
+;## Need FTOI
+;## Need ITOF
+;## Need ERRR
+; Экспоненциальная функция e^x.
+; На входе: (SP) - адрес возврата
+;           (SP+2)(SP+4) - число с плавающей точкой (старшее слово, младшее слово)
+; На выходе: (SP)(SP+2) - результат
+; Порт процедуры EXPG из FLOATS.MAC без шитого кода (STAND).
+; MLR->FMUL, DVR->FDIV, ADR->FADD, SUB->FSUB, RI->FTOI, IR->ITOF.
+; RI/IR обёрнуты так, чтобы эффект на стеке совпадал с оригиналом:
+;   RI: CALL FTOI (целое в R0), затем положить R0 на стек;
+;   IR: снять целое в R0, затем CALL ITOF (float на стек).
 FEXP:
-;TODO
-	RETURN
+	MOV	(SP)+, FEXP$X+2	; сохранить адрес возврата
+; На стеке: (SP)(SP+2) - аргумент x (старшее, младшее слово)
+	MOV	SP, R4		; R4 -> аргумент x
+	MOV	@R4, R0		; R0 = старшее слово x
+	BGT	FEXP1		; x > 0 -> проверить переполнение
+	CMP	R0, #141662	; x < 0: порог -7.0
+	BLOS	FEXP2		; x >= -7.0 -> обычное вычисление
+	CLR	R0		; иначе e^x = 0
+	CLR	R1
+	BR	FEXPI
+FEXP1:	CMP	R0, #41660	; x > 0: порог +7.0
+	BHI	FEXPK		; x > +7.0 -> переполнение
+FEXP2:	ASL	R0		; старшее слово *2 (выделение целой части)
+	CMP	R0, #63000	; если меньше порога, x мал -> e^x ~ 1.0
+	BCS	FEXP3
+; вычисление e^x = 2^k * e^r
+	TST	-(SP)		; выравнивание стека
+	CLR	-(SP)		; зарезервировать слово
+	MOV	#40200, -(SP)	; константа 1.0
+	MOV	2(R4), -(SP)	; копия младшего слова x
+	MOV	@R4, -(SP)		; копия старшего слова x
+	MOV	2(R4), -(SP)	; дублировать x
+	MOV	@R4, -(SP)
+	MOV	#125073, -(SP)	; EX4: положить log2(e)
+	MOV	#40270, -(SP)
+	FMUL	SP		; MLR: x * log2(e)
+	CALL	FTOI		; RI: целое k в R0
+	MOV	R0, -(SP)		; положить k на стек (как RI)
+	MOV	@SP, 12(SP)	; EX5: сохранить k
+	MOV	(SP)+, R0		; IR: снять k в R0
+	CALL	ITOF		; IR: k как float на стеке
+	MOV	#125073, -(SP)	; EX4: log2(e)
+	MOV	#40270, -(SP)
+	FDIV	SP		; DVR
+	FSUB	SP		; SUB: r = x - k*ln2
+; EX6: подготовка к полиному
+	ROL	@SP
+	ROL	R0
+	SUB	#400, @SP
+	BLOS	FEXP10		; малый r -> e^r ~ 1
+	ROR	R0
+	ROR	@SP
+	MOV	@SP, R0
+	MOV	2(SP), R1
+	MOV	#36602, -(SP)
+	MOV	#141100, -(SP)
+	MOV	R1, -(SP)
+	MOV	R0, -(SP)
+	MOV	#71571, -(SP)
+	MOV	#42426, -(SP)
+	MOV	#56133, -(SP)
+	MOV	#41560, -(SP)
+	MOV	R1, -(SP)
+	MOV	R0, -(SP)
+	MOV	R1, -(SP)
+	MOV	R0, -(SP)
+	FMUL	SP		; MLR
+	FADD	SP		; ADR
+	FDIV	SP		; DVR
+	FADD	SP		; ADR
+	FADD	SP		; ADR
+	FDIV	SP		; DVR
+	ADD	#100200, @SP	; EX7: коррекция порядка
+	FADD	SP		; ADR
+	MOV	2(SP), -(SP)	; EX8: копия результата
+	MOV	2(SP), -(SP)
+	FMUL	SP		; MLR
+	BR	FEXP9		; EX9
+FEXP10:	CMP	(SP)+, (SP)+
+FEXP9:	MOV	(SP)+, R0	; старшее слово результата
+	MOV	(SP)+, R1		; младшее слово результата
+	MOV	(SP)+, R4		; k
+	SWAB	R4
+	CLRB	R4
+	ASR	R4
+	ADD	R4, R0		; масштаб 2^k
+	BMI	FEXPK		; переполнение
+	BR	FEXPI
+FEXP3:	MOV	#40200, R0	; e^x ~ 1.0
+	CLR	R1
+FEXPI:	MOV	R0, (SP)	; результат в слот аргумента (старшее слово)
+	MOV	R1, 2(SP)		; результат (младшее слово)
+FEXP$X:	JMP	@#000000	; возврат
+FEXPK:	MOV	FEXP$X+2, R5	; переполнение экспоненты
+	CALL	ERRR
+	.WORD	4306.		; ошибка: переполнение
 
 ;#####################################################################
 ;## FLOG

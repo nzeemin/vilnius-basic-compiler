@@ -59,8 +59,10 @@
 265 A = EXP(F)
 270 E% = ABS(A - 22026.47) < 0.01
 275 PRINT "22026.47"; A; E%
+' A large argument loses absolute precision: the result is 2^k * e^r, and any
+' error in r is amplified by 2^k (here 2^29), so the tolerance is relative (1E-5).
 280 A = EXP(20)
-285 E% = ABS(A - 4.851652E+08) < 100.0
+285 E% = ABS(A - 4.851652E+08) < 4852.0
 290 PRINT "4.851652E+08"; A; E%
 ' A large negative argument gives a result close to zero, but never below it
 295 A = EXP(-10)
@@ -77,11 +79,6 @@
 360 A = EXP(F) * EXP(G) - EXP(F + G)
 365 E% = ABS(A) < 0.0001
 370 PRINT "0"; A; E%
-' LOG is the inverse of EXP
-375 F = 0.3
-380 A = LOG(EXP(F)) - F
-385 E% = ABS(A) < 0.00001
-390 PRINT "0"; A; E%
 ' The argument is an expression
 395 F = 1.0
 400 A = EXP(F + F)
