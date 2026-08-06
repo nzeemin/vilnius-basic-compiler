@@ -1,0 +1,17 @@
+-q
+----------------------------------------------------------------------
+10 F = 2.0
+' X ^ 0 gives 1 and X ^ 1 gives X; a constant 0 or 1 exponent is reduced by
+' the compiler and warned about. The base is a variable so it reaches codegen.
+' Both Integer (0%) and Single (0) constant exponents are covered.
+20 A = F ^ 0%
+30 A = F ^ 1%
+40 A = F ^ 0
+50 A = F ^ 1.0
+' X ^ 2 is a real power, no warning
+60 A = F ^ 2%
+----------------------------------------------------------------------
+WARNING: at 5:12 line 20 - Power 0 reduced to 1; consider to remove the power.
+WARNING: at 6:12 line 30 - Power 1 reduced to nothing; consider to remove the power.
+WARNING: at 7:12 line 40 - Power 0 reduced to 1; consider to remove the power.
+WARNING: at 8:12 line 50 - Power 1 reduced to nothing; consider to remove the power.

@@ -2328,19 +2328,40 @@ void Generator::GenerateOperPower(const ExpressionModel& expr, const ExpressionN
 
     const string comment = "Operation \'^\'";
 
+    // Special cases for a constant exponent of 0 or 1. Handles both Integer and
+    // Single constants; the Single case also avoids the FPWF runtime call.
+    if (noderight.constval)
+    {
+        double dexp = noderight.token.dvalue;
+        if (dexp == 0)  // X ^ 0 => 1
+        {
+            Warning(noderight.token, "Power 0 reduced to 1; consider to remove the power.");
+            AddLine("\tCLR\t-(SP)\t; ^ 0 reduced to 1.0");  // Single 1.0 on the stack
+            AddLine("\tMOV\t#040200, -(SP)");
+            return;
+        }
+        if (dexp == 1)  // X ^ 1 => X
+        {
+            Warning(noderight.token, "Power 1 reduced to nothing; consider to remove the power.");
+            GenerateOperandAsSingle(expr, nodeleft);  // base as a Single on the stack
+            return;
+        }
+    }
+
     // Single ^ Integer or Integer ^ Integer => call FPWI
     if (noderight.vtype == ValueTypeInteger)
     {
-        GenerateOperandAsSingle(expr, nodeleft);
-        GenerateExpression(expr, noderight);  // result in R0
-        AddRuntimeCall(RuntimeITOF, "to Single");  // result on stack
+        // FPWI wants the base as a Single on the stack and the Integer exponent in R0
+        GenerateOperandAsSingle(expr, nodeleft);  // base -> Single on the stack
+        GenerateExpression(expr, noderight);  // exponent -> Integer in R0
         AddRuntimeCall(RuntimeFPWI, comment);  // result on stack
     }
     // Single ^ Single or Integer ^ Single => call FPWF
     else if (noderight.vtype == ValueTypeSingle)
     {
-        GenerateOperandAsSingle(expr, nodeleft);
-        GenerateExpression(expr, noderight);
+        // FPWF wants the base at (SP+2)(SP+4) and the exponent at (SP+6)(SP+10)
+        GenerateOperandAsSingle(expr, noderight);  // exponent -> deeper on the stack
+        GenerateOperandAsSingle(expr, nodeleft);  // base -> on top of the stack
         AddRuntimeCall(RuntimeFPWF, comment);  // result on stack
     }
     else

@@ -1,0 +1,74 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' Integer exponent goes through the FPWI runtime (square-and-multiply). The
+' base is in a variable so the expression is not folded and really calls FPWI;
+' the result is compared with the expected value with a tolerance.
+20 F = 2.0
+' positive exponents
+90 A = F ^ 2%
+100 Z% = ABS(A - 4.0) < 0.0001
+110 PRINT "4", A, Z%
+120 A = F ^ 3%
+130 Z% = ABS(A - 8.0) < 0.0001
+140 PRINT "8", A, Z%
+150 A = F ^ 10%
+160 Z% = ABS(A - 1024.0) < 0.01
+170 PRINT "1024", A, Z%
+' negative exponent gives the reciprocal (FDIV path)
+180 K% = -1
+190 A = F ^ K%
+200 Z% = ABS(A - 0.5) < 0.0001
+210 PRINT ".5", A, Z%
+220 K% = -2
+230 A = F ^ K%
+240 Z% = ABS(A - 0.25) < 0.0001
+250 PRINT ".25", A, Z%
+' a non-integer base
+260 F = 1.5
+270 A = F ^ 2%
+280 Z% = ABS(A - 2.25) < 0.0001
+290 PRINT "2.25", A, Z%
+300 K% = -1
+310 A = F ^ K%
+320 Z% = ABS(A - 0.6666667) < 0.0001
+330 PRINT ".6666667", A, Z%
+' a negative base: odd power negative, even power positive
+340 F = -2.0
+350 A = F ^ 3%
+360 Z% = ABS(A + 8.0) < 0.0001
+370 PRINT "-8", A, Z%
+380 A = F ^ 2%
+390 Z% = ABS(A - 4.0) < 0.0001
+400 PRINT "4", A, Z%
+410 K% = -1
+420 A = F ^ K%
+430 Z% = ABS(A + 0.5) < 0.0001
+440 PRINT "-.5", A, Z%
+' Integer base and Integer exponent, both in variables
+450 B% = 2
+460 C% = 3
+470 A = B% ^ C%
+480 Z% = ABS(A - 8.0) < 0.0001
+490 PRINT "8", A, Z%
+500 B% = 3
+510 C% = 4
+520 A = B% ^ C%
+530 Z% = ABS(A - 81.0) < 0.0001
+540 PRINT "81", A, Z%
+' the exponent in a variable
+550 F = 2.0
+560 D% = 5
+570 A = F ^ D%
+580 Z% = ABS(A - 32.0) < 0.0001
+590 PRINT "32", A, Z%
+' exponent 0 in a variable gives 1
+600 D% = 0
+610 A = F ^ D%
+620 Z% = ABS(A - 1.0) < 0.0001
+630 PRINT "1", A, Z%
+' exponent 1 in a variable gives the base (FPWI, single loop pass)
+640 D% = 1
+650 A = F ^ D%
+660 Z% = ABS(A - 2.0) < 0.0001
+670 PRINT "2", A, Z%
