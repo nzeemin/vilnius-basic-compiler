@@ -2,17 +2,27 @@
 ----------------------------------------------------------------------
 10 DATA 1,&O22,&H3F
 15 READ A%,B%,C%
+16 PRINT A%,B%,C%
 20 DATA 1.1,2.2,3.3
 25 READ A,B,C
+26 PRINT A,B,C
 30 DATA 1!,2!,3!
 35 READ A,B,C
+36 PRINT A,B,C
 40 DATA "A","B","C"
 45 READ A$,B$,C$
+46 PRINT A$,B$,C$
 50 DATA 1%,2.2,3.3!,"D"
 55 READ A%,B,C,D$
+56 PRINT A%,B,C,D$
 60 DATA AAA,BBB,CCC
 65 READ A$,B$,C$
+66 PRINT A$,B$,C$
 100 READ A$,B$,X$(1)
 110 READ Y(1,2)
 120 READ Z(1,2,3)
 200 READ AR%(I%,1)
+' The DATA above supplies 19 elements total, all consumed by the READs
+' up to line 65. The READ on line 100 (A$) is the 20th read with no
+' 20th element left, so running this expects ERROR 4804 AT xxxxxx
+' (REAS: read past end of data).

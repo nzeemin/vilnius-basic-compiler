@@ -135,6 +135,8 @@ void Token::ParseDValue()
     if (vtype == ValueTypeSingle)
     {
         int strlen = text.length();
+        if (strlen > 0 && (text[strlen - 1] == '%' || text[strlen - 1] == '!' || text[strlen - 1] == '#'))
+            strlen--;  // exclude the type sigil from the fractional digit count
         int dotpos = text.find('.');
         int epos = text.find('E');
 
