@@ -8,6 +8,8 @@
 50 IF 1% THEN NEXT
 60 IF 1% THEN BEEP ELSE FOR I%=1% TO 10%
 70 IF 1% THEN BEEP ELSE NEXT
+80 IF 1% THEN DATA 1,2,3
+90 IF 1% THEN BEEP ELSE DATA 1,2,3
 ----------------------------------------------------------------------
 ERROR in line 10 - Invalid line number 5.
 ERROR in line 15 - Invalid line number 5.
@@ -17,4 +19,6 @@ ERROR in line 40 - FOR statement not allowed under IF/THEN/ELSE.
 ERROR in line 50 - NEXT statement not allowed under IF/THEN/ELSE.
 ERROR in line 60 - FOR statement not allowed under IF/THEN/ELSE.
 ERROR in line 70 - NEXT statement not allowed under IF/THEN/ELSE.
-Validation ERRORS: 8
+ERROR in line 80 - DATA statement not allowed under IF/THEN/ELSE.
+ERROR in line 90 - DATA statement not allowed under IF/THEN/ELSE.
+Validation ERRORS: 10

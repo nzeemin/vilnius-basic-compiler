@@ -1,0 +1,7 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 DATA "ABC"
+30 READ A
+' The DATA element is a String, but A is Single, so REAF hits a type
+' mismatch: expect ERROR 4713 AT xxxxxx.

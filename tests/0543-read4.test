@@ -1,0 +1,7 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+20 DATA 123
+30 READ A$
+' The DATA element is a numeric Integer, but A$ is String, so REAS hits a
+' type mismatch: expect ERROR 4813 AT xxxxxx.

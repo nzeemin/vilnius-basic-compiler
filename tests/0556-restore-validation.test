@@ -1,0 +1,10 @@
+-q
+----------------------------------------------------------------------
+10 DATA 1,2,3
+20 A = 1
+30 RESTORE 99999
+40 RESTORE 20
+----------------------------------------------------------------------
+ERROR in line 30 - Invalid line number 99999
+ERROR in line 40 - RESTORE 20: there is no DATA line there.
+Validation ERRORS: 2

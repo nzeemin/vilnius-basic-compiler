@@ -1,0 +1,45 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' READ auto-coerces between Integer and Single: an Integer DATA element
+' read into a Single variable goes through ITOF, and a Single DATA element
+' read into an Integer variable goes through FTOI. Every line prints the
+' expected value, the value actually read, and -1 if they match.
+' Integer DATA -> Single variable (ITOF)
+20 DATA 5
+25 READ A
+30 E% = ABS(A - 5.0) < 0.00001
+35 PRINT "5"; A; E%
+40 DATA -7
+45 READ B
+50 E% = ABS(B + 7.0) < 0.00001
+55 PRINT "-7"; B; E%
+' Single DATA (exact integer value) -> Integer variable (FTOI)
+60 DATA 9.0
+65 READ C%
+70 E% = (C% = 9)
+75 PRINT "9"; C%; E%
+80 DATA -12.0
+85 READ D%
+90 E% = (D% = -12)
+95 PRINT "-12"; D%; E%
+' Single DATA (fractional) -> Integer variable: FTOI truncates toward zero
+100 DATA 7.9
+105 READ E1%
+110 F% = (E1% = 7)
+115 PRINT "7"; E1%; F%
+120 DATA -7.9
+125 READ G%
+130 H% = (G% = -7)
+135 PRINT "-7"; G%; H%
+' A mixed-type DATA line, read alternating Integer/Single targets
+140 DATA 1,2.5,3,4.5
+145 READ I%,J,K%,L
+150 E% = (I% = 1) AND (ABS(J - 2.5) < 0.00001) AND (K% = 3) AND (ABS(L - 4.5) < 0.00001)
+155 PRINT "1 2.5 3 4.5"; I%; J; K%; L; E%
+' RESTORE back to a coercing line and re-read to confirm the pointer and
+' DATATY/DATACN state reset correctly after crossing a type boundary
+160 RESTORE 60
+165 READ M%
+170 E% = (M% = 9)
+175 PRINT "9"; M%; E%

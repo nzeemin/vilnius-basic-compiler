@@ -1,0 +1,9 @@
+-q
+----------------------------------------------------------------------
+42500 A = 1
+42510 READ B
+42520 RESTORE
+----------------------------------------------------------------------
+ERROR in line 42510 - READ statement without any DATA to read.
+ERROR in line 42520 - RESTORE statement without any DATA to read.
+Generation ERRORS: 2

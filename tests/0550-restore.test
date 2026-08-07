@@ -1,9 +1,34 @@
 -q
 ----------------------------------------------------------------------
-10 DATA 0
-20 DATA 1,2,3
-30 RESTORE
-40 RESTORE 10
-50 RESTORE 20
-60 RESTORE 65535
-65535 DATA 65535
+10 CLS
+' RESTORE resets the DATA pointer, see 5.4.3. Every line below prints the
+' expected value(s), the value(s) actually read, and -1 if they match.
+20 DATA 100,200,300
+30 DATA 400,500
+40 READ A,B,C,D,E
+45 E1% = (A=100) AND (B=200) AND (C=300) AND (D=400) AND (E=500)
+50 PRINT "100 200 300 400 500"; A; B; C; D; E; E1%
+' RESTORE with no argument rewinds to the very first DATA element
+60 RESTORE
+65 READ F
+70 E2% = (F=100)
+75 PRINT "100"; F; E2%
+' RESTORE <line> jumps straight to the DATA statement at that line
+80 RESTORE 30
+85 READ G,H
+90 E3% = (G=400) AND (H=500)
+95 PRINT "400 500"; G; H; E3%
+' RESTORE <line> also accepts a line that is not itself a DATA statement;
+' it searches forward and finds the next DATA line after it (not before)
+100 A9 = 0
+110 DATA 600,700
+120 RESTORE 100
+125 READ I,J
+130 E4% = (I=600) AND (J=700)
+135 PRINT "600 700"; I; J; E4%
+' RESTORE to the last possible line number
+140 RESTORE 65535
+145 READ K
+150 E5% = (K=999)
+155 PRINT "999"; K; E5%
+65535 DATA 999
