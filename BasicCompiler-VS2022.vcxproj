@@ -150,6 +150,8 @@
     <ClInclude Include="main.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="generator-func.cpp" />
+    <ClCompile Include="generator-oper.cpp" />
     <ClCompile Include="generator.cpp" />
     <ClCompile Include="model.cpp" />
     <ClCompile Include="parser.cpp" />
