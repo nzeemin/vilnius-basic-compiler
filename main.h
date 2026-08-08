@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <cstring>
+#include <cstdint>
 #include <string>
 #include <iostream>
 #include <limits.h>
@@ -155,7 +156,7 @@ enum RuntimeSymbol
     RuntimeFATN         = 42,
     RuntimeFEXP         = 43,
     RuntimeFLOG         = 44,
-    RuntimeREST         = 45,
+    RuntimeREST         = 45,  // RESTORE
     RuntimeREAI         = 46,  // READ Integer
     RuntimeREAF         = 47,  // READ Single
     RuntimeREAS         = 48,  // READ String
@@ -190,6 +191,7 @@ inline int ConstToInteger(double dvalue) { return (int)std::trunc(dvalue); }
 string GetCanonicVariableName(const string& name);
 string DecorateVariableName(const string& name);
 string GetValueTypeStr(ValueType vtype);
+string to_string_octal(uint16_t value);  // defined in generator.cpp, used by generator-oper.cpp
 
 const char* GetPlatformName(TargetPlatform platform);
 TargetPlatform FindPlatformByName(const string& name);
