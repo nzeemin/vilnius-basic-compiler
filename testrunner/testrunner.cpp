@@ -55,6 +55,16 @@ const char* COMPILER_PATH = "../../vibasc";
 const char* PATH_SEPARATOR = "/";
 #endif
 
+// Read a line, stripping a trailing CR so CRLF/CR/LF test files compare
+// equal on any platform (ifstream does no EOL translation on Linux/macOS).
+static std::istream& getlinecr(std::istream& is, string& line)
+{
+    std::getline(is, line);
+    if (!line.empty() && line.back() == '\r')
+        line.pop_back();
+    return is;
+}
+
 #ifdef _MSC_VER
 // Get all files by mask in the directory. Win32 specific method
 void findallfiles_bymask(const string& dirname, const string& mask, std::vector<string>& result)
@@ -276,14 +286,14 @@ void process_test(const string& testfilename)
     string testfilepath = string(TESTS_SUB_DIR) + PATH_SEPARATOR + testfilename;
     std::ifstream fs(testfilepath);
     //TODO: check for error
-    std::getline(fs, line);  // read compiler command line parameters line
+    getlinecr(fs, line);  // read compiler command line parameters line
     string compilerparams(line);
-    std::getline(fs, line);  // skip one line after the parameters
+    getlinecr(fs, line);  // skip one line after the parameters
     // Copy the BASIC program lines
     string basicfilepath = testdirpath + PATH_SEPARATOR + testname + ".ASC";
     std::ofstream ofs(basicfilepath);
     //TODO: check for error
-    while (std::getline(fs, line))
+    while (getlinecr(fs, line))
     {
         if (!line.empty() && line[0] == '-')
             break;
@@ -295,7 +305,7 @@ void process_test(const string& testfilename)
     // next section of the test file is expected errors/warnings
     bool outhasanyerrors = false;
     std::vector<string> errorlines;
-    while (std::getline(fs, line))
+    while (getlinecr(fs, line))
     {
         if (!line.empty() && line[0] == '-')
             break;
@@ -310,7 +320,7 @@ void process_test(const string& testfilename)
     std::vector<string> macetalontext;
     if (!line.empty() && line[0] == '-')
     {
-        while (std::getline(fs, line))
+        while (getlinecr(fs, line))
         {
             if (line.empty() || line[0] == ';')  // skipp all empty lines and comment lines
                 continue;
@@ -344,7 +354,7 @@ void process_test(const string& testfilename)
     std::vector<string> outlines;
     std::ifstream fsout(testdirpath + PATH_SEPARATOR + outfilename);
     //TODO: check for error
-    while (std::getline(fsout, line))
+    while (getlinecr(fsout, line))
     {
         if (!line.empty())
             outlines.push_back(line);
@@ -407,7 +417,7 @@ void process_test(const string& testfilename)
     // Read .outas file to check if we have any errors/warnings
     {
         std::ifstream fsoutas(testdirpath + PATH_SEPARATOR + assembleroutfilename);
-        while (std::getline(fsoutas, line))
+        while (getlinecr(fsoutas, line))
         {
             if (line.empty())  // skip empty lines
                 continue;
@@ -430,7 +440,7 @@ void process_test(const string& testfilename)
     // Read .outasrt file to check if we have any errors/warnings
     {
         std::ifstream fsoutas2(testdirpath + PATH_SEPARATOR + assembleroutfile2name);
-        while (std::getline(fsoutas2, line))
+        while (getlinecr(fsoutas2, line))
         {
             if (line.empty())  // skip empty lines
                 continue;
@@ -453,7 +463,7 @@ void process_test(const string& testfilename)
     // Read .outln file to check if we have any errors/warnings
     {
         std::ifstream fsoutln(testdirpath + PATH_SEPARATOR + linkeroutfilename);
-        while (std::getline(fsoutln, line))
+        while (getlinecr(fsoutln, line))
         {
             if (line.empty())  // skip empty lines
                 continue;
@@ -473,7 +483,7 @@ void process_test(const string& testfilename)
     std::ifstream fsmac(testdirpath + PATH_SEPARATOR + macfilename);
     //TODO: check for error
     std::vector<string> mactext;
-    while (std::getline(fsmac, line))
+    while (getlinecr(fsmac, line))
     {
         if (line.empty())  // skip empty lines
             continue;
@@ -529,7 +539,7 @@ void process_test(const string& testfilename)
     // Read VIBAS.MAC and check for TODOs
     std::ifstream fsrt(testdirpath + PATH_SEPARATOR + "VIBAS.MAC");
     bool rthastodos = false;
-    while (std::getline(fsrt, line))
+    while (getlinecr(fsrt, line))
     {
         if (line.empty())  // skip empty lines
             continue;
