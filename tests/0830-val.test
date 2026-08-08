@@ -1,0 +1,83 @@
+-q
+----------------------------------------------------------------------
+10 CLS
+' VAL converts a string to a number, see 6.4.6. The result is always Single.
+' VAL reads the leading numeric prefix of the string: VAL("23A12") is 23 and
+' VAL("A12") is 0. A non-numeric string gives 0. A Single keeps about 7 digits,
+' so every check uses a tolerance. The string is put into a variable first, then
+' passed to VAL. Every line prints the expected value, the calculated one, and
+' -1 if they match.
+20 B$ = "42"
+25 A = VAL(B$)
+30 E% = ABS(A - 42.0) < 0.0001
+35 PRINT "42"; A; E%
+40 B$ = "-7"
+45 A = VAL(B$)
+50 E% = ABS(A + 7.0) < 0.00001
+55 PRINT "-7"; A; E%
+60 B$ = "100"
+65 A = VAL(B$)
+70 E% = ABS(A - 100.0) < 0.001
+75 PRINT "100"; A; E%
+80 B$ = "999"
+85 A = VAL(B$)
+90 E% = ABS(A - 999.0) < 0.01
+95 PRINT "999"; A; E%
+100 B$ = "65535"
+105 A = VAL(B$)
+110 E% = ABS(A - 65535.0) < 1.0
+115 PRINT "65535"; A; E%
+' A leading '+' is allowed
+120 B$ = "+9"
+125 A = VAL(B$)
+130 E% = ABS(A - 9.0) < 0.00001
+135 PRINT "9"; A; E%
+' Fractional values
+140 B$ = "3.14"
+145 A = VAL(B$)
+150 E% = ABS(A - 3.14) < 0.00001
+155 PRINT "3.14"; A; E%
+160 B$ = "-2.5"
+165 A = VAL(B$)
+170 E% = ABS(A + 2.5) < 0.00001
+175 PRINT "-2.5"; A; E%
+180 B$ = "0.5"
+185 A = VAL(B$)
+190 E% = ABS(A - 0.5) < 0.00001
+195 PRINT ".5"; A; E%
+200 B$ = "0.001"
+205 A = VAL(B$)
+210 E% = ABS(A - 0.001) < 0.0000001
+215 PRINT ".001"; A; E%
+220 B$ = "-8.25"
+225 A = VAL(B$)
+230 E% = ABS(A + 8.25) < 0.00001
+235 PRINT "-8.25"; A; E%
+240 B$ = "3.14159"
+245 A = VAL(B$)
+250 E% = ABS(A - 3.14159) < 0.00001
+255 PRINT "3.14159"; A; E%
+' VAL reads the leading numeric prefix and stops at the first non-numeric char
+260 B$ = "23A12"
+265 A = VAL(B$)
+270 E% = ABS(A - 23.0) < 0.0001
+275 PRINT "23"; A; E%
+280 B$ = "12X"
+285 A = VAL(B$)
+290 E% = ABS(A - 12.0) < 0.0001
+295 PRINT "12"; A; E%
+300 B$ = "99Z9"
+305 A = VAL(B$)
+310 E% = ABS(A - 99.0) < 0.001
+315 PRINT "99"; A; E%
+' A string that does not start with a number gives 0
+320 B$ = "A12"
+325 A = VAL(B$)
+330 E% = ABS(A) < 0.00001
+335 PRINT "0"; A; E%
+' VAL of a copy of a string variable
+340 B$ = "-456"
+345 C$ = B$
+350 A = VAL(C$)
+355 E% = ABS(A + 456.0) < 0.01
+360 PRINT "-456"; A; E%

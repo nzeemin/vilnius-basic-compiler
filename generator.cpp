@@ -116,6 +116,7 @@ const GeneratorFuncSpec Generator::m_funcspecs[] =
     { KeywordASC,       &Generator::GenerateFuncAsc },
     { KeywordCHR,       &Generator::GenerateFuncChr },
     { KeywordSTRING,    &Generator::GenerateFuncString },
+    { KeywordVAL,       &Generator::GenerateFuncVal },
     { KeywordIIF,       &Generator::GenerateFuncIif },
 };
 
@@ -625,8 +626,11 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
             return;
         }
         case ValueTypeString:
-            AddComment("TODO constval String");
+        {
+            int sindex = m_source->GetConstStringIndex(node.token.svalue);
+            AddLine("\tMOV\t#ST" + std::to_string(sindex) + ", R0\t; const String");
             return;
+        }
         default:
             assert(false);  // unexpected value type
             return;
@@ -645,14 +649,20 @@ void Generator::GenerateExpression(const ExpressionModel& expr, const Expression
     {
         string canoname = GetCanonicVariableName(node.token.text);
         string deconame = DecorateVariableName(canoname);
-        if (node.vtype == ValueTypeSingle)
+        switch (node.vtype)
         {
-            AddLine("\tMOV\t" + deconame + ",   -(SP)\t; var " + canoname);  // lower
-            AddLine("\tMOV\t" + deconame + "+2, -(SP)");  // higher
-        }
-        else  // Integer, String
-        {
+        case ValueTypeSingle:
+            AddLine("\tMOV\t" + deconame + ",   -(SP)\t; var " + canoname);  // lower word
+            AddLine("\tMOV\t" + deconame + "+2, -(SP)");  // higher word
+            break;
+        case ValueTypeString:
+            AddLine("\tMOV\t#" + deconame + ", R0\t; var " + canoname);
+            break;
+        case ValueTypeInteger:
             AddLine("\tMOV\t" + deconame + ", R0\t; var " + canoname);
+            break;
+        default:
+            assert(false);  // unexpected value type
         }
         return;
     }
@@ -938,8 +948,8 @@ void Generator::GenerateAssignment(VariableExpressionModel& var, ExpressionModel
     }
     else  // non-const non-variable String
     {
-        GenerateExpression(expr);
-        AddLine("\tMOV\t" + deconame + ", R1");
+        GenerateExpression(expr);  // R0 = source string address
+        AddLine("\tMOV\t#" + deconame + ", R1");  // R1 = destination buffer address
         AddRuntimeCall(RuntimeSTCP, "var " + canoname + " assignment");
     }
 }

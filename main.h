@@ -145,7 +145,7 @@ enum RuntimeSymbol
     RuntimeFDIV         = 31,  // FIS
     RuntimeFPACK        = 32,  // Parse Single from buffer
     RuntimeINPF         = 33,  // INPUT Single
-    RuntimeReserved5    = 34,
+    RuntimeVALF         = 34,  // VAL
     RuntimeFRND         = 35,  // Random number
     RuntimeFSQR         = 36,  // Square root
     RuntimeFPWF         = 37,  // Power Single ^ Single
@@ -800,6 +800,7 @@ private:
     void GenerateFuncChr(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncString(const ExpressionModel& expr, const ExpressionNode& node);
     void GenerateFuncIif(const ExpressionModel& expr, const ExpressionNode& node);
+    void GenerateFuncVal(const ExpressionModel& expr, const ExpressionNode& node);
 };
 
 class RuntimeGenerator

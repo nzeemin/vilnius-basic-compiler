@@ -490,6 +490,20 @@ void Generator::GenerateFuncString(const ExpressionModel& expr, const Expression
     AddComment("TODO STRING$");
 }
 
+// X=VAL(<СИМВОЛЬНОЕ ВЫРАЖЕНИЕ>)
+// result is Single
+void Generator::GenerateFuncVal(const ExpressionModel& expr, const ExpressionNode& node)
+{
+    assert(node.args.size() == 1);
+
+    const ExpressionModel& expr1 = node.args[0];
+    assert(expr1.GetExpressionValueType() == ValueTypeString);
+
+    GenerateExpression(expr1);  // R0 = string address (length byte, then the characters)
+
+    AddRuntimeCall(RuntimeVALF, "VAL");  // parse the string to a Single on the stack
+}
+
 // X=IIF(<ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>,<АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ>)
 // result is Single or Integer
 void Generator::GenerateFuncIif(const ExpressionModel& expr, const ExpressionNode& node)
